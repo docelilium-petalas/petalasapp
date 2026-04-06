@@ -1,32 +1,32 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Outfit } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import Providers from '@/components/providers/SessionProvider'
 
-const inter = Inter({
+const outfit = Outfit({
     subsets: ['latin'],
-    variable: '--font-inter',
+    variable: '--font-outfit',
     display: 'swap',
 })
 
 export const metadata: Metadata = {
     title: {
-        default: 'InvestMais | Geração de Conteúdo Financeiro por IA',
-        template: '%s | InvestMais',
+        default: 'Pétalas | Luminous - Vídeo AI & CRM',
+        template: '%s | Pétalas',
     },
     description:
-        'Plataforma especializada em geração de conteúdo por Inteligência Artificial para o mercado financeiro. Automatize a criação de vídeos profissionais para produtos como Home Equity e Financiamento.',
+        'Pétalas Luminous: A próxima geração de CRM com criação de vídeos por Inteligência Artificial. Potencialize seu pipeline de vendas e conteúdo.',
     keywords: [
-        'fintech',
-        'conteúdo financeiro',
+        'SaaS',
+        'CRM',
         'IA',
-        'inteligência artificial',
-        'vídeos financeiros',
-        'home equity',
-        'financiamento',
+        'Inteligência Artificial',
+        'Vídeos AI',
+        'Marketing',
+        'Vendas',
     ],
-    robots: 'noindex, nofollow',
+    robots: 'index, follow',
 }
 
 export default function RootLayout({
@@ -35,30 +35,32 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="pt-BR" className={inter.variable}>
-            <body className="font-sans antialiased">
+        <html lang="pt-BR" className={outfit.variable}>
+            <body className="font-sans antialiased bg-gray-50 text-gray-900 selection:bg-primary/20 selection:text-primary">
                 <Providers>
                     {children}
                     <Toaster
                         position="top-right"
                         toastOptions={{
                             style: {
-                                background: '#0f1e35',
-                                color: '#ffffff',
-                                border: '1px solid #1a2d4a',
-                                borderRadius: '12px',
+                                background: '#ffffff',
+                                color: '#111827',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '16px',
                                 fontSize: '14px',
+                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                padding: '12px 16px',
                             },
                             success: {
                                 iconTheme: {
-                                    primary: '#C9A84C',
-                                    secondary: '#0f1e35',
+                                    primary: '#7C3AED',
+                                    secondary: '#ffffff',
                                 },
                             },
                             error: {
                                 iconTheme: {
                                     primary: '#ef4444',
-                                    secondary: '#0f1e35',
+                                    secondary: '#ffffff',
                                 },
                             },
                         }}
