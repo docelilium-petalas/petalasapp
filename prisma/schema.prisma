@@ -146,6 +146,8 @@ model Opportunity {
   title       String
   value       Float
   priority    String   @default("media")
+  description String?
+  responsible String?
   date        DateTime @default(now())
   isNew       Boolean  @default(true) @map("is_new")
   createdAt   DateTime @default(now()) @map("created_at")

@@ -19,16 +19,28 @@ import {
     X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPipelineData, createColumn } from './actions'
+import { getPipelineData, createColumn, createOpportunity } from './actions'
 import toast from 'react-hot-toast'
 
 export default function PipelinePage() {
     const [isNewColumnModalOpen, setIsNewColumnModalOpen] = useState(false)
+    const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [columns, setColumns] = useState<any[]>([])
     const [cards, setCards] = useState<any[]>([])
     const [newColumnName, setNewColumnName] = useState('')
     const [selectedColor, setSelectedColor] = useState('bg-rose-500')
+    
+    // Estado para o novo card (Cartaz)
+    const [newCardData, setNewCardData] = useState({
+        title: '',
+        description: '',
+        value: '',
+        date: '',
+        priority: 'media',
+        stageId: '',
+        responsible: ''
+    })
 
     const fetchData = async () => {
         setIsLoading(true)
@@ -61,6 +73,38 @@ export default function PipelinePage() {
         }
     }
 
+    const handleCreateCard = async () => {
+        if (!newCardData.title || !newCardData.stageId) {
+            toast.error('Título e Coluna são obrigatórios')
+            return
+        }
+        try {
+            await createOpportunity(
+                newCardData.stageId,
+                newCardData.title,
+                parseFloat(newCardData.value) || 0,
+                newCardData.priority,
+                newCardData.description,
+                newCardData.responsible,
+                newCardData.date
+            )
+            toast.success('Cartaz criado com sucesso!')
+            setIsNewCardModalOpen(false)
+            setNewCardData({
+                title: '',
+                description: '',
+                value: '',
+                date: '',
+                priority: 'media',
+                stageId: '',
+                responsible: ''
+            })
+            fetchData()
+        } catch (error) {
+            toast.error('Erro ao criar cartaz')
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="p-8 flex items-center justify-center min-h-[60vh]">
@@ -80,7 +124,7 @@ export default function PipelinePage() {
                         <Kanban className="w-3 h-3" />
                         Funil de Vendas Comercial
                     </div>
-                    <h1 className="text-6xl font-black tracking-tight text-slate-900 mb-2">Pipeline</h1>
+                    <h1 className="text-6xl font-black tracking-tight text-slate-900 mb-2 italic">Pipeline</h1>
                     <p className="text-slate-500 text-sm font-medium tracking-wide uppercase font-outfit">Gestão de Oportunidades + Visão Kanban</p>
                 </div>
                 
@@ -125,7 +169,7 @@ export default function PipelinePage() {
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor do Funil</p>
                         <p className="text-4xl font-black text-rose-600">
                             {columns.reduce((acc, col) => {
-                                const val = parseFloat(col.totalValue.replace(/[^\d]/g, '')) / 100
+                                const val = parseFloat(col.totalValue.replace(/[^\d]/g, '').replace(',', '.')) / 100
                                 return acc + (isNaN(val) ? 0 : val)
                             }, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
@@ -194,9 +238,15 @@ export default function PipelinePage() {
                                 ))}
 
                             {/* Placeholder de Adicionar Card */}
-                            <button className="w-full py-3 border border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-400 hover:border-rose-500/30 hover:text-rose-600 transition-all text-[10px] font-black uppercase tracking-widest">
+                            <button 
+                                onClick={() => {
+                                    setNewCardData({ ...newCardData, stageId: col.id })
+                                    setIsNewCardModalOpen(true)
+                                }}
+                                className="w-full py-3 border border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-400 hover:border-rose-500/30 hover:text-rose-600 transition-all text-[10px] font-black uppercase tracking-widest"
+                            >
                                 <Plus className="w-3 h-3" />
-                                Adicionar Oportunidade
+                                Adicionar Cartaz
                             </button>
 
                             {col.count === 0 && (
@@ -222,6 +272,118 @@ export default function PipelinePage() {
                     </button>
                 </div>
             </div>
+
+            {/* Modal - Novo Card (Cartaz) */}
+            {isNewCardModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-[#101928] border border-slate-800 rounded-[32px] w-full max-w-lg overflow-hidden animate-scale-in shadow-2xl text-white">
+                        <div className="p-8 border-b border-slate-800 flex items-center justify-between">
+                            <h2 className="text-xl font-black uppercase tracking-tight">Novo Card</h2>
+                            <button onClick={() => setIsNewCardModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-10 space-y-8">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Título *</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all"
+                                    placeholder="Nome da oportunidade"
+                                    value={newCardData.title}
+                                    onChange={(e) => setNewCardData({...newCardData, title: e.target.value})}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Descrição</label>
+                                <textarea 
+                                    className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none h-24 resize-none transition-all"
+                                    placeholder="Detalhes do card..."
+                                    value={newCardData.description}
+                                    onChange={(e) => setNewCardData({...newCardData, description: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Valor (R$)</label>
+                                    <input 
+                                        type="number"
+                                        className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all"
+                                        placeholder="0,00"
+                                        value={newCardData.value}
+                                        onChange={(e) => setNewCardData({...newCardData, value: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Vencimento</label>
+                                    <input 
+                                        type="date"
+                                        className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all text-slate-400"
+                                        value={newCardData.date}
+                                        onChange={(e) => setNewCardData({...newCardData, date: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Prioridade</label>
+                                    <select 
+                                        className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all appearance-none"
+                                        value={newCardData.priority}
+                                        onChange={(e) => setNewCardData({...newCardData, priority: e.target.value})}
+                                    >
+                                        <option value="media">Média</option>
+                                        <option value="alta">Alta</option>
+                                        <option value="baixa">Baixa</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Coluna</label>
+                                    <select 
+                                        className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all appearance-none"
+                                        value={newCardData.stageId}
+                                        onChange={(e) => setNewCardData({...newCardData, stageId: e.target.value})}
+                                    >
+                                        {columns.map(c => (
+                                            <option key={c.id} value={c.id}>{c.title}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">Responsável</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-[#1e293b]/50 border border-slate-700 rounded-xl px-4 py-4 text-sm font-bold focus:border-blue-500 outline-none transition-all"
+                                    placeholder="Nome do responsável"
+                                    value={newCardData.responsible}
+                                    onChange={(e) => setNewCardData({...newCardData, responsible: e.target.value})}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-10 flex gap-6 mt-4">
+                            <button 
+                                onClick={() => setIsNewCardModalOpen(false)}
+                                className="flex-1 px-8 py-4 rounded-xl text-slate-400 font-bold hover:text-white hover:bg-slate-800 transition-all uppercase text-xs"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={handleCreateCard}
+                                className="flex-1 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-blue-500/20 hover:bg-blue-500 transition-all uppercase text-xs"
+                            >
+                                Criar Card
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal - Nova Coluna */}
             {isNewColumnModalOpen && (

@@ -76,7 +76,15 @@ export async function createColumn(title: string, color: string) {
     revalidatePath('/pipeline')
 }
 
-export async function createOpportunity(stageId: string, title: string, value: number, priority: string) {
+export async function createOpportunity(
+    stageId: string, 
+    title: string, 
+    value: number, 
+    priority: string,
+    description?: string,
+    responsible?: string,
+    date?: string
+) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) throw new Error('Não autorizado')
 
@@ -88,6 +96,9 @@ export async function createOpportunity(stageId: string, title: string, value: n
             title,
             value,
             priority,
+            description,
+            responsible,
+            date: date ? new Date(date) : new Date(),
             stageId,
             userId: profile.id,
             isNew: true
