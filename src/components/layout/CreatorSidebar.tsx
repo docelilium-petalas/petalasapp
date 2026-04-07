@@ -20,6 +20,7 @@ import {
     UserCircle2,
     History,
     Calendar,
+    Kanban,
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials } from '@/lib/utils'
@@ -27,17 +28,14 @@ import toast from 'react-hot-toast'
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/criar', label: 'Criação de Vídeo', icon: Video, activeGlow: true },
-    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
+    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
     { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/agenda', label: 'Agenda', icon: Calendar },
-    { href: '/suporte', label: 'Suporte IA', icon: MessageSquare },
+    { href: '/criar', label: 'Criar Vídeo', icon: Video, activeGlow: true },
+    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
+    { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
-const bottomItems = [
-    { href: '/configuracoes', label: 'Configurações', icon: Settings },
-    { href: '/ajuda', label: 'Central de Ajuda', icon: HelpCircle },
-]
+const bottomItems: any[] = []
 
 export function CreatorSidebar() {
     const pathname = usePathname()
