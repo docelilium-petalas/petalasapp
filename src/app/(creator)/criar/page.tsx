@@ -30,7 +30,6 @@ export default function CriarPage() {
     // States
     const [productName, setProductName] = useState('')
     const [duration, setDuration] = useState('15s')
-    const [narrativeStyle, setNarrativeStyle] = useState('Impacto e Energia')
     const [productPhoto, setProductPhoto] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string | null>(null)
     const [isGenerating, setIsGenerating] = useState(false)
@@ -149,8 +148,8 @@ export default function CriarPage() {
                                 <div className="w-8 h-8 rounded-full bg-surface-100 text-text-muted flex items-center justify-center text-xs font-bold">03</div>
                                 <h3 className="text-lg font-bold text-text-primary tracking-tight">Duração Recomendada</h3>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                {['15s', '30s', '60s'].map((d) => (
+                            <div className="grid grid-cols-2 gap-4">
+                                {['15s', '20s'].map((d) => (
                                     <button
                                         key={d}
                                         onClick={() => setDuration(d)}
@@ -163,31 +162,10 @@ export default function CriarPage() {
                                     >
                                         <span className="text-xl font-black tracking-tighter leading-none">{d}</span>
                                         <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                                            {d === '15s' ? 'Curto' : d === '30s' ? 'Padrão' : 'Longo'}
+                                            {d === '15s' ? 'Curto' : 'Padrão'}
                                         </span>
                                     </button>
                                 ))}
-                            </div>
-                        </section>
-
-                        {/* 04 Narrative Style */}
-                        <section className="space-y-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-8 h-8 rounded-full bg-surface-100 text-text-muted flex items-center justify-center text-xs font-bold">04</div>
-                                <h3 className="text-lg font-bold text-text-primary tracking-tight">Narração e Estilo</h3>
-                            </div>
-                            <div className="relative group">
-                                <select 
-                                    value={narrativeStyle}
-                                    onChange={(e) => setNarrativeStyle(e.target.value)}
-                                    className="w-full bg-surface-50 border-none rounded-2xl p-5 text-text-primary font-bold appearance-none outline-none focus:ring-2 focus:ring-primary/20"
-                                >
-                                    <option>Impacto e Alta Energia</option>
-                                    <option>Elegante e Profissional</option>
-                                    <option>Review e Descoberta</option>
-                                    <option>Casual e TikTok Style</option>
-                                </select>
-                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
                             </div>
                         </section>
                     </div>
@@ -239,7 +217,6 @@ export default function CriarPage() {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-white">@SuaMarca</p>
-                                    <p className="text-[8px] text-white/60">Estilo: {narrativeStyle}</p>
                                 </div>
                             </div>
 
