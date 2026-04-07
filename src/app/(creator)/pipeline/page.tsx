@@ -13,11 +13,10 @@ import {
     Calendar,
     Users,
     ArrowUpRight,
-    LayoutKanban,
+    Kanban,
     DollarSign,
     AlertCircle,
     X,
-    FilterX
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -75,7 +74,7 @@ export default function PipelinePage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-4">
-                        <LayoutKanban className="w-3 h-3" />
+                        <Kanban className="w-3 h-3" />
                         Pipeline Comercial
                     </div>
                     <h1 className="text-6xl font-black tracking-tight text-white mb-2">Pipeline</h1>
@@ -108,7 +107,7 @@ export default function PipelinePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#161B2C] p-8 rounded-[32px] border border-gray-800/50 flex items-center gap-6">
                     <div className="w-14 h-14 rounded-2xl bg-gray-800/50 flex items-center justify-center">
-                        <LayoutKanban className="w-6 h-6 text-gray-400" />
+                        <Kanban className="w-6 h-6 text-gray-400" />
                     </div>
                     <div>
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Total de Cards</p>
@@ -194,7 +193,7 @@ export default function PipelinePage() {
 
                             {col.count === 0 && (
                                 <div className="flex-1 flex flex-col items-center justify-center opacity-20 py-20 grayscale">
-                                    <LayoutKanban className="w-8 h-8 text-gray-400 mb-2" />
+                                    <Kanban className="w-8 h-8 text-gray-400 mb-2" />
                                     <p className="text-[10px] font-black">Nenhum card</p>
                                 </div>
                             )}
