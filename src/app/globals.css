@@ -21,8 +21,8 @@
   --color-error: #EF4444;
   --shadow-card: 0 2px 12px rgba(232, 69, 122, 0.08);
   /* sidebar specifically for light */
-  --color-sidebar-bg: #8b3d5c;
-  --color-sidebar-border: #a54f73;
+  --color-sidebar-bg: #2d0f1e;
+  --color-sidebar-border: #3d1a28;
   --color-sidebar-logo: #ffffff;
   --color-sidebar-text: #fce8f0;
   --color-sidebar-text-muted: #f5dde7;
@@ -380,23 +380,26 @@ body {
   color: #e8457a !important;
 }
 
-/* Unified Sidebar (Dark in both modes, but lighter in Light Mode) */
-aside {
-  background-color: var(--color-sidebar-bg) !important;
-  border-right: 1px solid var(--color-sidebar-bg) !important; /* Bordas agora fundidas com o fundo para uniformidade total */
+/* Enforced Unified Sidebar (Force exactly #2d0f1e in Light Mode) */
+[data-theme="light"] aside,
+[data-theme="light"] aside div,
+[data-theme="light"] aside nav,
+[data-theme="light"] aside header,
+[data-theme="light"] aside footer,
+[data-theme="light"] aside .sticky,
+[data-theme="light"] aside [class*="bg-"] {
+  background-color: #2d0f1e !important;
 }
 
-aside.bg-white, 
-aside .bg-white,
-aside nav,
-aside div[class*="bg-white"] {
+aside {
   background-color: var(--color-sidebar-bg) !important;
+  border-right: 1px solid var(--color-sidebar-bg) !important;
 }
 
 aside .border-t, 
 aside .border-b,
 aside [class*="border-surface-"] {
-  border-color: transparent !important; /* Removemos as linhas internas conforme critério de aceite */
+  border-color: transparent !important;
 }
 
 aside .text-text-primary,
@@ -418,18 +421,17 @@ aside button:hover {
 }
 
 aside .sidebar-item-active {
-  background-color: rgba(232, 69, 122, 0.20) !important;
+  background-color: rgba(232, 69, 122, 0.25) !important;
   color: #ffffff !important;
-  box-shadow: inset 3px 0 0 var(--color-primary) !important;
+  box-shadow: inset 3px 0 0 #e8457a !important;
 }
 
 aside .sidebar-item-active * {
   color: #ffffff !important;
 }
 
-aside .bg-surface-100,
 aside .bg-avatar {
-  background-color: var(--color-sidebar-border) !important;
+  background-color: var(--color-sidebar-bg) !important;
 }
 
 [data-theme="light"] .lg\:hidden.fixed.top-0 {
