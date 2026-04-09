@@ -27,23 +27,23 @@
 }
 
 [data-theme="dark"] {
-  --color-primary: #FB7185;
-  --color-primary-light: rgba(251, 113, 133, 0.12);
-  --color-bg-main: #0F172A;
-  --color-bg-surface: #1E293B;
-  --color-border: #334155;
-  --color-text-main: #F1F5F9;
-  --color-text-secondary: #CBD5E1;
-  --color-text-muted: #94A3B8;
-  --color-text-tertiary: #64748B;
+  --color-primary: #FF1493;
+  --color-primary-light: rgba(255, 20, 147, 0.15);
+  --color-bg-main: #130a0f;
+  --color-bg-surface: #201118;
+  --color-border: #4a1d35;
+  --color-text-main: #FFFFFF;
+  --color-text-secondary: #fce7f3;
+  --color-text-muted: #fbcfe8;
+  --color-text-tertiary: #f472b6;
   --color-success: #34D399;
   --color-warning: #FCD34D;
   --color-error: #F87171;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
-  --surface-50: #1E293B;
-  --surface-100: #263548;
-  --surface-200: #334155;
-  --surface-300: #475569;
+  --shadow-card: 0 4px 20px rgba(255, 20, 147, 0.08), 0 1px 3px rgba(255, 20, 147, 0.04);
+  --surface-50: #291620;
+  --surface-100: #361b29;
+  --surface-200: #4a2136;
+  --surface-300: #662b48;
 }
 
 * {
@@ -369,13 +369,16 @@ body {
 /* Primary color overrides in dark mode (Tailwind primary is hardcoded, override here) */
 [data-theme="dark"] .btn-primary {
   background-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(255, 20, 147, 0.2);
 }
 [data-theme="dark"] .btn-primary:hover {
-  background-color: #f43f5e;
+  background-color: #FF69B4;
+  box-shadow: 0 0 16px rgba(255, 20, 147, 0.4);
 }
 [data-theme="dark"] .sidebar-item-active {
   color: var(--color-primary);
   background-color: var(--color-primary-light);
+  box-shadow: inset 2px 0 0 var(--color-primary);
 }
 [data-theme="dark"] .text-primary {
   color: var(--color-primary) !important;

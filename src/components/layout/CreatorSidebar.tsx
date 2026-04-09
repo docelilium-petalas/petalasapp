@@ -59,14 +59,14 @@ export function CreatorSidebar() {
         <div className="flex flex-col h-full bg-white">
             {/* Logo */}
             <div className="px-5 py-6 border-b border-surface-100">
-                <div className="flex items-center gap-2.5">
+                <Link href="/dashboard" className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                         <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-text-primary font-bold text-lg tracking-tight leading-none">
                         Pétalas
                     </span>
-                </div>
+                </Link>
             </div>
 
             {/* Navigation */}
@@ -155,14 +155,14 @@ export function CreatorSidebar() {
 
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-white border-b border-surface-100">
-                <div className="flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                     <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                         <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-text-primary font-bold text-base tracking-tight">
                         Pétalas
                     </span>
-                </div>
+                </Link>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}
                     className="p-2 text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-surface-100"

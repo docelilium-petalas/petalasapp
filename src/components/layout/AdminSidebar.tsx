@@ -55,7 +55,7 @@ export function AdminSidebar() {
         <div className="flex flex-col h-full bg-white">
             {/* Logo */}
             <div className="px-5 py-6 border-b border-surface-100">
-                <div className="flex items-center gap-2.5">
+                <Link href="/admin/dashboard" className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                         <Shield className="w-4 h-4 text-white" />
                     </div>
@@ -67,7 +67,7 @@ export function AdminSidebar() {
                             Admin Panel
                         </span>
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* Navigation */}
@@ -142,7 +142,7 @@ export function AdminSidebar() {
 
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-white border-b border-surface-100">
-                <div className="flex items-center gap-2">
+                <Link href="/admin/dashboard" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                     <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                         <Shield className="w-4 h-4 text-white" />
                     </div>
@@ -150,7 +150,7 @@ export function AdminSidebar() {
                         Pétalas
                     </span>
                     <span className="text-xs text-text-muted ml-1">Admin</span>
-                </div>
+                </Link>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}
                     className="p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-100 transition-colors"
