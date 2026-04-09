@@ -15,10 +15,17 @@
   --color-text-secondary: #7a4558;
   --color-text-muted: #c9a0b4;
   --color-text-tertiary: #c9a0b4;
+  --color-secondary: #7a4558;
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --shadow-card: 0 2px 12px rgba(232, 69, 122, 0.08);
+  /* sidebar specifically for light */
+  --color-sidebar-bg: #3d1a28;
+  --color-sidebar-border: #4a2035;
+  --color-sidebar-logo: #fdf5f7;
+  --color-sidebar-text: #f5dde7;
+  --color-sidebar-text-muted: #c9a0b4;
   /* surface scale */
   --surface-50: #ffffff;
   --surface-100: #fef0f4;
@@ -36,10 +43,17 @@
   --color-text-secondary: #fce7f3;
   --color-text-muted: #fbcfe8;
   --color-text-tertiary: #f472b6;
+  --color-secondary: #fce7f3;
   --color-success: #34D399;
   --color-warning: #FCD34D;
   --color-error: #F87171;
   --shadow-card: 0 4px 20px rgba(255, 20, 147, 0.08), 0 1px 3px rgba(255, 20, 147, 0.04);
+  /* sidebar for dark mode matches main bg */
+  --color-sidebar-bg: #130a0f;
+  --color-sidebar-border: #4a1d35;
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-text-muted: #fbcfe8;
+  /* surface scale */
   --surface-50: #291620;
   --surface-100: #361b29;
   --surface-200: #4a2136;
@@ -366,67 +380,56 @@ body {
   color: #e8457a !important;
 }
 
-[data-theme="light"] aside,
-[data-theme="light"] aside.bg-white,
-[data-theme="light"] aside .bg-white,
-[data-theme="light"] aside .bg-surface-100 {
-  background-color: #1a0a10 !important;
+/* Unified Sidebar (Dark in both modes, but lighter in Light Mode) */
+aside, 
+aside.bg-white, 
+aside .bg-white,
+aside nav,
+aside div[class*="bg-white"] {
+  background-color: var(--color-sidebar-bg) !important;
 }
 
-[data-theme="light"] aside {
-  border-right: 1px solid #2d0f1e !important;
+aside {
+  border-right: 1px solid var(--color-sidebar-border) !important;
 }
 
-[data-theme="light"] aside .border-b,
-[data-theme="light"] aside .border-t,
-[data-theme="light"] aside .border-surface-100 {
-  border-color: #2d0f1e !important;
+aside .border-t, 
+aside .border-b,
+aside [class*="border-surface-"] {
+  border-color: var(--color-sidebar-border) !important;
 }
 
-[data-theme="light"] aside .text-text-primary,
-[data-theme="light"] aside span.text-text-primary,
-[data-theme="light"] aside p.text-text-primary {
-  color: #ffffff !important;
+aside .text-text-primary,
+aside span.text-text-primary,
+aside p.text-text-primary {
+  color: var(--color-sidebar-logo) !important;
 }
 
-[data-theme="light"] aside .text-text-muted,
-[data-theme="light"] aside .sidebar-item,
-[data-theme="light"] aside .text-text-secondary {
-  color: #c9a0b4 !important;
+aside .text-text-muted,
+aside .sidebar-item,
+aside .text-text-secondary {
+  color: var(--color-sidebar-text) !important;
 }
 
-[data-theme="light"] aside .sidebar-item:hover,
-[data-theme="light"] aside button:hover {
+aside .sidebar-item:hover,
+aside button:hover {
   color: #ffffff !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-[data-theme="light"] aside .sidebar-item-active {
-  background-color: rgba(232, 69, 122, 0.15) !important;
-  color: #e8457a !important;
-  box-shadow: inset 3px 0 0 #e8457a !important;
+aside .sidebar-item-active {
+  background-color: rgba(232, 69, 122, 0.20) !important;
+  color: var(--color-primary) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
-[data-theme="light"] aside .sidebar-item-active * {
-  color: #e8457a !important;
+aside .sidebar-item-active * {
+  color: var(--color-primary) !important;
 }
 
-/* Ensure avatar and small badges in sidebar look okay */
-[data-theme="light"] aside .bg-surface-100 {
-  background-color: #2d0f1e !important;
-}
-
-[data-theme="light"] .btn-primary {
-  /* Ajuste no shadow para light mode */
-  box-shadow: 0 4px 14px rgba(232, 69, 122, 0.4);
-}
-[data-theme="light"] .btn-primary:hover {
-  background-color: #d13063; /* 8% darker pink */
-}
-
-/* Sidebar footer elements no Light mode */
-[data-theme="light"] aside .bg-avatar {
-  background-color: #2d0f1e !important;
+aside .bg-surface-100,
+aside .bg-avatar {
+  background-color: var(--color-sidebar-border) !important;
 }
 
 [data-theme="light"] .lg\:hidden.fixed.top-0 {
