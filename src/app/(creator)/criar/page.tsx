@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
-import { saveGeneratedVideo } from './actions'
 
 const steps = [
     { num: '01', label: 'Nome e Identidade' },
@@ -28,7 +27,6 @@ export default function CriarPage() {
     const [productPhoto, setProductPhoto] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string | null>(null)
     const [isGenerating, setIsGenerating] = useState(false)
-    const [progress, setProgress] = useState(0)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -45,30 +43,45 @@ export default function CriarPage() {
             toast.error('Por favor, informe o nome do produto')
             return
         }
+        if (!productPhoto) {
+            toast.error('Por favor, adicione uma foto do produto')
+            return
+        }
         setIsGenerating(true)
 
-        let p = 0
-        const interval = setInterval(() => {
-            p += 5
-            setProgress(p)
-            if (p >= 100) {
-                clearInterval(interval)
-                completeGeneration()
-            }
-        }, 150)
-    }
-
-    const completeGeneration = async () => {
         try {
-            await saveGeneratedVideo({
-                titulo: productName,
-                status: 'concluido',
-                thumbnail: photoPreview || undefined,
+            // 1. Cria registro no banco com status "processando"
+            const res = await fetch('/api/creator/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nome_produto: productName,
+                    descricao_produto: 'Gerado via IA',
+                    formato: 'instagram',
+                    linha_editorial: 'Geral',
+                    duracao: parseInt(duration),
+                    tom: 'Vibrante',
+                }),
             })
-            toast.success('Vídeo gerado e salvo na biblioteca!')
+
+            if (!res.ok) throw new Error('Erro ao criar registro do vídeo')
+            const { id: videoId } = await res.json()
+
+            // 2. Dispara o webhook do n8n com a imagem como binário (multipart/form-data)
+            const webhookData = new FormData()
+            webhookData.append('nomeProduto', productName)
+            webhookData.append('videoId', videoId)
+            webhookData.append('image', productPhoto)
+
+            fetch('https://auto.devnetlife.com/webhook/docelilium', {
+                method: 'POST',
+                body: webhookData,
+            }).catch(err => console.error('n8n webhook error:', err))
+
+            toast.success('Vídeo enviado para geração! Acompanhe na Biblioteca.')
             router.push('/biblioteca')
         } catch {
-            toast.error('Ocorreu um erro ao salvar o vídeo')
+            toast.error('Ocorreu um erro ao iniciar a geração')
             setIsGenerating(false)
         }
     }
@@ -266,38 +279,12 @@ export default function CriarPage() {
                     {/* Generating overlay */}
                     {isGenerating && (
                         <div className="absolute inset-0 bg-white/90 z-40 flex flex-col items-center justify-center p-8 text-center">
-                            <div className="w-20 h-20 relative mb-6">
-                                <svg className="w-full h-full -rotate-90">
-                                    <circle
-                                        cx="40"
-                                        cy="40"
-                                        r="36"
-                                        fill="none"
-                                        stroke="#F3F4F6"
-                                        strokeWidth="6"
-                                    />
-                                    <circle
-                                        cx="40"
-                                        cy="40"
-                                        r="36"
-                                        fill="none"
-                                        stroke="#E11D48"
-                                        strokeWidth="6"
-                                        strokeDasharray={226}
-                                        strokeDashoffset={226 - (226 * progress) / 100}
-                                        strokeLinecap="round"
-                                        className="transition-all duration-300"
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <Sparkles className="w-7 h-7 text-primary" />
-                                </div>
-                            </div>
+                            <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-6" />
                             <h2 className="text-lg font-bold text-text-primary mb-1">
-                                Gerando vídeo...
+                                Enviando para geração...
                             </h2>
                             <p className="text-sm text-text-muted">
-                                {progress}% concluído
+                                Você será redirecionado para a Biblioteca
                             </p>
                         </div>
                     )}
