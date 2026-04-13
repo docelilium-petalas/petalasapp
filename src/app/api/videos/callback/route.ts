@@ -6,7 +6,9 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { video_id, video_url } = body
+    // Aceita tanto o formato do n8n (video/videoId) quanto o formato interno (video_url/video_id)
+    const video_id = body.video_id || body.videoId
+    const video_url = body.video_url || body.video
 
     if (!video_id || !video_url) {
       return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })

@@ -1,4 +1,4 @@
-const N8N_WEBHOOK_DEFAULT = process.env.N8N_WEBHOOK_URL || 'https://auto.devnetlife.com/webhook/financeiro'
+const N8N_WEBHOOK_DEFAULT = process.env.N8N_WEBHOOK_URL || 'https://auto.devnetlife.com/webhook/docelilium'
 
 export function triggerVideoN8N(params: {
   video_id: string
@@ -12,9 +12,9 @@ export function triggerVideoN8N(params: {
   const url = params.webhookUrl || N8N_WEBHOOK_DEFAULT
 
   const formData = new FormData()
-  formData.append('video_id', params.video_id)
-  formData.append('service_name', params.service_name)
-  formData.append('service_description', params.service_description)
+  // Campos com os nomes que o n8n espera
+  formData.append('videoId', params.video_id)
+  formData.append('nomeProduto', params.service_name)
 
   if (params.imageBuffer) {
     const blob = new Blob([params.imageBuffer], { type: params.imageType || 'image/png' })
