@@ -7,8 +7,10 @@ const nextConfig = {
         ignoreBuildErrors: true,
     },
     images: {
+        unoptimized: true,
         remotePatterns: [],
     },
+    staticPageGenerationTimeout: 120,
 }
 
 module.exports = nextConfig

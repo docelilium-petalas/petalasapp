@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { Sparkles, CheckCircle2 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
     return (
@@ -14,11 +15,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
                 <div className="relative z-10 flex flex-col items-start w-full">
                     <div className="relative w-48 h-48">
-                         <img 
+                         <ImageWithFallback 
                             src="/images/logo.png" 
                             alt="" 
                             className="absolute inset-0 w-full h-full object-contain z-10 -ml-6" 
-                            onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                         <Logo className="w-full h-full -ml-8" />
                     </div>
@@ -66,11 +66,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex flex-col items-center justify-center mb-12 w-full">
                          <div className="relative w-24 h-24">
-                            <img 
+                            <ImageWithFallback 
                                 src="/images/logo.png" 
                                 alt="" 
                                 className="absolute inset-0 w-full h-full object-contain z-10" 
-                                onError={(e) => (e.currentTarget.style.display = 'none')}
                             />
                             <Logo className="w-full h-full scale-75" />
                          </div>

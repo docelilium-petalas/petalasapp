@@ -21,6 +21,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { Logo } from '@/components/ui/Logo'
+import { ImageWithFallback } from '@/components/ui/ImageWithFallback'
 import toast from 'react-hot-toast'
 
 const navItems = [
@@ -62,11 +63,10 @@ export function CreatorSidebar() {
             {/* Logo */}
             <div className="px-6 py-10 flex justify-center">
                 <Link href="/dashboard" className="cursor-pointer group relative flex justify-center w-full min-h-[160px]">
-                    <img 
+                    <ImageWithFallback 
                         src="/images/logo.png" 
                         alt="" 
                         className="absolute inset-0 w-full h-full object-contain z-10 transition-transform duration-500 group-hover:scale-105" 
-                        onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <Logo className="w-full transition-transform duration-500 group-hover:scale-105" />
                 </Link>
