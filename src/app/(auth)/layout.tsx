@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="relative z-10 flex flex-col items-start">
                     <img 
                         src="/images/logo.png" 
-                        alt="Doce Lilium" 
+                        alt="" 
                         className="h-48 w-auto object-contain -ml-6" 
                     />
                 </div>
@@ -47,7 +47,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
                 <p className="relative z-10 text-[10px] uppercase tracking-widest font-black text-text-muted flex items-center gap-2">
                    <span className="w-8 h-px bg-primary/20" />
-                   © 2024 Pétalas Studio · Doce Lilium
+                    © 2024 · Doce Lilium
                 </p>
             </div>
 
@@ -62,7 +62,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                     <div className="lg:hidden flex flex-col items-center justify-center mb-12">
                          <img 
                             src="/images/logo.png" 
-                            alt="Doce Lilium" 
+                            alt="" 
                             className="h-24 w-auto object-contain" 
                         />
                     </div>

@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 <div>
                     <h1 className="text-4xl font-semibold text-text-primary italic font-display">Dashboard</h1>
                     <p className="text-text-muted text-xs uppercase tracking-[0.2em] font-bold mt-2">
-                        Visão Geral · Studio Doce Lilium
+                        Visão Geral
                     </p>
                 </div>
                 <Link
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                     <div className="card border-l-[3px] border-l-primary bg-bg-subtle p-8">
                         <div className="flex items-center gap-2 mb-4">
                             <Sparkles className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Insight do Studio</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Insight</span>
                         </div>
                         <p className="text-sm text-text-secondary leading-relaxed font-medium italic">
                             {data?.metrics?.[1]?.value === '0'
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h2 className="text-lg font-semibold font-display italic">Atividade Recente</h2>
-                                <p className="text-text-muted text-[10px] uppercase tracking-widest font-bold">Journal do Studio</p>
+                                <p className="text-text-muted text-[10px] uppercase tracking-widest font-bold">Journal</p>
                             </div>
                         </div>
                         <div className="space-y-6">
