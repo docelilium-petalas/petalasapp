@@ -74,7 +74,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
   const isActive = (href: string) => pathname === href
 
   return (
-    <div className="flex flex-col h-full bg-black border-r border-border/40 select-none">
+    <div className="flex flex-col h-full bg-background border-r border-border/40 select-none">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-border/20">
         <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 text-primary ocr-glow-soft">
@@ -100,7 +100,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                 active
                   ? 'bg-primary/15 text-primary border-l-2 border-primary shadow-[inset_1px_0_0_0_rgba(0,230,118,0.1)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-neutral-900/60'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card/60'
               }`}
             >
               <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-105 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -117,9 +117,9 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
       </nav>
 
       {/* Team / Profile footer */}
-      <div className="p-4 border-t border-border/20 bg-neutral-950/50">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-border/20 bg-neutral-900/30">
-          <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
+      <div className="p-4 border-t border-border/20 bg-card/50">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-border/20 bg-muted/30">
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
             {(user.nome[0] ?? '?').toUpperCase()}{(user.sobrenome[0] ?? '').toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -277,7 +277,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-black text-foreground antialiased font-sans">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground antialiased font-sans">
       {/* Sidebar Desktop */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-20">
         <SidebarContent user={user} onItemClick={() => setMobileMenuOpen(false)} />
@@ -287,7 +287,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       <div className="flex flex-col flex-1 overflow-hidden md:pl-64">
         
         {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-border/20 bg-black/40 backdrop-blur-md z-10 sticky top-0">
+        <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-border/20 bg-background/80 backdrop-blur-md z-10 sticky top-0">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold tracking-tight md:text-xl capitalize select-none">
               {getPageTitle()}
@@ -298,11 +298,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border/40 bg-neutral-900/30 text-xs text-muted-foreground hover:border-primary/50 transition-all select-none"
+              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border/40 bg-muted/30 text-xs text-muted-foreground hover:border-primary/50 transition-all select-none"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
               <span>Buscar...</span>
-              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-neutral-800 border border-border/60 text-[9px]">⌘K</kbd>
+              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-muted border border-border/60 text-[9px]">⌘K</kbd>
             </button>
 
             <button
@@ -317,7 +317,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-neutral-900/40 text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-muted/40 text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
               >
                 <Bell className="w-4.5 h-4.5" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
@@ -326,7 +326,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               {notificationsOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setNotificationsOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border bg-neutral-950 p-4 shadow-2xl z-40 ocr-glass-strong animate-scale-in">
+                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border bg-card p-4 shadow-2xl z-40 ocr-glass-strong animate-scale-in">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Alertas Recentes</h3>
                     <div className="space-y-3">
                       <div className="flex gap-2.5 text-xs pb-3 border-b border-border/50">
@@ -356,7 +356,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         </header>
 
         {/* Mobile Header (Fixed context actions) */}
-        <header className="flex md:hidden items-center justify-between h-16 px-4 border-b border-border/20 bg-black/80 backdrop-blur-lg z-30 sticky top-0 safe-top">
+        <header className="flex md:hidden items-center justify-between h-16 px-4 border-b border-border/20 bg-background backdrop-blur-lg z-30 sticky top-0 safe-top">
           <h1 className="text-base font-extrabold tracking-tight capitalize select-none text-foreground">
             {getPageTitle()}
           </h1>
@@ -396,7 +396,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <main
           ref={mainRef}
           onScroll={handleScroll}
-          className={`flex-1 bg-black/10 select-none relative scrollbar-thin max-md:pb-16 ${
+          className={`flex-1 bg-background/50 select-none relative scrollbar-thin max-md:pb-16 ${
             pathname === '/pipeline' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
           }`}
         >
@@ -405,7 +405,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       </div>
 
       {/* Mobile Fixed Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/90 backdrop-blur-lg border-t border-border/40 flex justify-around items-center h-16 md:hidden safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-lg border-t border-border/40 flex justify-around items-center h-16 md:hidden safe-bottom">
         {[
           { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
           { name: 'Pipeline', href: '/pipeline', icon: Kanban },
@@ -440,19 +440,19 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Menu Bottom Sheet (Mobile) */}
       {menuSheetOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMenuSheetOpen(false)} />
-          <div className="fixed inset-x-0 bottom-0 bg-neutral-950 border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 max-h-[70vh] overflow-y-auto mobile-bottom-sheet">
+          <div className="fixed inset-0 bg-background/90 backdrop-blur-sm" onClick={() => setMenuSheetOpen(false)} />
+          <div className="fixed inset-x-0 bottom-0 bg-card border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 max-h-[70vh] overflow-y-auto mobile-bottom-sheet">
             
             {/* Sheet Handle */}
             <div className="flex justify-center shrink-0 -mt-2 mb-2">
-              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
             <div className="flex items-center justify-between pb-3 border-b border-border/20 shrink-0">
               <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Mais Opções</h3>
               <button
                 onClick={() => setMenuSheetOpen(false)}
-                className="p-1 rounded bg-neutral-900 text-xs text-muted-foreground"
+                className="p-1 rounded bg-card text-xs text-muted-foreground"
               >
                 Fechar
               </button>
@@ -472,7 +472,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                     key={item.href}
                     href={item.href}
                     onClick={() => setMenuSheetOpen(false)}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-neutral-900/60 border border-border/20 hover:border-primary/20 text-center space-y-2 group active:bg-neutral-800"
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-card/60 border border-border/20 hover:border-primary/20 text-center space-y-2 group active:bg-muted"
                   >
                     <Icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     <span className="text-xs font-bold text-foreground">{item.name}</span>
@@ -482,8 +482,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             </div>
 
             <div className="border-t border-border/25 pt-4 flex flex-col gap-2 shrink-0">
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border/20 bg-neutral-900/30">
-                <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border/20 bg-muted/30">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
                   {user.nome[0]}{user.sobrenome[0]}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -497,7 +497,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                     router.push('/auth')
                     router.refresh()
                   }}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-neutral-900 transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-card transition-colors"
                   title="Sair"
                 >
                   <LogOut className="w-4.5 h-4.5 text-rose-500" />
@@ -511,11 +511,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Desktop Mobile Drawer Navigation (Fallback for menu open if needed, but not used since bottom tab covers it) */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 bg-black border-r border-border animate-slide-up">
+          <div className="fixed inset-0 bg-background/90 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-64 bg-background border-r border-border animate-slide-up">
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-neutral-900/60"
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-card/60"
             >
               <X className="w-5 h-5" />
             </button>
@@ -527,10 +527,10 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Global Search Dialog */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 max-md:pt-16 max-md:px-2">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSearchOpen(false)} />
-          <div className="w-full max-w-lg rounded-2xl border border-border/80 bg-neutral-950 p-4 shadow-2xl z-10 ocr-glass-strong animate-scale-in max-md:max-h-[80vh] flex flex-col">
+          <div className="fixed inset-0 bg-background backdrop-blur-md" onClick={() => setSearchOpen(false)} />
+          <div className="w-full max-w-lg rounded-2xl border border-border/80 bg-card p-4 shadow-2xl z-10 ocr-glass-strong animate-scale-in max-md:max-h-[80vh] flex flex-col">
             {/* Search Input */}
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border bg-neutral-900/40 focus-within:border-primary transition-all shrink-0">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border bg-muted/40 focus-within:border-primary transition-all shrink-0">
               <Search className="w-5 h-5 text-muted-foreground" />
               <input
                 ref={searchInputRef}
@@ -542,7 +542,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               />
               <button
                 onClick={() => setSearchOpen(false)}
-                className="p-1.5 rounded bg-neutral-800 text-[10px] text-muted-foreground font-mono"
+                className="p-1.5 rounded bg-muted text-[10px] text-muted-foreground font-mono"
               >
                 ESC
               </button>

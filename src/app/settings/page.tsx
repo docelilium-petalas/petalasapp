@@ -120,8 +120,8 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-neutral-900/40 hover:border-border/60 transition-all gap-3 ${
-        isDragging ? 'shadow-lg border-primary/45 bg-neutral-900' : ''
+      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-muted/40 hover:border-border/60 transition-all gap-3 ${
+        isDragging ? 'shadow-lg border-primary/45 bg-card' : ''
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -129,7 +129,7 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground shrink-0"
+          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
         >
           <GripVertical className="w-4.5 h-4.5" />
         </button>
@@ -152,14 +152,14 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => onEdit(stage)}
-          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
           title="Editar etapa"
         >
           <Edit3 className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onDelete(stage)}
-          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
           title="Excluir etapa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -1166,7 +1166,7 @@ function SettingsContent() {
     <div className="flex h-full bg-[#0a0a0c] text-foreground select-none">
       
       {/* Sidebar navigation */}
-      <div className="w-60 shrink-0 border-r border-border/30 p-5 space-y-1 bg-black/20 flex flex-col justify-between">
+      <div className="w-60 shrink-0 border-r border-border/30 p-5 space-y-1 bg-background/20 flex flex-col justify-between">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-3 mb-4">Configurações</p>
           <div className="space-y-1">
@@ -1180,7 +1180,7 @@ function SettingsContent() {
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isSel
                       ? 'bg-primary/10 text-primary border border-primary/20 shadow-md shadow-primary/[0.02]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-neutral-900/40 border border-transparent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 border border-transparent'
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -1194,7 +1194,7 @@ function SettingsContent() {
 
         {/* Developer details footer */}
         {currentUser && (
-          <div className="p-3.5 rounded-2xl bg-neutral-900/35 border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
+          <div className="p-3.5 rounded-2xl bg-card/35 border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
             <span className="font-bold text-neutral-300">Identidade do Operador</span>
             <span className="truncate">ID: {currentUser.id}</span>
             <span className="capitalize">Role: {currentUser.role}</span>
@@ -1248,7 +1248,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.nome}
                       onChange={e => setPerfilForm(p => ({ ...p, nome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div>
@@ -1257,7 +1257,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.sobrenome}
                       onChange={e => setPerfilForm(p => ({ ...p, sobrenome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1266,7 +1266,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.telefone}
                       onChange={e => setPerfilForm(p => ({ ...p, telefone: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="Ex: 5562999999999"
                     />
                   </div>
@@ -1276,7 +1276,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.avatarUrl}
                       onChange={e => setPerfilForm(p => ({ ...p, avatarUrl: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="https://exemplo.com/avatar.png"
                     />
                   </div>
@@ -1329,7 +1329,7 @@ function SettingsContent() {
                         placeholder="Ex: Pós-Vendas / Retenção"
                         value={newPipelineName}
                         onChange={e => setNewPipelineName(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                       />
                       <div className="flex justify-end gap-2 text-[10px]">
                         <button
@@ -1337,7 +1337,7 @@ function SettingsContent() {
                             setIsAddingPipeline(false)
                             setNewPipelineName('')
                           }}
-                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                         >
                           Cancelar
                         </button>
@@ -1362,7 +1362,7 @@ function SettingsContent() {
                           className={`group relative p-3 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
                             isSel
                               ? 'border-primary/30 bg-primary/5 shadow-inner'
-                              : 'border-border/20 hover:border-border/50 bg-neutral-900/10'
+                              : 'border-border/20 hover:border-border/50 bg-card/10'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -1372,7 +1372,7 @@ function SettingsContent() {
                                   type="text"
                                   value={editingPipelineName}
                                   onChange={e => setEditingPipelineName(e.target.value)}
-                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-neutral-950 text-[11px] text-foreground focus:outline-none"
+                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-card text-[11px] text-foreground focus:outline-none"
                                 />
                                 <button
                                   onClick={handleRenamePipeline}
@@ -1382,7 +1382,7 @@ function SettingsContent() {
                                 </button>
                                 <button
                                   onClick={() => setEditingPipelineId(null)}
-                                  className="p-1 rounded-md border border-border hover:bg-neutral-800 text-muted-foreground"
+                                  className="p-1 rounded-md border border-border hover:bg-muted text-muted-foreground"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1402,7 +1402,7 @@ function SettingsContent() {
                                   {!p.isDefault && (
                                     <button
                                       onClick={() => handleSetDefaultPipeline(p.id)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-primary"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary"
                                       title="Tornar funil padrão"
                                     >
                                       <Star className="w-3 h-3" />
@@ -1413,7 +1413,7 @@ function SettingsContent() {
                                       setEditingPipelineId(p.id)
                                       setEditingPipelineName(p.nome)
                                     }}
-                                    className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                                     title="Renomear"
                                   >
                                     <Edit3 className="w-3 h-3" />
@@ -1421,7 +1421,7 @@ function SettingsContent() {
                                   {pipelines.length > 1 && (
                                     <button
                                       onClick={() => handleDeletePipeline(p.id)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                                       title="Excluir funil"
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1475,7 +1475,7 @@ function SettingsContent() {
                         <select
                           value={migrationStageId}
                           onChange={e => setMigrationStageId(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
+                          className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                         >
                           <option value="">-- Selecione uma etapa --</option>
                           {stages.filter(s => s.id !== deletingStage.id).map(s => (
@@ -1490,14 +1490,14 @@ function SettingsContent() {
                             setDeletingStage(null)
                             setMigrationStageId('')
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-neutral-900 text-muted-foreground"
+                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-card text-muted-foreground"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={() => executeDeleteStage(deletingStage.id, migrationStageId)}
                           disabled={!migrationStageId}
-                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-foreground font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Migrar e Confirmar Exclusão
                         </button>
@@ -1520,7 +1520,7 @@ function SettingsContent() {
                             placeholder="Ex: Demonstração Agendada"
                             value={stageForm.nome}
                             onChange={e => setStageForm(p => ({ ...p, nome: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1531,7 +1531,7 @@ function SettingsContent() {
                             max="100"
                             value={stageForm.probabilidade}
                             onChange={e => setStageForm(p => ({ ...p, probabilidade: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1541,7 +1541,7 @@ function SettingsContent() {
                             min="1"
                             value={stageForm.slaHours}
                             onChange={e => setStageForm(p => ({ ...p, slaHours: Math.max(1, parseInt(e.target.value) || 0) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                       </div>
@@ -1576,7 +1576,7 @@ function SettingsContent() {
                             setIsAddingStage(false)
                             setEditingStageId(null)
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                         >
                           Cancelar
                         </button>
@@ -1648,7 +1648,7 @@ function SettingsContent() {
                         placeholder="Ex: Elementor Lead Forms"
                         value={integrationForm.nome}
                         onChange={e => setIntegrationForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -1656,7 +1656,7 @@ function SettingsContent() {
                       <select
                         value={integrationForm.tipo}
                         onChange={e => setIntegrationForm(p => ({ ...p, tipo: e.target.value as IntegrationTipo }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="inbound_webhook">Inbound Webhook (Recebe leads externos)</option>
                         <option value="outbound_api">Outbound API (Envia dados / Webhooks externos)</option>
@@ -1670,7 +1670,7 @@ function SettingsContent() {
                           placeholder="https://n8n.exemplo.com/webhook/disparos"
                           value={integrationForm.baseUrl}
                           onChange={e => setIntegrationForm(p => ({ ...p, baseUrl: e.target.value }))}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                         />
                       </div>
                     )}
@@ -1679,7 +1679,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-2">
                     <button
                       onClick={() => setShowAddIntegration(false)}
-                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-card"
                     >
                       Cancelar
                     </button>
@@ -1722,16 +1722,16 @@ function SettingsContent() {
                           <button
                             onClick={() => handleToggleIntegration(int.id, int.ativo)}
                             className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                              int.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
+                              int.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
                             }`}
                           >
-                            <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                            <span className="w-4 h-4 rounded-full bg-card block shadow" />
                           </button>
                         </div>
 
                         <button
                           onClick={() => handleDeleteIntegration(int.id)}
-                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
+                          className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 transition-colors"
                           title="Excluir integração"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1741,7 +1741,7 @@ function SettingsContent() {
 
                     {/* Integration details */}
                     {int.tipo === 'outbound_api' && (
-                      <div className="p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-card/40 border border-border/20 text-xs">
                         <span className="ocr-label">Base URL Configurada:</span>
                         <code className="text-primary block font-mono mt-1 text-[11px] select-all break-all">{int.baseUrl}</code>
                       </div>
@@ -1777,7 +1777,7 @@ function SettingsContent() {
                                   placeholder="carlos-leads"
                                   value={endpointForm.path}
                                   onChange={e => setEndpointForm(p => ({ ...p, path: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1787,7 +1787,7 @@ function SettingsContent() {
                                   placeholder="sec-xyz..."
                                   value={endpointForm.secretToken}
                                   onChange={e => setEndpointForm(p => ({ ...p, secretToken: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1795,7 +1795,7 @@ function SettingsContent() {
                                 <select
                                   value={endpointForm.sourceSystem}
                                   onChange={e => setEndpointForm(p => ({ ...p, sourceSystem: e.target.value as EndpointSourceSystem }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 >
                                   <option value="elementor">Elementor Forms</option>
                                   <option value="facebook_leads">Meta Lead Ads</option>
@@ -1808,7 +1808,7 @@ function SettingsContent() {
                             <div className="flex justify-end gap-2 text-[10px]">
                               <button
                                 onClick={() => setShowAddEndpoint(null)}
-                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                               >
                                 Cancelar
                               </button>
@@ -1832,7 +1832,7 @@ function SettingsContent() {
                             return (
                               <div
                                 key={ep.id}
-                                className="p-3.5 rounded-2xl border border-border/20 bg-neutral-950/20 space-y-3"
+                                className="p-3.5 rounded-2xl border border-border/20 bg-card/20 space-y-3"
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
@@ -1845,7 +1845,7 @@ function SettingsContent() {
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={() => handleToggleAccordionLog(ep.id)}
-                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-neutral-800 text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
+                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-muted text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
                                     >
                                       <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
                                       {isAccordionOpen ? 'Fechar Logs' : 'Ver Logs'}
@@ -1856,7 +1856,7 @@ function SettingsContent() {
                                         navigator.clipboard.writeText(absoluteUrl)
                                         toast.success('URL copiada!')
                                       }}
-                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                                       title="Copiar URL"
                                     >
                                       <Copy className="w-3.5 h-3.5" />
@@ -1864,7 +1864,7 @@ function SettingsContent() {
 
                                     <button
                                       onClick={() => handleDeleteEndpoint(ep.id)}
-                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
                                       title="Remover endpoint"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1886,7 +1886,7 @@ function SettingsContent() {
                                         {logs.map(log => (
                                           <div
                                             key={log.id}
-                                            className="p-3 rounded-xl border border-border/20 bg-neutral-900/60 flex flex-col gap-2"
+                                            className="p-3 rounded-xl border border-border/20 bg-card/60 flex flex-col gap-2"
                                           >
                                             <div className="flex items-center justify-between text-[9px]">
                                               <span className={`font-bold px-1.5 py-0.5 rounded ${
@@ -1898,7 +1898,7 @@ function SettingsContent() {
                                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                                               </span>
                                             </div>
-                                            <pre className="text-[10px] text-neutral-300 font-mono bg-neutral-950 p-2.5 rounded-lg overflow-x-auto whitespace-pre">
+                                            <pre className="text-[10px] text-neutral-300 font-mono bg-card p-2.5 rounded-lg overflow-x-auto whitespace-pre">
                                               {log.payload}
                                             </pre>
                                           </div>
@@ -1907,9 +1907,9 @@ function SettingsContent() {
                                     )}
 
                                     {/* Snippet Example */}
-                                    <div className="p-3.5 rounded-xl border border-border/15 bg-neutral-950/60 space-y-2">
+                                    <div className="p-3.5 rounded-xl border border-border/15 bg-card/60 space-y-2">
                                       <span className="text-[10px] font-bold text-neutral-300 block">Payload Esperado (Inbound Lead JSON)</span>
-                                      <pre className="text-[9px] text-neutral-400 font-mono bg-neutral-950 p-2 rounded-lg select-all">
+                                      <pre className="text-[9px] text-neutral-400 font-mono bg-card p-2 rounded-lg select-all">
 {`{
   "nome": "Ricardo",
   "sobrenome": "Almeida",
@@ -1956,9 +1956,9 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Produtos de Interesse</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.products.map(p => (
-                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
+                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
                         <span className="text-xs text-neutral-300 font-medium">{p}</span>
-                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1967,7 +1967,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Novo produto..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addProduct(e.currentTarget.value)
@@ -1984,9 +1984,9 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Origens dos Leads</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.origins.map(o => (
-                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
+                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
                         <span className="text-xs text-neutral-300 font-medium">{o}</span>
-                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1995,7 +1995,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova origem..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addOrigin(e.currentTarget.value)
@@ -2012,12 +2012,12 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Tags</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.tags.map(t => (
-                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
+                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
                           <span className="text-xs text-neutral-300 font-medium">{t.label}</span>
                         </div>
-                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2026,7 +2026,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova tag..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             const val = e.currentTarget.value.trim()
@@ -2086,7 +2086,7 @@ function SettingsContent() {
                         placeholder="Ex: Disparo Leads Quentes n8n"
                         value={channelForm.nome}
                         onChange={e => setChannelForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       />
                     </div>
                     
@@ -2097,7 +2097,7 @@ function SettingsContent() {
                         placeholder="https://n8n.netlife.com/webhook/..."
                         value={channelForm.urlWebhook}
                         onChange={e => setChannelForm(p => ({ ...p, urlWebhook: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                       />
                     </div>
 
@@ -2106,7 +2106,7 @@ function SettingsContent() {
                       <select
                         value={channelForm.pipelineId}
                         onChange={e => setChannelForm(p => ({ ...p, pipelineId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="" disabled>-- Selecione um funil --</option>
                         {pipelines.map(p => (
@@ -2121,10 +2121,10 @@ function SettingsContent() {
                       <button
                         onClick={() => setChannelForm(p => ({ ...p, ativo: !p.ativo }))}
                         className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
+                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
                         }`}
                       >
-                        <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                        <span className="w-4 h-4 rounded-full bg-card block shadow" />
                       </button>
                       <span className="text-xs text-muted-foreground">Status do Canal: <strong className={channelForm.ativo ? 'text-primary' : 'text-neutral-400'}>{channelForm.ativo ? 'Ativo' : 'Inativo'}</strong></span>
                     </div>
@@ -2136,7 +2136,7 @@ function SettingsContent() {
                         setShowAddChannel(false)
                         setEditingChannelId(null)
                       }}
-                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900 transition-colors"
+                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-card transition-colors"
                     >
                       Cancelar
                     </button>
@@ -2154,7 +2154,7 @@ function SettingsContent() {
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Canais Ativos</h3>
                 {channels.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-card/10">
                     Nenhum canal de disparo configurado. Crie um canal acima.
                   </div>
                 ) : (
@@ -2184,16 +2184,16 @@ function SettingsContent() {
                                 <button
                                   onClick={() => handleToggleChannel(chan.id)}
                                   className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
+                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
                                   }`}
                                 >
-                                  <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                                  <span className="w-4 h-4 rounded-full bg-card block shadow" />
                                 </button>
                               </div>
 
                               <button
                                 onClick={() => handleEditChannel(chan)}
-                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
                                 title="Editar canal"
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -2201,7 +2201,7 @@ function SettingsContent() {
 
                               <button
                                 onClick={() => handleDeleteChannel(chan.id)}
-                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
+                                className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 transition-colors"
                                 title="Excluir canal"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2209,7 +2209,7 @@ function SettingsContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
+                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-card/40 border border-border/20 text-xs">
                             <div className="min-w-0 flex-1">
                               <span className="ocr-label text-[10px] font-bold text-neutral-400">Webhook URL:</span>
                               <code className="text-primary block font-mono mt-1 text-[11px] select-all truncate">{chan.urlWebhook}</code>
@@ -2246,7 +2246,7 @@ function SettingsContent() {
                 <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Histórico de Disparos (Logs)</h3>
                 
                 {disparoLogs.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-card/10">
                     Nenhum log de disparo registrado.
                   </div>
                 ) : (
@@ -2264,7 +2264,7 @@ function SettingsContent() {
                         </thead>
                         <tbody className="divide-y divide-border/10">
                           {disparoLogs.map(log => (
-                            <tr key={log.id} className="hover:bg-neutral-900/35 transition-colors">
+                            <tr key={log.id} className="hover:bg-card/35 transition-colors">
                               <td className="py-3 pr-4 text-neutral-300 whitespace-nowrap">
                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                               </td>
@@ -2331,7 +2331,7 @@ function SettingsContent() {
                         placeholder="Ex: Aline Ferreira"
                         value={userForm.nome}
                         onChange={e => setUserForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div>
@@ -2341,7 +2341,7 @@ function SettingsContent() {
                         placeholder="aline@caixarapido.com"
                         value={userForm.email}
                         onChange={e => setUserForm(p => ({ ...p, email: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2351,7 +2351,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={userForm.password}
                         onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2359,7 +2359,7 @@ function SettingsContent() {
                       <select
                         value={userForm.role}
                         onChange={e => setUserForm(p => ({ ...p, role: e.target.value as UserRole }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="USER">User (Vendedor)</option>
                         <option value="MODERATOR">Moderator (Gerente)</option>
@@ -2371,7 +2371,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddUser(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                     >
                       Cancelar
                     </button>
@@ -2407,7 +2407,7 @@ function SettingsContent() {
                         <select
                           value={u.role}
                           onChange={e => handleUpdateUserRole(u.id, e.target.value as UserRole)}
-                          className="px-2.5 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
+                          className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
                         >
                           <option value="USER">Vendedor (USER)</option>
                           <option value="MODERATOR">Gerente (MODERATOR)</option>
@@ -2417,7 +2417,7 @@ function SettingsContent() {
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           disabled={u.id === currentUser.id}
-                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -2447,7 +2447,7 @@ function SettingsContent() {
                               className={`flex items-center justify-between p-2 rounded-xl border text-[10px] font-semibold transition-all ${
                                 isPermitted
                                   ? 'bg-primary/5 border-primary/40 text-primary'
-                                  : 'border-border/30 bg-neutral-900/40 text-muted-foreground hover:text-foreground'
+                                  : 'border-border/30 bg-muted/40 text-muted-foreground hover:text-foreground'
                               }`}
                             >
                               <span>{feat.label}</span>
@@ -2466,7 +2466,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={passwordEdit[u.id] ?? ''}
                         onChange={e => setPasswordEdit(p => ({ ...p, [u.id]: e.target.value }))}
-                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                       />
                       <button
                         onClick={() => handleUpdatePassword(u.id)}
@@ -2516,7 +2516,7 @@ function SettingsContent() {
                         placeholder="Ex: Vendas High Ticket Sul"
                         value={teamForm.nome}
                         onChange={e => setTeamForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div className="col-span-2">
@@ -2524,7 +2524,7 @@ function SettingsContent() {
                       <select
                         value={teamForm.ownerUserId}
                         onChange={e => setTeamForm(p => ({ ...p, ownerUserId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="">-- Selecione o líder --</option>
                         {users.map(u => (
@@ -2537,7 +2537,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddTeam(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                     >
                       Cancelar
                     </button>
@@ -2553,7 +2553,7 @@ function SettingsContent() {
 
               {/* Teams Dashboard */}
               {teams.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
+                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-card/10">
                   Nenhum time comercial criado.
                 </div>
               ) : (
@@ -2569,7 +2569,7 @@ function SettingsContent() {
                           className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
                             selectedTeamId === t.id
                               ? 'bg-primary/5 border-primary/45 text-primary'
-                              : 'border-border/10 bg-neutral-900/30 text-muted-foreground hover:text-foreground'
+                              : 'border-border/10 bg-muted/30 text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <span className="text-xs font-bold truncate max-w-[150px]">{t.nome}</span>
@@ -2578,7 +2578,7 @@ function SettingsContent() {
                               e.stopPropagation()
                               handleDeleteTeam(t.id)
                             }}
-                            className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2606,7 +2606,7 @@ function SettingsContent() {
                           <div className="flex gap-2">
                             <select
                               id="add-member-select"
-                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
+                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                               defaultValue=""
                             >
                               <option value="" disabled>-- Selecione um usuário --</option>
@@ -2647,7 +2647,7 @@ function SettingsContent() {
                                 return (
                                   <div
                                     key={mId}
-                                    className="p-3.5 rounded-xl border border-border/20 bg-neutral-950/20 flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
+                                    className="p-3.5 rounded-xl border border-border/20 bg-card/20 flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
                                   >
                                     <div className="min-w-0">
                                       <span className="text-xs font-bold text-neutral-200 block truncate">{usr.nome} {usr.sobrenome || ''}</span>
@@ -2655,7 +2655,7 @@ function SettingsContent() {
                                     </div>
                                     <button
                                       onClick={() => handleRemoveTeamMember(selectedTeam.id, mId)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                                       title="Remover integrante"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -2719,7 +2719,7 @@ function SettingsContent() {
                         placeholder="Ex: Sondagem de Faturamento inicial"
                         value={templateForm.nome}
                         onChange={e => setTemplateForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
 
@@ -2728,7 +2728,7 @@ function SettingsContent() {
                       <select
                         value={templateForm.categoria}
                         onChange={e => setTemplateForm(p => ({ ...p, categoria: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="Sondagem">Sondagem</option>
                         <option value="Follow-up">Follow-up</option>
@@ -2746,7 +2746,7 @@ function SettingsContent() {
                             key={variable}
                             type="button"
                             onClick={() => setTemplateForm(p => ({ ...p, corpo: p.corpo + variable }))}
-                            className="px-2 py-1 rounded bg-neutral-950 border border-border/20 text-xs text-primary hover:bg-neutral-900 transition-colors"
+                            className="px-2 py-1 rounded bg-card border border-border/20 text-xs text-primary hover:bg-card transition-colors"
                           >
                             {variable}
                           </button>
@@ -2758,11 +2758,11 @@ function SettingsContent() {
                         placeholder="Escreva a mensagem aqui..."
                         value={templateForm.corpo}
                         onChange={e => setTemplateForm(p => ({ ...p, corpo: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-mono"
                       />
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-neutral-900/50 border border-border/20 space-y-1.5">
+                    <div className="p-3.5 rounded-xl bg-card/50 border border-border/20 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] font-bold uppercase text-primary">Preview com dados fictícios</p>
                         <div className="flex flex-wrap gap-1">
@@ -2801,7 +2801,7 @@ function SettingsContent() {
                         setTemplateForm({ nome: '', categoria: 'Sondagem', corpo: '' })
                         setEditingTemplate(null)
                       }}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
                     >
                       Cancelar
                     </button>
@@ -2818,7 +2818,7 @@ function SettingsContent() {
               {/* Templates grid list */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {templates.map(tpl => (
-                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-neutral-900/35 flex flex-col justify-between hover:border-border/40 transition-all">
+                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-card/35 flex flex-col justify-between hover:border-border/40 transition-all">
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm text-neutral-250 truncate max-w-[180px]">{tpl.nome}</span>
@@ -2826,7 +2826,7 @@ function SettingsContent() {
                           {tpl.categoria}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-black/30 p-3 rounded-xl border border-border/10 font-mono mt-3">
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-background/30 p-3 rounded-xl border border-border/10 font-mono mt-3">
                         {tpl.corpo}
                       </p>
                     </div>
@@ -2834,13 +2834,13 @@ function SettingsContent() {
                     <div className="flex gap-2 border-t border-border/10 pt-4 mt-4">
                       <button
                         onClick={() => handleEditTemplate(tpl)}
-                        className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
+                        className="flex-1 py-1.5 bg-muted hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteTemplate(tpl.id)}
-                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
+                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-foreground text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
                       >
                         Excluir
                       </button>
@@ -2849,7 +2849,7 @@ function SettingsContent() {
                 ))}
 
                 {templates.length === 0 && (
-                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
+                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-card/10">
                     Nenhum template de mensagem criado.
                   </div>
                 )}

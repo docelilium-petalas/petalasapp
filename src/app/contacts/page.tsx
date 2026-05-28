@@ -575,10 +575,10 @@ export default function ContactsPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex h-full flex-col lg:flex-row bg-black text-foreground">
+      <div className="flex h-full flex-col lg:flex-row bg-background text-foreground">
         
         {/* LEFT COLUMN: LIST AND FILTERS */}
-        <div className={`flex flex-col border-r border-border/20 bg-neutral-900/10 shrink-0 select-none ${selectedId ? 'hidden lg:flex lg:w-[400px]' : 'flex-1'}`}>
+        <div className={`flex flex-col border-r border-border/20 bg-card/10 shrink-0 select-none ${selectedId ? 'hidden lg:flex lg:w-[400px]' : 'flex-1'}`}>
           
           {/* List Header & KPIs */}
           <div className="p-5 border-b border-border/20 space-y-4">
@@ -589,8 +589,8 @@ export default function ContactsPage() {
                 onClick={() => setCategoryFilter('all')}
                 className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
                   categoryFilter === 'all'
-                    ? 'bg-neutral-800 border-neutral-600 border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
-                    : 'bg-neutral-900/40 border border-border/20 hover:bg-neutral-850/50 hover:border-neutral-700'
+                    ? 'bg-muted border-neutral-600 border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
+                    : 'bg-muted/40 border border-border/20 hover:bg-neutral-850/50 hover:border-neutral-700'
                 }`}
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total</span>
@@ -635,8 +635,8 @@ export default function ContactsPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 font-medium">{filteredContacts.length}</span>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-neutral-400 font-medium">{filteredContacts.length}</span>
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Base unificada de leads NetLife</p>
               </div>
@@ -646,7 +646,7 @@ export default function ContactsPage() {
                   className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
                     isSelectionMode 
                       ? 'bg-primary/20 border-primary text-primary hover:bg-primary/30' 
-                      : 'border-border/60 hover:bg-neutral-800 text-muted-foreground'
+                      : 'border-border/60 hover:bg-muted text-muted-foreground'
                   }`}
                   title="Seleção em Lote"
                 >
@@ -662,7 +662,7 @@ export default function ContactsPage() {
             </div>
 
             {/* Search Box */}
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-black/40 shadow-inner focus-within:border-primary/50 transition-colors">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-background/80 shadow-inner focus-within:border-primary/50 transition-colors">
               <Search className="w-4 h-4 text-neutral-400 shrink-0" />
               <input
                 value={searchQuery}
@@ -671,7 +671,7 @@ export default function ContactsPage() {
                 className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-500 text-foreground"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-neutral-800">
+                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-muted">
                   <X className="w-3.5 h-3.5 text-neutral-400" />
                 </button>
               )}
@@ -692,7 +692,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-card border-border/20 text-neutral-400 hover:border-neutral-700'
                       }`}
                     >
                       {tag}
@@ -713,7 +713,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-card border-border/20 text-neutral-400 hover:border-neutral-700'
                       }`}
                     >
                       {orig}
@@ -725,9 +725,9 @@ export default function ContactsPage() {
 
             {/* Selection Toolbar */}
             {isSelectionMode && (
-              <div className="flex items-center justify-between p-3.5 bg-neutral-950 border border-primary/25 rounded-2xl animate-scale-in">
+              <div className="flex items-center justify-between p-3.5 bg-card border border-primary/25 rounded-2xl animate-scale-in">
                 <div className="flex items-center gap-2">
-                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-white">
+                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-foreground">
                     {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                   </button>
                   <span className="text-xs text-neutral-300 font-semibold">{checkedCount} selecionados</span>
@@ -735,7 +735,7 @@ export default function ContactsPage() {
                 {checkedCount > 0 && (
                   <button
                     onClick={handleBulkDelete}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-white transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-foreground transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
                   </button>
@@ -775,21 +775,21 @@ export default function ContactsPage() {
                   className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all cursor-pointer border-l-2 ${
                     isSelected 
                       ? 'bg-primary/5 border-l-primary' 
-                      : 'hover:bg-neutral-900/30 border-l-transparent'
+                      : 'hover:bg-muted/30 border-l-transparent'
                   } ${isSelectionMode && isChecked ? 'bg-primary/5' : ''}`}
                 >
                   {/* Checkbox if selection mode */}
                   {isSelectionMode && (
                     <button 
                       onClick={(e) => toggleChecked(c.id, e)} 
-                      className="shrink-0 p-0.5 rounded text-neutral-400 hover:text-white"
+                      className="shrink-0 p-0.5 rounded text-neutral-400 hover:text-foreground"
                     >
                       {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   )}
 
                   {/* Avatar */}
-                  <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md`}>
+                  <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-foreground shrink-0 shadow-md`}>
                     {initials(c)}
                   </div>
 
@@ -820,12 +820,12 @@ export default function ContactsPage() {
                     {/* Bottom Metadata Badges */}
                     <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                       {c.derivedOrigem && (
-                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-neutral-900 border border-border/20 text-neutral-400">
+                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-card border border-border/20 text-neutral-400">
                           {c.derivedOrigem}
                         </span>
                       )}
                       {c.dealsCount > 0 && (
-                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-300">
+                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-muted text-neutral-300">
                           {c.dealsCount} Negócio{c.dealsCount > 1 ? 's' : ''}
                         </span>
                       )}
@@ -845,17 +845,17 @@ export default function ContactsPage() {
             <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-[#090d16] to-[#030712] overflow-y-auto scrollbar-thin">
               
               {/* Desktop Header / Mobile Navigation */}
-              <div className="flex items-center justify-between px-6 py-5 border-b border-border/20 bg-black/40 backdrop-blur-md sticky top-0 z-20">
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border/20 bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setSelectedId(null)} className="lg:hidden p-2 rounded-xl border border-border/50 text-neutral-400 hover:bg-neutral-800">
+                  <button onClick={() => setSelectedId(null)} className="lg:hidden p-2 rounded-xl border border-border/50 text-neutral-400 hover:bg-muted">
                     <ArrowLeft className="w-4 h-4" />
                   </button>
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-white shadow-lg`}>
+                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-foreground shadow-lg`}>
                       {initials(selectedContact)}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white leading-none">{selectedContact.nome} {selectedContact.sobrenome || ''}</h2>
+                      <h2 className="text-xl font-bold text-foreground leading-none">{selectedContact.nome} {selectedContact.sobrenome || ''}</h2>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                           selectedContact.productGroup === 'HMI'
@@ -881,21 +881,21 @@ export default function ContactsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowMergeModal(true)}
-                    className="p-2.5 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                    className="p-2.5 rounded-xl border border-border hover:bg-muted text-neutral-400 hover:text-foreground transition-colors"
                     title="Mesclar Contato"
                   >
                     <Merge className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditModal(selectedContact)}
-                    className="p-2.5 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                    className="p-2.5 rounded-xl border border-border hover:bg-muted text-neutral-400 hover:text-foreground transition-colors"
                     title="Editar Contato"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleSingleDelete(selectedContact.id)}
-                    className="p-2.5 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-white transition-all"
+                    className="p-2.5 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-foreground transition-all"
                     title="Excluir Contato"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -907,28 +907,28 @@ export default function ContactsPage() {
               <div className="p-6 space-y-6 max-w-4xl mx-auto w-full">
                 
                 {/* QUICK ACTIONS BAR */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-950/40 p-3 rounded-2xl border border-border/10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-card/40 p-3 rounded-2xl border border-border/10">
                   <button
                     onClick={() => handleWhatsApp(selectedContact.telefone)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
                   >
                     <Phone className="w-4 h-4 text-emerald-400" /> Abrir WhatsApp
                   </button>
                   <a
                     href={`/activities?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
                   >
                     <Calendar className="w-4 h-4 text-indigo-400" /> Agendar Atividade
                   </a>
                   <a
                     href={`/pipeline?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
                   >
                     <Zap className="w-4 h-4 text-primary" /> Criar Negócio
                   </a>
                   <button
                     onClick={() => handleTestWebhook(selectedContact.telefone, selectedContact.nome)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
                     title="Simula a chegada de um lead via Webhook Elementor"
                   >
                     <Globe className="w-4 h-4 text-amber-400" /> Disparar Webhook
@@ -963,12 +963,12 @@ export default function ContactsPage() {
                       icon: () => <FileText className="w-5 h-5 text-amber-400" />
                     }
                   ].map((stat, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-neutral-900/30 backdrop-blur-sm relative overflow-hidden shadow-md">
+                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-muted/30 backdrop-blur-sm relative overflow-hidden shadow-md">
                       <div className="absolute top-0 right-0 p-3 opacity-20">
                         {stat.icon()}
                       </div>
                       <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">{stat.label}</p>
-                      <p className="text-xl font-bold text-white mt-1">{stat.value}</p>
+                      <p className="text-xl font-bold text-foreground mt-1">{stat.value}</p>
                       <p className="text-[10px] text-neutral-400 mt-0.5">{stat.desc}</p>
                     </div>
                   ))}
@@ -988,7 +988,7 @@ export default function ContactsPage() {
                       className={`pb-3 font-semibold text-xs transition-all shrink-0 tracking-wider uppercase relative ${
                         detailTab === tab.id 
                           ? 'text-primary' 
-                          : 'text-neutral-400 hover:text-white'
+                          : 'text-neutral-400 hover:text-foreground'
                       }`}
                     >
                       {tab.label}
@@ -1005,7 +1005,7 @@ export default function ContactsPage() {
                     
                     {/* Informações Pessoais & Endereço */}
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <UserCheck className="w-3.5 h-3.5 text-primary" /> Informações Pessoais
                         </h4>
@@ -1025,7 +1025,7 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-primary" /> Endereço Completo
                         </h4>
@@ -1048,7 +1048,7 @@ export default function ContactsPage() {
                     </div>
 
                     {/* Marketing & UTM info */}
-                    <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                    <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                       <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-primary" /> Atribuição de Marketing (UTMs)
                       </h4>
@@ -1083,7 +1083,7 @@ export default function ContactsPage() {
                     {/* Tags e Campos Customizados */}
                     <div className="grid md:grid-cols-2 gap-6">
                       
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5 text-primary" /> Tags Comerciais
                         </h4>
@@ -1099,7 +1099,7 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Settings className="w-3.5 h-3.5 text-primary" /> Campos Customizados
                         </h4>
@@ -1121,11 +1121,11 @@ export default function ContactsPage() {
 
                     {/* Webhook Meta fbMetadata */}
                     {selectedContact.fbMetadata && Object.keys(selectedContact.fbMetadata).length > 0 && (
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Globe className="w-3.5 h-3.5 text-primary" /> Metadata Lead Ads (Facebook Ads Integration)
                         </h4>
-                        <pre className="p-4 rounded-xl bg-black border border-border/25 text-neutral-300 font-mono text-[11px] overflow-x-auto">
+                        <pre className="p-4 rounded-xl bg-background border border-border/25 text-neutral-300 font-mono text-[11px] overflow-x-auto">
                           {JSON.stringify(selectedContact.fbMetadata, null, 2)}
                         </pre>
                       </div>
@@ -1143,13 +1143,13 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactDeals.filter(d => d.status === 'WON').map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                               <ShoppingBag className="w-4 h-4 text-emerald-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-white">{deal.titulo}</p>
+                              <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
                               <p className="text-[10px] text-neutral-400 mt-0.5">
                                 Fechado em: {deal.fechadoEm ? new Date(deal.fechadoEm).toLocaleDateString('pt-BR') : new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
                               </p>
@@ -1159,7 +1159,7 @@ export default function ContactsPage() {
                             <p className="text-sm font-extrabold text-emerald-400">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}
                             </p>
-                            <span className="text-[9px] px-1.5 py-0.5 bg-neutral-900 text-neutral-400 rounded-md border border-neutral-800">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-card text-neutral-400 rounded-md border border-neutral-800">
                               WON Deal
                             </span>
                           </div>
@@ -1178,9 +1178,9 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactDeals.map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 space-y-3">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-white">{deal.titulo}</p>
+                            <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                               deal.status === 'WON' 
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
@@ -1213,17 +1213,17 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactActivities.map(act => (
-                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
+                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                               act.status === 'DONE' 
-                                ? 'bg-neutral-800 border border-neutral-700 text-neutral-500' 
+                                ? 'bg-muted border border-neutral-700 text-neutral-500' 
                                 : 'bg-primary/10 border border-primary/20 text-primary'
                             }`}>
                               <Calendar className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-neutral-500' : 'text-white'}`}>
+                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-neutral-500' : 'text-foreground'}`}>
                                 {act.titulo}
                               </p>
                               {act.descricao && (
@@ -1237,7 +1237,7 @@ export default function ContactsPage() {
                           
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             act.status === 'DONE' 
-                              ? 'bg-neutral-800 text-neutral-400' 
+                              ? 'bg-muted text-neutral-400' 
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
                             {act.status}
@@ -1252,9 +1252,9 @@ export default function ContactsPage() {
             </div>
           ) : (
             <div className="hidden lg:flex flex-1 flex-col items-center justify-center text-center text-muted-foreground p-12 bg-gradient-to-b from-[#090d16] to-[#030712]">
-              <div className="p-6 rounded-3xl border border-border/10 bg-neutral-950/20 backdrop-blur-md max-w-sm shadow-2xl">
+              <div className="p-6 rounded-3xl border border-border/10 bg-card/20 backdrop-blur-md max-w-sm shadow-2xl">
                 <UserCheck className="w-12 h-12 text-primary/45 mx-auto mb-4 stroke-[1.5]" />
-                <h3 className="text-base font-bold text-white">Selecione um contato</h3>
+                <h3 className="text-base font-bold text-foreground">Selecione um contato</h3>
                 <p className="text-xs mt-1 text-neutral-400">Escolha um contato da listagem lateral para ver suas informações detalhadas, UTMs e métricas de vendas.</p>
               </div>
             </div>
@@ -1266,14 +1266,14 @@ export default function ContactsPage() {
       {/* CREATE & EDIT CONTACT DIALOG (TABBED FORM) */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFormModal(false)}>
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-background backdrop-blur-md" />
           <div 
             className="relative w-full max-w-lg bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-5 animate-scale-in shadow-2xl overflow-y-auto max-h-[90vh]" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
-              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
+              <h3 className="text-lg font-bold text-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
+              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-neutral-400 hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1290,7 +1290,7 @@ export default function ContactsPage() {
                   type="button"
                   onClick={() => setFormTab(tab.id as 'dados' | 'endereco' | 'marketing')}
                   className={`pb-2 text-xs font-bold uppercase tracking-wider relative transition-colors ${
-                    formTab === tab.id ? 'text-primary' : 'text-neutral-400 hover:text-white'
+                    formTab === tab.id ? 'text-primary' : 'text-neutral-400 hover:text-foreground'
                   }`}
                 >
                   {tab.label}
@@ -1308,7 +1308,7 @@ export default function ContactsPage() {
                     value={formData.nome}
                     onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
                     placeholder="João"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1317,7 +1317,7 @@ export default function ContactsPage() {
                     value={formData.sobrenome}
                     onChange={e => setFormData(p => ({ ...p, sobrenome: e.target.value }))}
                     placeholder="Silva"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1326,7 +1326,7 @@ export default function ContactsPage() {
                     value={formData.telefone}
                     onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
                     placeholder="5562999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1335,7 +1335,7 @@ export default function ContactsPage() {
                     value={formData.email}
                     onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                     placeholder="joao@empresa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1344,7 +1344,7 @@ export default function ContactsPage() {
                     value={formData.documento}
                     onChange={e => setFormData(p => ({ ...p, documento: e.target.value }))}
                     placeholder="123.456.789-00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1353,7 +1353,7 @@ export default function ContactsPage() {
                     value={formData.dataNascimento}
                     onChange={e => setFormData(p => ({ ...p, dataNascimento: e.target.value }))}
                     type="date"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 flex items-center gap-2 pt-2">
@@ -1362,7 +1362,7 @@ export default function ContactsPage() {
                     type="checkbox"
                     checked={formData.consentimentoLgpd}
                     onChange={e => setFormData(p => ({ ...p, consentimentoLgpd: e.target.checked }))}
-                    className="rounded border-neutral-700 bg-neutral-950 text-primary focus:ring-0 focus:ring-offset-0"
+                    className="rounded border-neutral-700 bg-card text-primary focus:ring-0 focus:ring-offset-0"
                   />
                   <label htmlFor="consentimento" className="text-xs text-neutral-400 cursor-pointer">Aceita os termos de consentimento LGPD</label>
                 </div>
@@ -1378,7 +1378,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cep}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cep: e.target.value } }))}
                     placeholder="74000-000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1387,7 +1387,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.rua}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, rua: e.target.value } }))}
                     placeholder="Av. Anhanguera"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1396,7 +1396,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.numero}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, numero: e.target.value } }))}
                     placeholder="100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1405,7 +1405,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.complemento}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, complemento: e.target.value } }))}
                     placeholder="Quadra 12"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1414,7 +1414,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.bairro}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, bairro: e.target.value } }))}
                     placeholder="Setor Central"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1423,7 +1423,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cidade}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cidade: e.target.value }, cidade: e.target.value }))}
                     placeholder="Goiânia"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1432,7 +1432,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.estado}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, estado: e.target.value }, estado: e.target.value }))}
                     placeholder="GO"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
               </div>
@@ -1447,7 +1447,7 @@ export default function ContactsPage() {
                     value={formData.origem}
                     onChange={e => setFormData(p => ({ ...p, origem: e.target.value }))}
                     placeholder="Meta Ads"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
 
@@ -1460,7 +1460,7 @@ export default function ContactsPage() {
                       onChange={e => setNewTagInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
                       placeholder="Nova tag"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                     />
                     <button
                       type="button"
@@ -1474,7 +1474,7 @@ export default function ContactsPage() {
                     {formData.tags.map(tag => (
                       <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
                         {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-white font-bold ml-0.5">×</button>
+                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-foreground font-bold ml-0.5">×</button>
                       </span>
                     ))}
                   </div>
@@ -1488,28 +1488,28 @@ export default function ContactsPage() {
                       value={customFieldKey}
                       onChange={e => setCustomFieldKey(e.target.value)}
                       placeholder="Nome do campo (ex: Ramo)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-foreground focus:outline-none"
                     />
                     <input
                       value={customFieldValue}
                       onChange={e => setCustomFieldValue(e.target.value)}
                       placeholder="Valor"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-foreground focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={addCustomField}
-                      className="px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs"
+                      className="px-3 rounded-xl bg-muted hover:bg-neutral-700 text-foreground font-semibold text-xs"
                     >
                       Adicionar
                     </button>
                   </div>
                   <div className="space-y-1.5 max-h-[120px] overflow-y-auto scrollbar-thin">
                     {Object.entries(formData.camposCustomizados).map(([key, val]) => (
-                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-neutral-950 border border-border/10 text-xs">
+                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-card border border-border/10 text-xs">
                         <span className="text-neutral-400 capitalize">{key.replace(/_/g, ' ')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-semibold">{val}</span>
+                          <span className="text-foreground font-semibold">{val}</span>
                           <button type="button" onClick={() => removeCustomField(key)} className="text-rose-400 hover:text-rose-600 font-bold">×</button>
                         </div>
                       </div>
@@ -1524,7 +1524,7 @@ export default function ContactsPage() {
               <button 
                 type="button"
                 onClick={() => setShowFormModal(false)} 
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -1543,16 +1543,16 @@ export default function ContactsPage() {
       {/* MERGE CONTACTS DIALOG */}
       {showMergeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowMergeModal(false)}>
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-background/85 backdrop-blur-md" />
           <div 
             className="relative w-full max-w-md bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-4 animate-scale-in shadow-2xl" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Merge className="w-5 h-5 text-primary" /> Mesclar Contatos
               </h3>
-              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
+              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-neutral-400 hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1561,24 +1561,24 @@ export default function ContactsPage() {
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <div>
                 <span className="font-extrabold block">Instrução importante:</span>
-                O contato principal será mantido: <span className="font-extrabold text-white">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
+                O contato principal será mantido: <span className="font-extrabold text-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
               </div>
             </div>
 
             <div>
               <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Buscar Contato Secundário</label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 focus-within:border-primary/50 transition-colors">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-card focus-within:border-primary/50 transition-colors">
                 <Search className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   value={mergeQuery}
                   onChange={e => setMergeQuery(e.target.value)}
                   placeholder="Buscar contato secundário..."
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-neutral-950/30">
+            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-card/30">
               {mergeEligibleContacts.length === 0 && (
                 <div className="p-4 text-center text-xs text-neutral-500">Nenhum outro contato elegível encontrado.</div>
               )}
@@ -1589,7 +1589,7 @@ export default function ContactsPage() {
                   className={`w-full flex items-center justify-between p-3 text-left text-xs transition-colors ${
                     mergeTargetId === c.id 
                       ? 'bg-primary/10 text-primary' 
-                      : 'text-neutral-300 hover:bg-neutral-900/40'
+                      : 'text-neutral-300 hover:bg-muted/40'
                   }`}
                 >
                   <div>
@@ -1604,7 +1604,7 @@ export default function ContactsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowMergeModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -1622,7 +1622,7 @@ export default function ContactsPage() {
 
       {/* Floating Bulk Actions Bar */}
       {isSelectionMode && checkedCount > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-neutral-950/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-card/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
             <p className="text-xs font-bold text-foreground">
@@ -1638,7 +1638,7 @@ export default function ContactsPage() {
                 onChange={setSelectedListaTarget}
                 options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
                 placeholder="Disparo..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToLista}
@@ -1656,7 +1656,7 @@ export default function ContactsPage() {
                 onChange={setSelectedCadenciaTarget}
                 options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
                 placeholder="Cadência..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToCadence}
@@ -1669,7 +1669,7 @@ export default function ContactsPage() {
 
             <button
               onClick={handleBulkDelete}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-white transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-foreground transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
             </button>

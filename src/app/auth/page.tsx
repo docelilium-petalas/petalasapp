@@ -62,7 +62,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden select-none">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden select-none">
       <Toaster theme="dark" position="top-right" closeButton />
 
       {/* Ambient background blobs */}
@@ -78,7 +78,7 @@ export default function AuthPage() {
             <Flower2 className="w-8 h-8 text-[#C87783]" />
           </div>
           <h1
-            className="text-4xl text-white leading-none"
+            className="text-4xl text-foreground leading-none"
             style={{ fontFamily: 'var(--font-signature, cursive)' }}
           >
             Doce Lilium
@@ -89,16 +89,16 @@ export default function AuthPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
+        <div className="bg-card/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
 
           {/* Tab switcher */}
-          <div className="flex rounded-xl bg-neutral-800/60 p-1 mb-7 border border-neutral-700/50">
+          <div className="flex rounded-xl bg-muted/60 p-1 mb-7 border border-neutral-700/50">
             <button
               type="button"
               onClick={() => switchMode('login')}
               className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
                 mode === 'login'
-                  ? 'bg-[#C87783] text-white shadow-lg shadow-[#C87783]/20'
+                  ? 'bg-[#C87783] text-foreground shadow-lg shadow-[#C87783]/20'
                   : 'text-neutral-500 hover:text-neutral-300'
               }`}
             >
@@ -109,7 +109,7 @@ export default function AuthPage() {
               onClick={() => switchMode('register')}
               className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
                 mode === 'register'
-                  ? 'bg-[#C87783] text-white shadow-lg shadow-[#C87783]/20'
+                  ? 'bg-[#C87783] text-foreground shadow-lg shadow-[#C87783]/20'
                   : 'text-neutral-500 hover:text-neutral-300'
               }`}
             >
@@ -119,7 +119,7 @@ export default function AuthPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-foreground">
               {mode === 'login' ? 'Bem-vindo à operação' : 'Nova conta'}
             </h2>
             <p className="text-xs text-neutral-500 mt-1">
@@ -134,14 +134,14 @@ export default function AuthPage() {
             {mode === 'register' && (
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Nome</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
                   <User className="w-4 h-4 text-neutral-500 shrink-0" />
                   <input
                     type="text"
                     value={nome}
                     onChange={e => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -149,14 +149,14 @@ export default function AuthPage() {
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">E-mail</label>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
                 <Mail className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@empresa.com"
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
                 />
               </div>
             </div>
@@ -174,14 +174,14 @@ export default function AuthPage() {
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
                 <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
                 />
               </div>
             </div>
@@ -189,14 +189,14 @@ export default function AuthPage() {
             {mode === 'register' && (
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Confirmar senha</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
                   <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -205,7 +205,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#C87783] hover:bg-[#b8676f] text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#C87783]/20 hover:shadow-[#C87783]/30 disabled:opacity-60 disabled:cursor-not-allowed mt-2 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#C87783] hover:bg-[#b8676f] text-foreground font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#C87783]/20 hover:shadow-[#C87783]/30 disabled:opacity-60 disabled:cursor-not-allowed mt-2 cursor-pointer"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

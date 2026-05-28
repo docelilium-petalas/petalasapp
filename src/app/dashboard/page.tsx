@@ -184,7 +184,7 @@ export default function DashboardPage() {
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Comercial</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Visão executiva consolidada da sua operação de vendas
             </p>
@@ -194,14 +194,14 @@ export default function DashboardPage() {
             <select
               value={selectedPipelineId}
               onChange={e => setSelectedPipelineId(e.target.value)}
-              className="text-xs bg-neutral-900/60 border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
+              className="text-xs bg-card/60 border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
             >
               <option value="all">Todos os produtos</option>
               {pipelines.map(p => (
                 <option key={p.id} value={p.id}>{p.nome}</option>
               ))}
             </select>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-neutral-900/40 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-muted/40 text-xs text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Ao vivo
             </div>
@@ -493,7 +493,7 @@ export default function DashboardPage() {
               {topCampaigns.slice(0, 4).map((c, i: number) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-[10px] text-muted-foreground w-24 truncate shrink-0">{c.campanha}</span>
-                  <div className="flex-1 bg-neutral-800 rounded-full h-1.5">
+                  <div className="flex-1 bg-muted rounded-full h-1.5">
                     <div className="h-1.5 rounded-full transition-all" style={{ width: `${Math.min(c.conversao || 0, 100)}%`, background: CHART_COLORS[i % CHART_COLORS.length] }} />
                   </div>
                   <span className="text-[10px] font-bold w-8 text-right" style={{ color: CHART_COLORS[i % CHART_COLORS.length] }}>{(c.conversao || 0).toFixed(0)}%</span>
@@ -516,7 +516,7 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               {topSellers.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/40 transition-colors">
                   {/* Rank */}
                   <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-neutral-300' : 'text-amber-700'}`}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
@@ -553,7 +553,7 @@ export default function DashboardPage() {
                 <h2 className="font-bold text-foreground">Indicadores por Pipeline</h2>
                 <p className="text-xs text-muted-foreground">Métricas separadas por funil — exibe todos, independente do filtro acima</p>
               </div>
-              <span className="text-[10px] text-muted-foreground bg-neutral-900 border border-border/30 px-2 py-1 rounded-lg">
+              <span className="text-[10px] text-muted-foreground bg-card border border-border/30 px-2 py-1 rounded-lg">
                 {pipelineBreakdown.length} funis
               </span>
             </div>
@@ -579,7 +579,7 @@ export default function DashboardPage() {
                       { label: 'Ganhos', value: pipe.won, color: 'text-primary' },
                       { label: 'Perdidos', value: pipe.lost, color: 'text-destructive' },
                     ].map(stat => (
-                      <div key={stat.label} className="text-center p-2 rounded-lg bg-neutral-900/50 border border-border/20">
+                      <div key={stat.label} className="text-center p-2 rounded-lg bg-card/50 border border-border/20">
                         <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
                         <p className="text-[9px] text-muted-foreground uppercase">{stat.label}</p>
                       </div>
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Conversion bar */}
-                  <div className="mt-3 w-full bg-neutral-800 rounded-full h-1">
+                  <div className="mt-3 w-full bg-muted rounded-full h-1">
                     <div className="h-1 rounded-full transition-all" style={{ width: `${pipe.conversion}%`, background: pipe.cor }} />
                   </div>
                 </div>

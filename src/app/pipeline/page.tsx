@@ -55,7 +55,7 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string
   NAO_RESPONDEU: {
     label: 'NÃO RESPONDEU',
     color: 'text-neutral-400',
-    bg: 'bg-neutral-800/55',
+    bg: 'bg-muted/55',
     border: 'border-neutral-700/30',
     emoji: '⚪'
   }
@@ -74,7 +74,7 @@ const LOSS_REASONS = [
 
 // Owner badge color generator (deterministic HSL)
 function getOwnerColor(userId: string) {
-  if (!userId) return { bg: 'bg-neutral-800', border: 'border-neutral-700', text: 'text-neutral-300' }
+  if (!userId) return { bg: 'bg-muted', border: 'border-neutral-700', text: 'text-neutral-300' }
   let hash = 0
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash)
@@ -236,9 +236,9 @@ function DraggableDealCard({
 
   if (isMobile) {
     return (
-      <div className="relative overflow-hidden rounded-xl bg-neutral-900 border border-border/30 w-full shrink-0">
+      <div className="relative overflow-hidden rounded-xl bg-card border border-border/30 w-full shrink-0">
         {/* Swipe Quick Actions Behind Card */}
-        <div className="absolute inset-y-0 right-0 z-0 flex items-center bg-neutral-950 border-l border-border/20">
+        <div className="absolute inset-y-0 right-0 z-0 flex items-center bg-card border-l border-border/20">
           <button
             onClick={(e) => {
               e.stopPropagation()
@@ -256,9 +256,9 @@ function DraggableDealCard({
               onMarkLost()
               setSwipeOffset(0)
             }}
-            className="h-full px-3.5 bg-rose-500 text-white flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
+            className="h-full px-3.5 bg-rose-500 text-foreground flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
           >
-            <X className="w-5 h-5 mb-1 text-white" />
+            <X className="w-5 h-5 mb-1 text-foreground" />
             <span>Perdido</span>
           </button>
           <button
@@ -267,7 +267,7 @@ function DraggableDealCard({
               onDelete()
               setSwipeOffset(0)
             }}
-            className="h-full px-4 bg-neutral-800 text-rose-500 flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
+            className="h-full px-4 bg-muted text-rose-500 flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
           >
             <Trash2 className="w-5 h-5 mb-1 text-rose-500" />
             <span>Excluir</span>
@@ -296,7 +296,7 @@ function DraggableDealCard({
             transform: `translate3d(${swipeOffset}px, 0, 0)`,
             transition: isSwiping.current ? 'none' : 'transform 250ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          className={`relative z-10 p-4 bg-neutral-900 border-none transition-colors duration-200 select-none active:bg-neutral-800/80 ${
+          className={`relative z-10 p-4 bg-card border-none transition-colors duration-200 select-none active:bg-muted/80 ${
             isSelected ? 'bg-primary/10 border border-primary/20' : ''
           }`}
         >
@@ -358,7 +358,7 @@ function DraggableDealCard({
                   {owner.nome[0]}{owner.sobrenome ? owner.sobrenome[0] : ''}
                 </div>
               ) : (
-                <div className="w-7 h-7 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-neutral-900 shrink-0">
+                <div className="w-7 h-7 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-card shrink-0">
                   <User className="w-4 h-4 text-neutral-600" />
                 </div>
               )}
@@ -378,7 +378,7 @@ function DraggableDealCard({
       } ${
         isSelected
           ? 'border-primary bg-primary/10 shadow-lg shadow-primary/5'
-          : 'border-border/30 bg-neutral-900/60 hover:border-border/80 hover:bg-neutral-900/85'
+          : 'border-border/30 bg-card/60 hover:border-border/80 hover:bg-card/85'
       } ${isPulsing ? 'animate-pulse border-primary/90 shadow-[0_0_12px_rgba(57,255,136,0.35)]' : ''}`}
       onClick={(e) => {
         // If selection mode, toggle selection on click too, else open drawer
@@ -425,13 +425,13 @@ function DraggableDealCard({
               e.stopPropagation()
               onOpenMenu()
             }}
-            className="p-1 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+            className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             <MoreVertical className="w-3.5 h-3.5" />
           </button>
           {isOpenMenu && (
             <div
-              className="absolute right-0 top-7 z-20 w-44 rounded-xl border border-border bg-neutral-950 shadow-2xl overflow-hidden"
+              className="absolute right-0 top-7 z-20 w-44 rounded-xl border border-border bg-card shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -531,7 +531,7 @@ function DraggableDealCard({
             ) : (
               <div
                 title="Sem responsável"
-                className="w-5 h-5 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-neutral-900"
+                className="w-5 h-5 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-card"
               >
                 <User className="w-3 h-3 text-neutral-600" />
               </div>
@@ -543,7 +543,7 @@ function DraggableDealCard({
         <div className="mt-2.5 flex flex-wrap gap-1 items-center justify-between">
           <div className="flex flex-wrap gap-1">
             {deal.produtoInteresse && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-neutral-400">
                 {deal.produtoInteresse}
               </span>
             )}
@@ -636,7 +636,7 @@ function DroppableColumn({
       className={`flex flex-col w-72 shrink-0 rounded-2xl border transition-all duration-300 ${
         isOver
           ? 'border-primary/80 bg-primary/5 shadow-inner'
-          : 'border-border/30 bg-neutral-950/40'
+          : 'border-border/30 bg-card/40'
       }`}
     >
       {/* Stage Header */}
@@ -661,7 +661,7 @@ function DroppableColumn({
             <span className="font-bold text-sm text-foreground truncate max-w-[130px]" title={stage.nome}>
               {stage.nome}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-neutral-400">
               {deals.length}
             </span>
           </div>
@@ -1466,12 +1466,12 @@ function PipelineContent() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-neutral-950/20 max-md:pb-16 select-none relative">
+    <div className="flex flex-col h-full bg-card/20 max-md:pb-16 select-none relative">
       
       {/* ─── DESKTOP HEADER & FILTERS ─── */}
       {!isMobile && (
         <>
-          <div className="flex flex-col gap-4 px-6 py-4 border-b border-border/20 bg-black/30 backdrop-blur-md shrink-0">
+          <div className="flex flex-col gap-4 px-6 py-4 border-b border-border/20 bg-background/30 backdrop-blur-md shrink-0">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3">
@@ -1482,7 +1482,7 @@ function PipelineContent() {
                       value={selectedPipelineId}
                       onChange={handlePipelineSwitch}
                       options={pipelines.map((p) => ({ value: p.id, label: `${p.nome} ${p.isDefault ? '⭐' : ''}` }))}
-                      className="bg-neutral-900/80 border border-border/40 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                      className="bg-card/80 border border-border/40 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                     />
                   )}
                 </div>
@@ -1497,7 +1497,7 @@ function PipelineContent() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     showKpis
                       ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'bg-neutral-900 border-border/40 text-muted-foreground hover:text-foreground'
+                      : 'bg-card border-border/40 text-muted-foreground hover:text-foreground'
                   }`}
                   title={showKpis ? 'Ocultar indicadores' : 'Mostrar indicadores'}
                 >
@@ -1510,7 +1510,7 @@ function PipelineContent() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     isSelectionMode
                       ? 'bg-primary text-black border-primary'
-                      : 'bg-neutral-900 border-border/40 text-muted-foreground hover:text-foreground'
+                      : 'bg-card border-border/40 text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
@@ -1519,7 +1519,7 @@ function PipelineContent() {
 
                 <button
                   onClick={() => setShowArchived(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/40 bg-neutral-900 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-neutral-800/60 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/40 bg-card text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
                 >
                   <Archive className="w-3.5 h-3.5" />
                   Ver Arquivados
@@ -1529,7 +1529,7 @@ function PipelineContent() {
                   onClick={() => {
                     router.push('/settings?tab=pipeline')
                   }}
-                  className="p-2 rounded-xl border border-border/40 bg-neutral-900 text-muted-foreground hover:text-foreground hover:bg-neutral-800/60 transition-all"
+                  className="p-2 rounded-xl border border-border/40 bg-card text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
                   title="Configurar Pipelines"
                 >
                   <Settings className="w-4 h-4" />
@@ -1554,7 +1554,7 @@ function PipelineContent() {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar por deal, contato..."
-                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-neutral-900/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-card/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                   {searchText && (
                     <button
@@ -1569,7 +1569,7 @@ function PipelineContent() {
                 <select
                   value={filterOwner}
                   onChange={(e) => setFilterOwner(e.target.value)}
-                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Vendedor: Todos</option>
                   <option value="unassigned">Sem responsável</option>
@@ -1583,7 +1583,7 @@ function PipelineContent() {
                 <select
                   value={filterPriority}
                   onChange={(e) => setFilterPriority(e.target.value)}
-                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Prioridade: Todas</option>
                   <option value="BAIXA">Lead AP</option>
@@ -1595,7 +1595,7 @@ function PipelineContent() {
                 <select
                   value={filterOrigin}
                   onChange={(e) => setFilterOrigin(e.target.value)}
-                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Origem: Todas</option>
                   <option value="whatsapp">whatsapp</option>
@@ -1613,7 +1613,7 @@ function PipelineContent() {
                   setFilterOrigin('all')
                   setSearchText('')
                 }}
-                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold px-2 py-1 rounded hover:bg-neutral-800"
+                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold px-2 py-1 rounded hover:bg-muted"
               >
                 Limpar Filtros
               </button>
@@ -1630,7 +1630,7 @@ function PipelineContent() {
                 { label: 'Ticket Médio', value: BRL(ticketMedio), sub: 'Por negócio', color: 'text-foreground' },
                 { label: 'Conversão', value: `${conversionRate.toFixed(1)}%`, sub: 'Ganho/Perdido', color: 'text-primary' }
               ].map((kpi, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl border border-border/20 bg-neutral-900/35 flex flex-col gap-0.5">
+                <div key={idx} className="p-2.5 rounded-xl border border-border/20 bg-card/35 flex flex-col gap-0.5">
                   <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wide">{kpi.label}</p>
                   <h3 className={`text-sm font-extrabold tracking-tight ${kpi.color}`}>{kpi.value}</h3>
                   <p className="text-[9px] text-muted-foreground">{kpi.sub}</p>
@@ -1643,7 +1643,7 @@ function PipelineContent() {
 
       {/* ─── MOBILE VIEW: STAGE SLIDER SELECTOR ─── */}
       {isMobile && stages.length > 0 && (
-        <div className="flex flex-col bg-black/80 backdrop-blur-md px-4 py-3 border-b border-border/20 shrink-0 select-none">
+        <div className="flex flex-col bg-background backdrop-blur-md px-4 py-3 border-b border-border/20 shrink-0 select-none">
           
           {/* Funnel Selector & Total Value Row */}
           <div className="flex items-center justify-between mb-2">
@@ -1654,7 +1654,7 @@ function PipelineContent() {
                   value={selectedPipelineId}
                   onChange={handlePipelineSwitch}
                   options={pipelines.map((p) => ({ value: p.id, label: p.nome }))}
-                  className="bg-neutral-900/60 border border-border/30 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none text-foreground w-full"
+                  className="bg-card/60 border border-border/30 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none text-foreground w-full"
                 />
               )}
             </div>
@@ -1673,7 +1673,7 @@ function PipelineContent() {
               type="button"
               onClick={() => setActiveStageIndex((prev) => Math.max(0, prev - 1))}
               disabled={activeStageIndex === 0}
-              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-neutral-800 shrink-0"
+              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-muted shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -1691,7 +1691,7 @@ function PipelineContent() {
               type="button"
               onClick={() => setActiveStageIndex((prev) => Math.min(stages.length - 1, prev + 1))}
               disabled={activeStageIndex === stages.length - 1}
-              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-neutral-800 shrink-0"
+              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-muted shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -1704,7 +1704,7 @@ function PipelineContent() {
                 key={stg.id}
                 onClick={() => setActiveStageIndex(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === activeStageIndex ? 'w-5 bg-primary' : 'w-1.5 bg-neutral-800'
+                  idx === activeStageIndex ? 'w-5 bg-primary' : 'w-1.5 bg-muted'
                 }`}
               />
             ))}
@@ -1848,7 +1848,7 @@ function PipelineContent() {
                 const d = deals.find(x => x.id === activeDragDealId)
                 if (!d) return null
                 return (
-                  <div className="w-72 p-3.5 rounded-xl border border-primary/60 bg-neutral-900/95 shadow-2xl shadow-primary/20 opacity-90 cursor-grabbing">
+                  <div className="w-72 p-3.5 rounded-xl border border-primary/60 bg-card/95 shadow-2xl shadow-primary/20 opacity-90 cursor-grabbing">
                     <p className="text-xs font-bold text-foreground line-clamp-2">{d.titulo}</p>
                     <p className="text-[10px] text-primary mt-1">{BRL(d.valorEstimado)}</p>
                   </div>
@@ -1873,16 +1873,16 @@ function PipelineContent() {
       {/* ─── MOBILE VIEW: FILTERS BOTTOM SHEET ─── */}
       {isMobile && showMobileFilters && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/90 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowMobileFilters(false)}
         >
           <div
-            className="w-full max-h-[85vh] bg-neutral-950 border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
+            className="w-full max-h-[85vh] bg-card border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag Handle */}
             <div className="flex justify-center shrink-0 -mt-2">
-              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-border/20 shrink-0">
@@ -1907,7 +1907,7 @@ function PipelineContent() {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar deal, contato ou telefone..."
-                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
+                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   {searchText && (
                     <button
@@ -1986,7 +1986,7 @@ function PipelineContent() {
                   setSearchText('')
                   setShowMobileFilters(false)
                 }}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-bold text-muted-foreground active:bg-neutral-900"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-bold text-muted-foreground active:bg-card"
               >
                 Limpar Filtros
               </button>
@@ -2004,7 +2004,7 @@ function PipelineContent() {
 
       {/* ─── BULK ACTIONS FOOTER BAR ─── */}
       {isSelectionMode && selectedDeals.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-neutral-950/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-card/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
             <p className="text-xs font-bold text-foreground">
@@ -2020,7 +2020,7 @@ function PipelineContent() {
                 onChange={setBulkStageTarget}
                 options={stages.map((s) => ({ value: s.id, label: s.nome }))}
                 placeholder="Etapa..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs"
               />
               <button
                 onClick={handleBulkMove}
@@ -2038,7 +2038,7 @@ function PipelineContent() {
                 onChange={setBulkOwnerTarget}
                 options={users.map((u) => ({ value: u.id, label: u.nome }))}
                 placeholder="Vendedor..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs"
               />
               <button
                 onClick={handleBulkAssign}
@@ -2056,7 +2056,7 @@ function PipelineContent() {
                 onChange={setSelectedListaTarget}
                 options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
                 placeholder="Disparo..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToLista}
@@ -2074,7 +2074,7 @@ function PipelineContent() {
                 onChange={setSelectedCadenciaTarget}
                 options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
                 placeholder="Cadência..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToCadence}
@@ -2093,7 +2093,7 @@ function PipelineContent() {
             </button>
             <button
               onClick={handleBulkCloseLost}
-              className="px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold text-xs active:opacity-85"
+              className="px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-foreground font-semibold text-xs active:opacity-85"
             >
               Perdido
             </button>
@@ -2116,23 +2116,23 @@ function PipelineContent() {
       {/* ─── NEW DEAL MODAL ─── */}
       {showNewDeal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md max-md:items-end max-md:p-0"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-md max-md:items-end max-md:p-0"
           onClick={() => setShowNewDeal(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
+            className="relative w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
-              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
             <div className="flex items-center justify-between shrink-0">
               <h3 className="text-base font-extrabold tracking-tight">Nova Oportunidade</h3>
               <button
                 onClick={() => setShowNewDeal(false)}
-                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2147,7 +2147,7 @@ function PipelineContent() {
                   onChange={(e) => setNewDeal((p) => ({ ...p, titulo: e.target.value }))}
                   onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                   placeholder="Ex: Contrato de Tráfego Semestral"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
               </div>
 
@@ -2171,7 +2171,7 @@ function PipelineContent() {
                     onChange={(e) => setNewDeal((p) => ({ ...p, valorEstimado: e.target.value }))}
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Ex: 5000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
 
@@ -2243,7 +2243,7 @@ function PipelineContent() {
               <button
                 type="button"
                 onClick={() => setShowNewDeal(false)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900 active:bg-neutral-800 transition-colors"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-card active:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -2262,23 +2262,23 @@ function PipelineContent() {
       {/* ─── LOST REASON MODAL ─── */}
       {showLostReasonModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md max-md:items-end max-md:p-0"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-md max-md:items-end max-md:p-0"
           onClick={() => setShowLostReasonModal(null)}
         >
           <div
-            className="w-full max-w-md bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            className="w-full max-w-md bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
-              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+              <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
             <div className="flex items-center justify-between shrink-0">
               <h3 className="text-base font-extrabold tracking-tight">Motivo de Perda</h3>
               <button
                 onClick={() => setShowLostReasonModal(null)}
-                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2308,7 +2308,7 @@ function PipelineContent() {
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Descreva brevemente o motivo..."
                     rows={3}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
               )}
@@ -2318,14 +2318,14 @@ function PipelineContent() {
               <button
                 type="button"
                 onClick={() => setShowLostReasonModal(null)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900 transition-colors"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-card transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmLost}
-                className="flex-1 py-3 rounded-xl bg-rose-500 text-white font-semibold text-xs hover:bg-rose-600 transition-colors"
+                className="flex-1 py-3 rounded-xl bg-rose-500 text-foreground font-semibold text-xs hover:bg-rose-600 transition-colors"
               >
                 Confirmar Perda
               </button>
@@ -2454,11 +2454,11 @@ function ArchivedDealsView({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh]"
+        className="w-full max-w-4xl bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -2468,7 +2468,7 @@ function ArchivedDealsView({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -2483,14 +2483,14 @@ function ArchivedDealsView({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar título, contato..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-neutral-900/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-card/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as 'ALL' | 'WON' | 'LOST')}
-            className="bg-neutral-900 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="ALL">Status: Todos</option>
             <option value="WON">Ganhos (Won)</option>
@@ -2500,7 +2500,7 @@ function ArchivedDealsView({
           <select
             value={filterOwner}
             onChange={(e) => setFilterOwner(e.target.value)}
-            className="bg-neutral-900 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="all">Vendedor: Todos</option>
             {users.map((u) => (
@@ -2515,7 +2515,7 @@ function ArchivedDealsView({
         <div className="flex-1 overflow-y-auto scrollbar-thin border border-border/20 rounded-xl">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-neutral-900 border-b border-border/20 text-muted-foreground font-semibold">
+              <tr className="bg-card border-b border-border/20 text-muted-foreground font-semibold">
                 <th className="px-4 py-3">Título</th>
                 <th className="px-4 py-3">Contato</th>
                 <th className="px-4 py-3">Valor</th>
@@ -2531,7 +2531,7 @@ function ArchivedDealsView({
                 const _stage = stages.find((s) => s.id === d.stageId)
 
                 return (
-                  <tr key={d.id} className="hover:bg-neutral-900/40">
+                  <tr key={d.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3 font-semibold text-foreground">{d.titulo}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {contact?.nome} {contact?.sobrenome || ''}
@@ -2570,7 +2570,7 @@ function ArchivedDealsView({
                           onDeleteDeal(d.id)
                           setArchived((prev) => prev.filter((item) => item.id !== d.id))
                         }}
-                        className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white font-semibold transition-all"
+                        className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-foreground font-semibold transition-all"
                       >
                         Excluir
                       </button>
@@ -2797,16 +2797,16 @@ function DealDetailDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in max-md:items-end max-md:justify-center"
+      className="fixed inset-0 z-50 flex justify-end bg-background/90 backdrop-blur-sm animate-fade-in max-md:items-end max-md:justify-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-neutral-950 border-l border-border/40 h-full flex flex-col shadow-2xl animate-slide-up max-md:h-[85vh] max-md:rounded-t-3xl max-md:border-t max-md:border-l-0"
+        className="relative w-full max-w-2xl bg-card border-l border-border/40 h-full flex flex-col shadow-2xl animate-slide-up max-md:h-[85vh] max-md:rounded-t-3xl max-md:border-t max-md:border-l-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle for mobile bottom sheet */}
         <div className="hidden max-md:flex justify-center shrink-0 pt-3 pb-1">
-          <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+          <div className="w-12 h-1.5 rounded-full bg-muted" />
         </div>
         {/* Header */}
         <div className="p-6 border-b border-border/20 flex flex-col gap-4">
@@ -2865,14 +2865,14 @@ function DealDetailDrawer({
               )}
               <button
                 onClick={() => onDeleteDeal(deal.id)}
-                className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-colors"
+                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-rose-400 transition-colors"
                 title="Excluir negócio"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors ml-1"
+                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ml-1"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -2886,7 +2886,7 @@ function DealDetailDrawer({
                   type="text"
                   value={titleInput}
                   onChange={(e) => setTitleInput(e.target.value)}
-                  className="bg-neutral-900 border border-border text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
+                  className="bg-card border border-border text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
                 />
                 <button
                   onClick={handleSaveTitle}
@@ -2917,12 +2917,12 @@ function DealDetailDrawer({
 
           {/* SLA Progression Bar */}
           {slaHours > 0 && deal.status === 'OPEN' && (
-            <div className="p-3.5 rounded-xl border border-border/20 bg-neutral-900/35 space-y-1.5">
+            <div className="p-3.5 rounded-xl border border-border/20 bg-card/35 space-y-1.5">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="font-semibold text-muted-foreground">Progresso do SLA da Etapa</span>
                 <span className="font-bold text-foreground">{slaProgressText}</span>
               </div>
-              <div className="w-full bg-neutral-800 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     slaProgressRatio >= 1.0
@@ -2946,7 +2946,7 @@ function DealDetailDrawer({
               const isPast = stages.findIndex(s => s.id === stage.id) < stages.findIndex(s => s.id === deal.stageId);
               return (
                 <div key={stage.id} className="flex-1 flex flex-col items-center gap-1.5 min-w-[80px]">
-                  <div className={`h-1.5 w-full rounded-full transition-all ${isCurrent ? 'bg-primary shadow-[0_0_5px_rgba(255,255,255,0.3)]' : isPast ? 'bg-primary/40' : 'bg-neutral-800'}`} />
+                  <div className={`h-1.5 w-full rounded-full transition-all ${isCurrent ? 'bg-primary shadow-[0_0_5px_rgba(255,255,255,0.3)]' : isPast ? 'bg-primary/40' : 'bg-muted'}`} />
                   <span className={`text-[9px] text-center font-bold px-1 line-clamp-1 ${isCurrent ? 'text-primary' : isPast ? 'text-neutral-400' : 'text-neutral-600'}`}>
                     {stage.nome}
                   </span>
@@ -2957,7 +2957,7 @@ function DealDetailDrawer({
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-border/20 bg-neutral-900/30 overflow-x-auto select-none shrink-0">
+        <div className="flex border-b border-border/20 bg-muted/30 overflow-x-auto select-none shrink-0">
           {[
             { id: 'resumo', label: 'Resumo' },
             { id: 'contato', label: 'Contato' },
@@ -3018,7 +3018,7 @@ function DealDetailDrawer({
                     type="number"
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-border/30 bg-card text-xs focus:outline-none"
                   />
                 </div>
 
@@ -3073,11 +3073,11 @@ function DealDetailDrawer({
                   Snapshot do Contato (Read-only)
                 </h4>
                 <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
-                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20">
+                  <div className="p-3 rounded-xl bg-card/50 border border-border/20">
                     <p className="ocr-label mb-0.5">Telefone</p>
                     <p className="text-xs font-semibold">{dealContact?.telefone || '-'}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20 relative">
+                  <div className="p-3 rounded-xl bg-card/50 border border-border/20 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Faturamento Mensal</p>
                       {showFaturamentoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3098,7 +3098,7 @@ function DealDetailDrawer({
                       className="w-full bg-transparent border-none p-0 text-xs font-semibold focus:outline-none focus:ring-0 text-foreground"
                     />
                   </div>
-                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20 col-span-2 max-md:col-span-1 relative">
+                  <div className="p-3 rounded-xl bg-card/50 border border-border/20 col-span-2 max-md:col-span-1 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Ramo da Empresa</p>
                       {showRamoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3167,7 +3167,7 @@ function DealDetailDrawer({
 
                   <div className="text-xs">
                     <p className="ocr-label mb-1">Último UTM Identificado</p>
-                    <p className="font-semibold bg-neutral-900/60 p-2 rounded-xl border border-border/20 inline-block">
+                    <p className="font-semibold bg-card/60 p-2 rounded-xl border border-border/20 inline-block">
                       Source: {dealContact.lastUtmSource || 'Orgânico'} • Campaign: {dealContact.lastUtmCampaign || '-'}
                     </p>
                   </div>
@@ -3176,13 +3176,13 @@ function DealDetailDrawer({
                     onClick={() => {
                       router.push(`/contacts?id=${dealContact.id}`)
                     }}
-                    className="w-full py-2.5 rounded-xl border border-border text-xs font-semibold hover:bg-neutral-900 text-foreground transition-colors"
+                    className="w-full py-2.5 rounded-xl border border-border text-xs font-semibold hover:bg-card text-foreground transition-colors"
                   >
                     Ver Perfil Completo de Contatos
                   </button>
                 </div>
               ) : (
-                <div className="p-6 text-center text-muted-foreground bg-neutral-900/30 rounded-2xl border border-dashed border-border/20">
+                <div className="p-6 text-center text-muted-foreground bg-muted/30 rounded-2xl border border-dashed border-border/20">
                   Nenhum contato vinculado encontrado.
                 </div>
               )}
@@ -3209,7 +3209,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Escreva detalhes gerais do negócio, perfis dos decisores, etc..."
                   rows={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
 
@@ -3223,7 +3223,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Descreva especificamente o que foi acordado em call/visita..."
                   rows={4}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
             </div>
@@ -3233,7 +3233,7 @@ function DealDetailDrawer({
           {activeTab === 'atividades' && (
             <div className="space-y-5">
               {/* Form to add */}
-              <div className="p-4 rounded-xl border border-border/30 bg-neutral-900/30 space-y-3">
+              <div className="p-4 rounded-xl border border-border/30 bg-muted/30 space-y-3">
                 <h4 className="text-xs font-bold text-foreground">Nova Atividade</h4>
                 <div className="grid grid-cols-2 gap-2.5">
                   <input
@@ -3241,12 +3241,12 @@ function DealDetailDrawer({
                     value={actTitle}
                     onChange={(e) => setActTitle(e.target.value)}
                     placeholder="Título da tarefa..."
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-neutral-900 text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-card text-xs focus:outline-none"
                   />
                   <select
                     value={actTipo}
                     onChange={(e) => setActTipo(e.target.value)}
-                    className="bg-neutral-900 border border-border/30 rounded-lg px-2.5 py-1.5 text-xs"
+                    className="bg-card border border-border/30 rounded-lg px-2.5 py-1.5 text-xs"
                   >
                     <option value="tarefa">Tarefa</option>
                     <option value="ligacao">Ligação</option>
@@ -3259,14 +3259,14 @@ function DealDetailDrawer({
                     type="datetime-local"
                     value={actDate}
                     onChange={(e) => setActDate(e.target.value)}
-                    className="bg-neutral-900 border border-border/30 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
+                    className="bg-card border border-border/30 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
                   />
                   <textarea
                     value={actDesc}
                     onChange={(e) => setActDesc(e.target.value)}
                     placeholder="Descrição..."
                     rows={2}
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-neutral-900 text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-card text-xs focus:outline-none"
                   />
                 </div>
                 <button
@@ -3302,8 +3302,8 @@ function DealDetailDrawer({
                         key={act.id}
                         className={`p-3 rounded-xl border flex items-start justify-between gap-3 text-xs ${
                           act.status === 'DONE'
-                            ? 'bg-neutral-900/35 border-border/10 opacity-60'
-                            : 'bg-neutral-900/60 border-border/30'
+                            ? 'bg-card/35 border-border/10 opacity-60'
+                            : 'bg-card/60 border-border/30'
                         }`}
                       >
                         <div className="flex gap-2 items-start">
@@ -3385,7 +3385,7 @@ function DealDetailDrawer({
           {/* 6. UTM / ATRIBUIÇÃO */}
           {activeTab === 'utm' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-border/30 bg-neutral-900/35 space-y-3 text-xs">
+              <div className="p-4 rounded-xl border border-border/30 bg-card/35 space-y-3 text-xs">
                 <div className="flex items-center gap-1.5 text-primary font-bold">
                   <Info className="w-3.5 h-3.5" />
                   <span>UTMs Congeladas na Criação</span>
@@ -3407,7 +3407,7 @@ function DealDetailDrawer({
                     { label: 'Landing Page', value: deal.utmLandingPage || '/' },
                     { label: 'Referrer URL', value: deal.utmReferrer || '-' }
                   ].map((utmField, idx) => (
-                    <div key={idx} className="p-2 rounded bg-neutral-900 border border-border/10">
+                    <div key={idx} className="p-2 rounded bg-card border border-border/10">
                       <span className="ocr-label block text-[9px]">{utmField.label}</span>
                       <span className="font-semibold truncate block mt-0.5 text-foreground" title={utmField.value}>
                         {utmField.value}
@@ -3421,7 +3421,7 @@ function DealDetailDrawer({
 
           {/* 7. MENSAGENS REAL/MOCK */}
           {activeTab === 'mensagens' && (
-            <div className="flex flex-col h-[400px] border border-border/30 rounded-xl overflow-hidden bg-neutral-900/25">
+            <div className="flex flex-col h-[400px] border border-border/30 rounded-xl overflow-hidden bg-card/25">
               {loadingMessages ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -3447,7 +3447,7 @@ function DealDetailDrawer({
                         <div
                           className={`p-3 rounded-2xl text-xs leading-relaxed ${
                             m.sender === 'lead'
-                              ? 'bg-neutral-800 text-foreground rounded-tl-none'
+                              ? 'bg-muted text-foreground rounded-tl-none'
                               : m.sender === 'ai'
                               ? 'bg-primary/10 border border-primary/20 text-primary rounded-tr-none'
                               : 'bg-primary text-black font-semibold rounded-tr-none'
@@ -3463,7 +3463,7 @@ function DealDetailDrawer({
               )}
 
               {/* Chat Input */}
-              <div className="p-3 border-t border-border/20 bg-neutral-950 flex gap-2">
+              <div className="p-3 border-t border-border/20 bg-card flex gap-2">
                 <input
                   type="text"
                   value={newMsg}
@@ -3478,7 +3478,7 @@ function DealDetailDrawer({
                     }
                   }}
                   placeholder="Simular resposta WhatsApp..."
-                  className="flex-1 bg-neutral-900 border border-border/40 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="flex-1 bg-card border border-border/40 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
                 <button
                   onClick={() => {
