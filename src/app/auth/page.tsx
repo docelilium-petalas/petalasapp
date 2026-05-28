@@ -4,11 +4,13 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Flower2, Coins, ArrowRight, ShieldCheck, Mail, Lock, User } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
+import { useAuth } from '@/context/AuthContext'
 
 type Mode = 'login' | 'register'
 
 export default function AuthPage() {
   const router = useRouter()
+  const { setUser } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -53,7 +55,8 @@ export default function AuthPage() {
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          setUser(data.user)
+          router.push('/dashboard')
           router.refresh()
         }, 1000)
       } else {
@@ -85,19 +88,10 @@ export default function AuthPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
 
+      
       {/* LEFT SIDE: Marketing (Desktop only) */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card/50 border-r border-border/30 relative">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary ocr-glow-soft">
-            <Flower2 className="w-5 h-5 animate-pulse" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-sm uppercase">Doce Lilium</span>
-            <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] -mt-0.5">Alma Feminina</span>
-          </div>
-        </div>
-
-        <div className="space-y-6 max-w-lg my-auto">
+        <div className="pt-32 space-y-6 max-w-lg my-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary uppercase tracking-wider">
             <Coins className="w-3.5 h-3.5" />
             <span>Estilo & Elegância</span>
