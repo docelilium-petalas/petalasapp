@@ -13,6 +13,15 @@ const ALL_FEATURES = [
 
 export async function POST(request: Request) {
   try {
+    // First-user bootstrap only — subsequent users are created by admins in Settings
+    const userCount = await prisma.user.count()
+    if (userCount > 0) {
+      return NextResponse.json(
+        { error: 'Registro público encerrado. Solicite ao administrador.' },
+        { status: 403 }
+      )
+    }
+
     const body: unknown = await request.json()
     if (!body || typeof body !== 'object') {
       return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })

@@ -40,6 +40,6 @@ USER nextjs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-  CMD node -e "require('http').get('http://localhost:3000/api/auth/me', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:3000/api/health', r => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>{ try { process.exit(JSON.parse(d).ok ? 0 : 1) } catch { process.exit(1) } }) }).on('error',()=>process.exit(1))"
 
 CMD ["node", "server.js"]

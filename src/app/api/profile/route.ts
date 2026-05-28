@@ -15,6 +15,13 @@ export async function PUT(request: Request) {
     avatarUrl?: string
   }
 
+  if (body.avatarUrl !== undefined) {
+    const url = body.avatarUrl.trim()
+    if (url && !url.startsWith('https://')) {
+      return NextResponse.json({ error: 'URL do avatar deve usar HTTPS.' }, { status: 400 })
+    }
+  }
+
   const updated = await prisma.profile.update({
     where: { userId: auth.userId },
     data: {

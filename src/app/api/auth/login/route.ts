@@ -11,7 +11,14 @@ export const dynamic = 'force-dynamic'
 const loginAttempts = new Map<string, { count: number; resetAt: number }>()
 
 function checkRateLimit(ip: string): boolean {
-  return true // Rate limit disabled by user request
+  const now = Date.now()
+  const entry = loginAttempts.get(ip)
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
+    return true
+  }
+  entry.count += 1
+  return entry.count <= 5
 }
 
 export async function POST(request: Request) {

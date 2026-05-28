@@ -1,20 +1,19 @@
 [variables]
 NIXPACKS_NODE_VERSION = "22"
 
+[phases.setup]
+addedPkgs = ["openssl"]
+
 [phases.install]
 cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npx prisma generate", "npm run build"]
 
-[phases.setup]
-addedPkgs = ["openssl"]
-
 [start]
-cmd = "node .next/standalone/server.js"
+cmd = "npx prisma migrate deploy && node_modules/.bin/next start -H 0.0.0.0"
 
 [environment]
 NODE_ENV = "production"
 PORT = "3000"
 NEXT_TELEMETRY_DISABLED = "1"
-HOSTNAME = "0.0.0.0"

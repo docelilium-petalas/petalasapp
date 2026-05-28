@@ -3,7 +3,37 @@
 import { cookies } from 'next/headers'
 import prisma from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { DealPriority } from '@prisma/client'
+import { DealPriority, ListaDisparoStatus, type Prisma } from '@prisma/client'
+import type { Contact, Deal, Stage, Activity } from '@prisma/client'
+
+type ContactRow = Contact
+type DealRow = Deal & { contact?: Contact | null; stage?: Stage | null }
+type ActivityRow = Activity & { deal?: DealRow | null; contact?: Contact | null }
+
+type DealCreateInput = {
+  contactId: string; pipelineId: string; stageId: string; titulo: string
+  valorEstimado?: number | string; produtoInteresse?: string | null
+  origem?: string | null; prioridade?: string; ownerUserId?: string | null
+  telefone?: string; ramoEmpresa?: string | null; faturamentoMensal?: number | string
+  utmSource?: string; utmMedium?: string; utmCampaign?: string
+  utmContent?: string; utmTerm?: string; utmLandingPage?: string
+  utmReferrer?: string; utmCapturedAt?: string
+}
+type DealUpdateInput = {
+  titulo?: string; valorEstimado?: number | string; produtoInteresse?: string | null
+  origem?: string | null; prioridade?: string; ownerUserId?: string | null
+  stageId?: string; anotacoes?: string | null; anotacoesReuniao?: string | null
+  ramoEmpresa?: string | null; faturamentoMensal?: number | string
+}
+type ActivityCreateInput = {
+  ownerUserId?: string | null; dealId?: string | null; contactId?: string | null
+  tipo: string; titulo: string; descricao?: string | null
+  dueAt?: string | null; status?: string; doneAt?: string | null
+}
+type ActivityUpdateInput = {
+  titulo?: string; descricao?: string | null; tipo?: string; status?: string
+  dueAt?: string | null; doneAt?: string | null; ownerUserId?: string | null
+}
 
 async function requireAuth() {
   const cookieStore = await cookies()
@@ -27,8 +57,7 @@ async function getTeamScope(userId: string): Promise<string[]> {
 }
 
 // ─── Helper: serialise Prisma Contact → MockContact-compatible plain object ───
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function serializeContact(c: any) {
+function serializeContact(c: ContactRow) {
   const customRaw = c.camposCustomizados ? safeJsonParse(c.camposCustomizados, {}) : {}
   // Extra UI fields not present as first-class columns are stored in camposCustomizados
   const { _origem, _dataNascimento, ...camposCustomizados } = customRaw as Record<string, unknown>
@@ -69,7 +98,7 @@ function serializeContact(c: any) {
   }
 }
 
-function serializeDeal(d: any) {
+function serializeDeal(d: DealRow) {
   if (!d) throw new Error('Não é possível serializar um negócio nulo ou indefinido')
   return {
     id: d.id,
@@ -124,7 +153,7 @@ function serializeDeal(d: any) {
   }
 }
 
-function serializeActivity(a: any) {
+function serializeActivity(a: ActivityRow) {
   if (!a) throw new Error('Não é possível serializar uma atividade nula ou indefinida')
   return {
     id: a.id,
@@ -552,7 +581,7 @@ export async function getAllHistory() {
   }))
 }
 
-export async function createDeal(data: any) {
+export async function createDeal(data: DealCreateInput) {
   const auth = await requireAuth()
   
   if (!data.contactId) {
@@ -610,7 +639,7 @@ export async function createDeal(data: any) {
   return serializeDeal(created)
 }
 
-export async function updateDeal(id: string, data: any) {
+export async function updateDeal(id: string, data: DealUpdateInput) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   
@@ -837,7 +866,7 @@ export async function getDealStageHistory(dealId: string) {
   }))
 }
 
-export async function createActivity(data: any) {
+export async function createActivity(data: ActivityCreateInput) {
   const auth = await requireAuth()
   
   const created = await prisma.activity.create({
@@ -859,7 +888,7 @@ export async function createActivity(data: any) {
   return serializeActivity(created)
 }
 
-export async function updateActivity(id: string, data: any) {
+export async function updateActivity(id: string, data: ActivityUpdateInput) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   
@@ -906,36 +935,49 @@ export async function deleteActivity(id: string) {
 }
 
 export async function getReportOverviewData(
-  _pipelineId: string | null,
-  _start: string | null,
-  _end: string | null,
-  _ownerIds: string[]
+  pipelineId: string | null,
+  start: string | null,
+  end: string | null,
+  ownerIds: string[]
 ) {
-  await requireAuth() // auth check; full implementation uses auth.userId when queries are built
-  return {
-    receitaTotal: 0,
-    ticketMedio: 0,
-    leadsGerados: 0,
-    dealsGanhos: 0,
-    dealsPerdidos: 0,
-    cicloMedioDias: 0,
-    taxaConversao: 0,
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+
+  const where: Prisma.DealWhereInput = {
+    OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }],
+    ...(pipelineId ? { pipelineId } : {}),
+    ...(ownerIds.length > 0 ? { ownerUserId: { in: ownerIds } } : {}),
+    ...((start || end) ? { createdAt: { ...(start ? { gte: new Date(start) } : {}), ...(end ? { lte: new Date(end) } : {}) } } : {}),
   }
+
+  const [won, dealsPerdidos, leadsGerados] = await Promise.all([
+    prisma.deal.findMany({ where: { ...where, status: 'WON' }, select: { valorEstimado: true, createdAt: true, fechadoEm: true } }),
+    prisma.deal.count({ where: { ...where, status: 'LOST' } }),
+    prisma.deal.count({ where }),
+  ])
+
+  const receitaTotal = won.reduce((s, d) => s + d.valorEstimado, 0)
+  const dealsGanhos = won.length
+  const taxaConversao = leadsGerados > 0 ? (dealsGanhos / leadsGerados) * 100 : 0
+  const ticketMedio = dealsGanhos > 0 ? receitaTotal / dealsGanhos : 0
+  const withCycle = won.filter(d => d.fechadoEm)
+  const cicloMedioDias = withCycle.length > 0
+    ? Math.round(withCycle.reduce((s, d) => s + (d.fechadoEm!.getTime() - d.createdAt.getTime()) / 86_400_000, 0) / withCycle.length)
+    : 0
+
+  return { receitaTotal, ticketMedio, leadsGerados, dealsGanhos, dealsPerdidos, cicloMedioDias, taxaConversao }
 }
 
 export async function getBussolaFontes() {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
 
-  const deals = await prisma.deal.findMany({
-    where: { 
-      OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] 
-    },
-    select: {
-      origem: true,
-      status: true,
-      valorEstimado: true,
-    }
+  // groupBy aggregates at the DB level — avoids loading all deals into memory
+  const grouped = await prisma.deal.groupBy({
+    by: ['origem', 'status'],
+    where: { OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] },
+    _count: { id: true },
+    _sum: { valorEstimado: true },
   })
 
   const groups: Record<string, { label: string; iconName: string; color: string; leads: number; deals: number; receita: number; custo: number }> = {}
@@ -947,66 +989,31 @@ export async function getBussolaFontes() {
     { key: 'indicacao', label: 'Indicação', iconName: 'Star', color: '#a855f7', custoPerLead: 0 },
     { key: 'site', label: 'Site / Direto', iconName: 'Globe', color: '#FF5722', custoPerLead: 0 }
   ]
+  defaults.forEach(d => { groups[d.key] = { label: d.label, iconName: d.iconName, color: d.color, leads: 0, deals: 0, receita: 0, custo: 0 } })
 
-  defaults.forEach(d => {
-    groups[d.key] = {
-      label: d.label,
-      iconName: d.iconName,
-      color: d.color,
-      leads: 0,
-      deals: 0,
-      receita: 0,
-      custo: 0
-    }
-  })
-
-  deals.forEach(deal => {
-    const orig = deal.origem
+  grouped.forEach(row => {
+    const orig = row.origem
     const norm = (orig || '').trim().toLowerCase()
-    let key = 'site'
-    let label = orig || 'Site / Direto'
-    let iconName = 'Globe'
-    let color = '#FF5722'
-    let custoPerLead = 0
+    let key = 'site'; let label = orig || 'Site / Direto'; let iconName = 'Globe'; let color = '#FF5722'; let custoPerLead = 0
 
     if (norm.includes('facebook') || norm.includes('instagram') || norm.includes('meta') || norm.includes('ads')) {
-      key = 'meta'
-      label = 'Meta Ads'
-      iconName = 'Megaphone'
-      color = '#60A5FA'
-      custoPerLead = 15
+      key = 'meta'; label = 'Meta Ads'; iconName = 'Megaphone'; color = '#60A5FA'; custoPerLead = 15
     } else if (norm.includes('google') || norm.includes('search')) {
-      key = 'google'
-      label = 'Google Ads'
-      iconName = 'Search'
-      color = '#FFB300'
-      custoPerLead = 20
+      key = 'google'; label = 'Google Ads'; iconName = 'Search'; color = '#FFB300'; custoPerLead = 20
     } else if (norm.includes('whatsapp') || norm.includes('whats') || norm.includes('organico') || norm.includes('orgânico')) {
-      key = 'whatsapp'
-      label = 'WhatsApp / Orgânico'
-      iconName = 'MessageCircle'
-      color = '#00E676'
-      custoPerLead = 0
+      key = 'whatsapp'; label = 'WhatsApp / Orgânico'; iconName = 'MessageCircle'; color = '#00E676'; custoPerLead = 0
     } else if (norm.includes('indicacao') || norm.includes('indicação') || norm.includes('indicado')) {
-      key = 'indicacao'
-      label = 'Indicação'
-      iconName = 'Star'
-      color = '#a855f7'
-      custoPerLead = 0
+      key = 'indicacao'; label = 'Indicação'; iconName = 'Star'; color = '#a855f7'; custoPerLead = 0
     } else if (orig) {
       key = norm.replace(/\s+/g, '_')
     }
 
-    if (!groups[key]) {
-      groups[key] = { label, iconName, color, leads: 0, deals: 0, receita: 0, custo: 0 }
-    }
+    if (!groups[key]) { groups[key] = { label, iconName, color, leads: 0, deals: 0, receita: 0, custo: 0 } }
 
-    groups[key].leads += 1
-    if (deal.status === 'WON') {
-      groups[key].deals += 1
-      groups[key].receita += deal.valorEstimado
-    }
-    groups[key].custo += custoPerLead
+    const count = row._count.id
+    groups[key].leads += count
+    if (row.status === 'WON') { groups[key].deals += count; groups[key].receita += row._sum.valorEstimado ?? 0 }
+    groups[key].custo += custoPerLead * count
   })
 
   return Object.entries(groups).map(([id, val]) => ({
@@ -1268,7 +1275,7 @@ export async function createListaDisparo(data: { nomeLista: string; descricao?: 
   })
 }
 
-export async function updateListaDisparo(id: string, data: { nomeLista?: string; descricao?: string; mensagemTemplate?: string; status?: any; configEnvio?: string }) {
+export async function updateListaDisparo(id: string, data: { nomeLista?: string; descricao?: string; mensagemTemplate?: string; status?: ListaDisparoStatus; configEnvio?: string }) {
   const auth = await requireAuth()
   return prisma.listaDisparo.update({
     where: { id, userId: auth.userId },
@@ -1400,7 +1407,7 @@ export async function updateCadence(id: string, data: {
 }) {
   const auth = await requireAuth()
   
-  const updateData: any = {
+  const updateData: Prisma.CadenciaUpdateInput = {
     ...(data.nome !== undefined && { nome: data.nome }),
     ...(data.tipo !== undefined && { tipo: data.tipo }),
     ...(data.webhookUrl !== undefined && { webhookUrl: data.webhookUrl || null }),
@@ -1468,48 +1475,37 @@ export async function addLeadsToCadence(cadenceId: string, itemIds: string[], ty
 
   const cadenceTag = `em-cadencia-${cadence.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`
 
-  const created = await Promise.all(
-    itemIds.map(async id => {
-      const existing = await prisma.cadenciaLead.findFirst({
-        where: {
-          cadenciaId: cadenceId,
-          dealId: type === 'deal' ? id : null,
-          leadId: type === 'contact' ? id : null,
-          status: 'ATIVO'
-        }
-      })
-      if (existing) return null
+  // Batch dedup check
+  const existingIds = new Set<string>()
+  if (type === 'deal') {
+    const rows = await prisma.cadenciaLead.findMany({ where: { cadenciaId: cadenceId, status: 'ATIVO', dealId: { in: itemIds } }, select: { dealId: true } })
+    rows.forEach(r => { if (r.dealId) existingIds.add(r.dealId) })
+  } else {
+    const rows = await prisma.cadenciaLead.findMany({ where: { cadenciaId: cadenceId, status: 'ATIVO', leadId: { in: itemIds } }, select: { leadId: true } })
+    rows.forEach(r => { if (r.leadId) existingIds.add(r.leadId) })
+  }
+  const newIds = itemIds.filter(id => !existingIds.has(id))
+  if (newIds.length === 0) return 0
 
-      const record = await prisma.cadenciaLead.create({
-        data: {
-          cadenciaId: cadenceId,
-          dealId: type === 'deal' ? id : null,
-          leadId: type === 'contact' ? id : null,
-          etapaAtual: 1,
-          status: 'ATIVO',
-          proximoEnvio
-        }
-      })
+  // Batch create
+  await prisma.cadenciaLead.createMany({
+    data: newIds.map(id => type === 'deal'
+      ? { cadenciaId: cadenceId, dealId: id, etapaAtual: 1, status: 'ATIVO', proximoEnvio }
+      : { cadenciaId: cadenceId, leadId: id, etapaAtual: 1, status: 'ATIVO', proximoEnvio }
+    ),
+  })
 
-      // Add auto-tag to deal
-      if (type === 'deal') {
-        const deal = await prisma.deal.findUnique({ where: { id } })
-        if (deal) {
-          let tags: string[] = []
-          try { tags = deal.tags ? JSON.parse(deal.tags as string) : [] } catch { tags = [] }
-          if (!tags.includes(cadenceTag)) {
-            tags.push(cadenceTag)
-            await prisma.deal.update({ where: { id }, data: { tags: JSON.stringify(tags) } })
-          }
-        }
-      }
+  // Batch tag deals
+  if (type === 'deal') {
+    const deals = await prisma.deal.findMany({ where: { id: { in: newIds } }, select: { id: true, tags: true } })
+    await Promise.all(
+      deals
+        .filter(d => { const t: string[] = safeJsonParse(d.tags ?? '', []); return !t.includes(cadenceTag) })
+        .map(d => { const t: string[] = safeJsonParse(d.tags ?? '', []); t.push(cadenceTag); return prisma.deal.update({ where: { id: d.id }, data: { tags: JSON.stringify(t) } }) })
+    )
+  }
 
-      return record
-    })
-  )
-
-  const filtered = created.filter(c => c !== null)
-  return filtered.length
+  return newIds.length
 }
 
 export async function getCadenceDashboard(cadenceId: string) {
@@ -1517,58 +1513,35 @@ export async function getCadenceDashboard(cadenceId: string) {
   
   const cadence = await prisma.cadencia.findFirst({
     where: { id: cadenceId, userId: auth.userId },
-    include: { etapas: true, leads: true }
+    include: { etapas: true, leads: { include: { deal: { include: { contact: true } } } } }
   })
   if (!cadence) throw new Error('Cadência não encontrada')
 
+  // leadId stores Contact IDs (legacy convention) — batch-fetch in one query
+  const leadContactIds = cadence.leads.filter(l => l.leadId).map(l => l.leadId!)
+  const contactMap = leadContactIds.length > 0
+    ? new Map((await prisma.contact.findMany({ where: { id: { in: leadContactIds } } })).map(c => [c.id, c]))
+    : new Map<string, Contact>()
+
   const activeLeads = cadence.leads.filter(l => l.status === 'ATIVO')
-  
   const stageCounts: Record<number, number> = {}
-  cadence.etapas.forEach(e => {
-    stageCounts[e.ordem] = 0
-  })
-  activeLeads.forEach(l => {
-    stageCounts[l.etapaAtual] = (stageCounts[l.etapaAtual] || 0) + 1
-  })
+  cadence.etapas.forEach(e => { stageCounts[e.ordem] = 0 })
+  activeLeads.forEach(l => { stageCounts[l.etapaAtual] = (stageCounts[l.etapaAtual] || 0) + 1 })
 
   const totalCompleted = cadence.leads.filter(l => l.status === 'CONCLUIDA').length
   const totalStopped = cadence.leads.filter(l => l.status === 'RESPONDIDA').length
 
-  const leadsList = await Promise.all(
-    cadence.leads.map(async l => {
-      let nome = 'Lead'
-      let telefone = ''
-
-      if (l.dealId) {
-        const d = await prisma.deal.findUnique({
-          where: { id: l.dealId },
-          include: { contact: true }
-        })
-        if (d) {
-          nome = d.contact?.nome ? `${d.contact.nome} ${d.contact.sobrenome || ''}`.trim() : d.titulo
-          telefone = d.telefone || d.contact?.telefone || ''
-        }
-      } else if (l.leadId) {
-        const c = await prisma.contact.findUnique({
-          where: { id: l.leadId }
-        })
-        if (c) {
-          nome = `${c.nome} ${c.sobrenome || ''}`.trim()
-          telefone = c.telefone
-        }
-      }
-
-      return {
-        id: l.id,
-        nome,
-        telefone,
-        etapaAtual: l.etapaAtual,
-        status: l.status,
-        proximoEnvio: l.proximoEnvio ? l.proximoEnvio.toISOString() : null,
-        updatedAt: l.updatedAt.toISOString()
-      }
-    })
-  )
+  const leadsList = cadence.leads.map(l => {
+    let nome = 'Lead'; let telefone = ''
+    if (l.deal) {
+      nome = l.deal.contact?.nome ? `${l.deal.contact.nome} ${l.deal.contact.sobrenome || ''}`.trim() : l.deal.titulo
+      telefone = l.deal.telefone || l.deal.contact?.telefone || ''
+    } else if (l.leadId) {
+      const c = contactMap.get(l.leadId)
+      if (c) { nome = `${c.nome} ${c.sobrenome || ''}`.trim(); telefone = c.telefone }
+    }
+    return { id: l.id, nome, telefone, etapaAtual: l.etapaAtual, status: l.status, proximoEnvio: l.proximoEnvio ? l.proximoEnvio.toISOString() : null, updatedAt: l.updatedAt.toISOString() }
+  })
 
   return {
     totalAtivos: activeLeads.length,
@@ -1765,76 +1738,35 @@ async function runSegmentoRegras(
   regras: SegmentoRegra[],
   scope: string[]
 ): Promise<{ dealIds: string[]; contactIds: string[] }> {
-  let dealIds: string[] = []
-  let contactIds: string[] = []
+  const results = await Promise.all(regras.map(async (regra) => {
+    const sel = { id: true, contactId: true }
+    let deals: { id: string; contactId: string }[] = []
 
-  for (const regra of regras) {
     if (regra.tipo === 'sem_resposta') {
-      const cutoff = new Date()
-      cutoff.setHours(cutoff.getHours() - regra.horasMin)
-      const deals = await prisma.deal.findMany({
-        where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      const cutoff = new Date(); cutoff.setHours(cutoff.getHours() - regra.horasMin)
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } }, select: sel })
     } else if (regra.tipo === 'negocios_perdidos') {
-      const deals = await prisma.deal.findMany({
-        where: {
-          userId: { in: scope },
-          status: 'LOST',
-          ...(regra.motivoPerda ? { motivoPerda: regra.motivoPerda } : {})
-        },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'LOST', ...(regra.motivoPerda ? { motivoPerda: regra.motivoPerda } : {}) }, select: sel })
     } else if (regra.tipo === 'etapa_especifica') {
-      const whereClause: any = { userId: { in: scope }, status: 'OPEN', stageId: regra.stageId }
-      if (regra.horasMin) {
-        const cutoff = new Date()
-        cutoff.setHours(cutoff.getHours() - regra.horasMin)
-        whereClause.updatedAt = { lte: cutoff }
-      }
-      const deals = await prisma.deal.findMany({ where: whereClause, select: { id: true, contactId: true } })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      const w: Prisma.DealWhereInput = { userId: { in: scope }, status: 'OPEN', stageId: regra.stageId }
+      if (regra.horasMin) { const c = new Date(); c.setHours(c.getHours() - regra.horasMin); w.updatedAt = { lte: c } }
+      deals = await prisma.deal.findMany({ where: w, select: sel })
     } else if (regra.tipo === 'leads_frios') {
-      const cutoff = new Date()
-      cutoff.setDate(cutoff.getDate() - regra.diasSemAtividade)
-      const deals = await prisma.deal.findMany({
-        where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - regra.diasSemAtividade)
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } }, select: sel })
     } else if (regra.tipo === 'prioridade') {
-      const deals = await prisma.deal.findMany({
-        where: { userId: { in: scope }, status: 'OPEN', prioridade: regra.prioridade as DealPriority },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', prioridade: regra.prioridade as DealPriority }, select: sel })
     } else if (regra.tipo === 'origem') {
-      const deals = await prisma.deal.findMany({
-        where: { userId: { in: scope }, status: 'OPEN', origem: regra.origem },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', origem: regra.origem }, select: sel })
     } else if (regra.tipo === 'sem_responsavel') {
-      const deals = await prisma.deal.findMany({
-        where: { userId: { in: scope }, status: 'OPEN', ownerUserId: null },
-        select: { id: true, contactId: true }
-      })
-      dealIds.push(...deals.map(d => d.id))
-      contactIds.push(...deals.map(d => d.contactId))
+      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', ownerUserId: null }, select: sel })
     }
-  }
+    return { dealIds: deals.map(d => d.id), contactIds: deals.map(d => d.contactId) }
+  }))
 
   return {
-    dealIds: Array.from(new Set(dealIds)),
-    contactIds: Array.from(new Set(contactIds))
+    dealIds: Array.from(new Set(results.flatMap(r => r.dealIds))),
+    contactIds: Array.from(new Set(results.flatMap(r => r.contactIds))),
   }
 }
 
