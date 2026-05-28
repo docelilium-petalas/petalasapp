@@ -53,7 +53,7 @@ export default function AuthPage() {
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
         setTimeout(() => {
-          router.push('/dashboard')
+          window.location.href = '/dashboard'
           router.refresh()
         }, 1000)
       } else {
@@ -68,7 +68,18 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-background">
-      <Toaster theme="dark" position="top-right" closeButton />
+      <Toaster theme="light" position="top-right" closeButton />
+
+      {/* Logo no Canto Superior Esquerdo */}
+      <div className="absolute top-6 left-6 sm:top-10 sm:left-10 z-50 flex flex-col items-center justify-center w-24 h-36 sm:w-32 sm:h-48 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20">
+        <span className="text-[6px] sm:text-[8px] uppercase tracking-widest text-foreground font-medium mb-1" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
+        <Flower2 className="w-8 h-8 sm:w-12 sm:h-12 text-primary mb-1" />
+        <div className="flex flex-col items-center -space-y-2 sm:-space-y-3">
+          <span className="text-2xl sm:text-3xl text-foreground" style={{ fontFamily: "var(--font-signature)" }}>Doce</span>
+          <span className="text-2xl sm:text-3xl text-foreground ml-3 sm:ml-4" style={{ fontFamily: "var(--font-signature)" }}>Lilium</span>
+        </div>
+      </div>
+
 
       {/* Floating Ambient Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />
@@ -128,18 +139,7 @@ export default function AuthPage() {
           </div>
 
           
-          {/* Logo Central na Tela de Login */}
-          <div className="flex flex-col items-center justify-center mb-8">
-            <div className="relative flex flex-col items-center justify-center w-32 h-48 sm:w-40 sm:h-56 border-2 border-primary rounded-t-full rounded-b-full p-4 bg-background shadow-lg shadow-primary/20">
-              <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-foreground font-medium mb-2" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
-              <Flower2 className="w-12 h-12 sm:w-16 sm:h-16 text-primary mb-2" />
-              <div className="flex flex-col items-center -space-y-3">
-                <span className="text-3xl sm:text-4xl text-foreground" style={{ fontFamily: "var(--font-signature)" }}>Doce</span>
-                <span className="text-3xl sm:text-4xl text-foreground ml-4" style={{ fontFamily: "var(--font-signature)" }}>Lilium</span>
-              </div>
-              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-muted-foreground mt-4 font-light">Closet</span>
-            </div>
-          </div>
+          
 
           {/* Mode toggle */}
           <div className="flex rounded-xl border border-border/60 bg-card/60 p-1 mb-8">
