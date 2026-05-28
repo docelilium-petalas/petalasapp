@@ -13,7 +13,11 @@ function getInstance(): PrismaClient {
     if (globalThis.prismaGlobal) {
       _instance = globalThis.prismaGlobal
     } else {
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+      })
       const adapter = new PrismaPg(pool)
       _instance = new PrismaClient({ adapter })
       if (process.env.NODE_ENV !== 'production') {
