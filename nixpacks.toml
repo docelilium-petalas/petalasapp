@@ -11,7 +11,7 @@ cmds = ["npm ci --include=dev"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "npx prisma migrate deploy && node_modules/.bin/next start -H 0.0.0.0"
+cmd = "npx prisma migrate resolve --applied '20260526134424_add_cadencias_and_templates' 2>/dev/null || true && npx prisma migrate deploy && node_modules/.bin/next start -H 0.0.0.0"
 
 [environment]
 NODE_ENV = "production"
