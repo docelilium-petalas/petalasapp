@@ -127,6 +127,20 @@ export default function AuthPage() {
             <span className="font-bold text-xs uppercase tracking-wider">Doce Lilium</span>
           </div>
 
+          
+          {/* Logo Central na Tela de Login */}
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="relative flex flex-col items-center justify-center w-32 h-48 sm:w-40 sm:h-56 border-2 border-primary rounded-t-full rounded-b-full p-4 bg-background shadow-lg shadow-primary/20">
+              <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-foreground font-medium mb-2" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
+              <Flower2 className="w-12 h-12 sm:w-16 sm:h-16 text-primary mb-2" />
+              <div className="flex flex-col items-center -space-y-3">
+                <span className="text-3xl sm:text-4xl text-foreground" style={{ fontFamily: "var(--font-signature)" }}>Doce</span>
+                <span className="text-3xl sm:text-4xl text-foreground ml-4" style={{ fontFamily: "var(--font-signature)" }}>Lilium</span>
+              </div>
+              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-muted-foreground mt-4 font-light">Closet</span>
+            </div>
+          </div>
+
           {/* Mode toggle */}
           <div className="flex rounded-xl border border-border/60 bg-card/60 p-1 mb-8">
             <button
