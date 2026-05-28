@@ -71,7 +71,7 @@ export default function AuthPage() {
       <Toaster theme="light" position="top-right" closeButton />
 
       {/* Logo no Canto Superior Esquerdo */}
-      <div className="absolute top-6 left-6 sm:top-10 sm:left-10 z-50 flex flex-col items-center justify-center w-24 h-36 sm:w-32 sm:h-48 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20">
+      <div className="absolute top-8 left-8 z-50 flex flex-col items-center justify-center w-28 h-40 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20 scale-90 origin-top-left border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20">
         <span className="text-[6px] sm:text-[8px] uppercase tracking-widest text-foreground font-medium mb-1" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
         <Flower2 className="w-8 h-8 sm:w-12 sm:h-12 text-primary mb-1" />
         <div className="flex flex-col items-center -space-y-2 sm:-space-y-3">
