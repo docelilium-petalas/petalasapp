@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
 async function verifyAuthToken(token: string): Promise<boolean> {
-  const secret = process.env.JWT_SECRET
+  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
   if (!secret) return false
   try {
     await jwtVerify(token, new TextEncoder().encode(secret))

@@ -1,6 +1,5 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { signOut } from "@/lib/auth-client";
 
 interface User {
   id: string;
@@ -14,14 +13,12 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
-  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   logout: async () => {},
-  setUser: () => {}
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((d: { authenticated: boolean; user: User }) => {
         if (!cancelled && d.authenticated) setUser(d.user);
       })
-      .catch(() => { /* network error — stay unauthenticated */ })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -45,12 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = async () => {
-    await signOut();
-    setUser(null);
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/auth";
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

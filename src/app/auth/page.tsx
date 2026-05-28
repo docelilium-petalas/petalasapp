@@ -1,28 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 import { Flower2, Coins, ArrowRight, ShieldCheck, Mail, Lock, User } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
-import { useAuth } from '@/context/AuthContext'
 
 type Mode = 'login' | 'register'
 
 export default function AuthPage() {
-  const router = useRouter()
-  const { user, loading: authLoading, setUser } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace('/dashboard')
-    }
-  }, [authLoading, user, router])
 
   const switchMode = (next: Mode) => {
     setMode(next)
@@ -56,15 +46,14 @@ export default function AuthPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const data = await res.json()
 
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
-        setUser(data.user)
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 800)
+        // Hard navigation guarantees the auth cookie is sent with the next request
+        // and the proxy validates it before rendering the dashboard.
+        window.location.href = '/dashboard'
       } else {
+        const data = await res.json()
         toast.error(data.error || 'Erro ao processar requisição.')
         setLoading(false)
       }
@@ -79,7 +68,7 @@ export default function AuthPage() {
       <Toaster theme="light" position="top-right" closeButton />
 
       {/* Logo no Canto Superior Esquerdo */}
-      <div className="absolute top-8 left-8 z-50 flex flex-col items-center justify-center w-28 h-40 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20 scale-90 origin-top-left border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20">
+      <div className="absolute top-8 left-8 z-50 flex flex-col items-center justify-center w-28 h-40 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20 scale-90 origin-top-left">
         <span className="text-[6px] sm:text-[8px] uppercase tracking-widest text-foreground font-medium mb-1" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
         <Flower2 className="w-8 h-8 sm:w-12 sm:h-12 text-primary mb-1" />
         <div className="flex flex-col items-center -space-y-2 sm:-space-y-3">
@@ -88,12 +77,10 @@ export default function AuthPage() {
         </div>
       </div>
 
-
       {/* Floating Ambient Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
 
-      
       {/* LEFT SIDE: Marketing (Desktop only) */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card/50 border-r border-border/30 relative">
         <div className="pt-32 space-y-6 max-w-lg my-auto">
@@ -136,9 +123,6 @@ export default function AuthPage() {
             </div>
             <span className="font-bold text-xs uppercase tracking-wider">Doce Lilium</span>
           </div>
-
-          
-          
 
           {/* Mode toggle */}
           <div className="flex rounded-xl border border-border/60 bg-card/60 p-1 mb-8">
@@ -246,7 +230,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />

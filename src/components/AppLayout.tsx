@@ -23,6 +23,7 @@ import {
   Workflow
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useAuth } from '@/context/AuthContext'
 
 
 interface SidebarItem {
@@ -119,7 +120,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
       <div className="p-4 border-t border-border/20 bg-neutral-950/50">
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-border/20 bg-neutral-900/30">
           <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
-            {user.nome[0]}{user.sobrenome[0]}
+            {(user.nome[0] ?? '?').toUpperCase()}{(user.sobrenome[0] ?? '').toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">{user.nome} {user.sobrenome}</p>
@@ -128,8 +129,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
           <button
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' })
-              router.push('/auth')
-              router.refresh()
+              window.location.href = '/auth'
             }}
             className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
             title="Sair"
@@ -157,11 +157,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   // Track scroll position per pathname
   const scrollPositions = useRef<Record<string, number>>({})
 
+  const { user: authUser } = useAuth()
   const user = {
-    nome: 'Diretor',
-    sobrenome: 'Comercial',
-    email: 'admin@docelilium.com.br',
-    teamName: 'Time Vendas Alfa'
+    nome: authUser?.nome ?? '—',
+    sobrenome: authUser?.sobrenome ?? '',
+    email: authUser?.email ?? '',
+    teamName: authUser?.role === 'ADMIN' ? 'Administrador' : 'Equipe de Vendas',
   }
 
   // Keyboard shortcut (Cmd+K / Ctrl+K)
