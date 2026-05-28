@@ -1,93 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  /* === PRIMARY: Doce Lilium Bordô === */
-  --primary: 345 58% 17%;
-  --primary-foreground: 346 64% 94%;
-  --primary-glow: 351 40% 63%;
-  --primary-deep: 345 70% 12%;
-
-  /* === BACKGROUND: Premium Dark Burgundy/Black === */
-  --background: 345 40% 5%;
-  --foreground: 346 64% 94%;
+  /* === BACKGROUND & FOREGROUND === */
+  --background: 346 50% 94%; /* FBE6EB */
+  --foreground: 345 58% 17%; /* 44121E */
 
   /* === SURFACES === */
-  --card: 345 40% 7%;
-  --card-foreground: 346 64% 94%;
-  --popover: 345 35% 8%;
-  --popover-foreground: 346 64% 94%;
-  --secondary: 345 30% 12%;
-  --secondary-foreground: 346 64% 98%;
-  --muted: 345 20% 15%;
-  --muted-foreground: 345 15% 66%;
+  --card: 63 46% 91%; /* F6F7DA */
+  --card-foreground: 345 58% 17%;
+  --popover: 63 46% 91%;
+  --popover-foreground: 345 58% 17%;
+  --secondary: 346 40% 90%;
+  --secondary-foreground: 345 58% 17%;
+  --muted: 346 30% 92%;
+  --muted-foreground: 345 20% 40%;
+  
+  /* === PRIMARY: Rose Pink === */
+  --primary: 351 40% 63%; /* C87783 */
+  --primary-foreground: 0 0% 100%;
+  --primary-glow: 345 58% 17%;
+  --primary-deep: 345 58% 17%; /* 44121E */
+
+  /* === ACCENT === */
   --accent: 351 40% 63%;
-  --accent-foreground: 345 40% 10%;
+  --accent-foreground: 0 0% 100%;
 
   /* === STATUS === */
-  --destructive: 0 84% 55%;
+  --destructive: 0 84% 51%;
   --destructive-foreground: 0 0% 100%;
-  --success: 63 53% 29%;
-  --success-foreground: 346 64% 94%;
+  --success: 63 53% 29%; /* 6D7123 */
+  --success-foreground: 0 0% 100%;
   --warning: 38 95% 55%;
   --warning-foreground: 0 0% 0%;
   --info: 200 90% 55%;
   --info-foreground: 0 0% 0%;
 
   /* === LINHAS === */
-  --border: 345 30% 15%;
-  --input: 345 30% 12%;
+  --border: 346 30% 86%;
+  --input: 346 30% 88%;
   --ring: 351 40% 63%;
 
   --radius: 0.75rem;
 
-  /* === GRAY SCALE DARK-NATIVE === */
-  --gray-50: 345 30% 8%;
-  --gray-100: 345 25% 12%;
-  --gray-200: 345 20% 18%;
-  --gray-400: 345 15% 45%;
-  --gray-500: 345 15% 58%;
-  --gray-600: 345 15% 72%;
-  --gray-900: 346 64% 94%;
-
-  /* === SEMÂNTICOS DE NEGÓCIO === */
-  --priority-alta: 0 84% 55%;
-  --priority-media: 38 95% 55%;
-  --priority-baixa: 351 40% 63%;
-  --priority-nao-respondeu: 345 15% 45%;
-
-  --status-open: 351 40% 63%;
-  --status-won: 63 53% 29%;
-  --status-lost: 0 84% 55%;
+  /* === GRAY SCALE LIGHT-NATIVE === */
+  --gray-50: 0 0% 100%;
+  --gray-100: 346 40% 96%;
+  --gray-200: 346 40% 92%;
+  --gray-400: 345 20% 60%;
+  --gray-500: 345 20% 50%;
+  --gray-600: 345 20% 40%;
+  --gray-900: 345 58% 17%;
 
   /* === SIDEBAR === */
-  --sidebar-background: 345 40% 5%;
-  --sidebar-foreground: 345 20% 80%;
+  --sidebar-background: 63 46% 91%;
+  --sidebar-foreground: 345 58% 17%;
   --sidebar-primary: 351 40% 63%;
-  --sidebar-primary-foreground: 345 40% 5%;
-  --sidebar-accent: 345 35% 12%;
-  --sidebar-accent-foreground: 351 40% 75%;
-  --sidebar-border: 345 30% 12%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 346 50% 94%;
+  --sidebar-accent-foreground: 345 58% 17%;
+  --sidebar-border: 346 30% 86%;
   --sidebar-ring: 351 40% 63%;
 
   /* === CHARTS === */
   --chart-1: 351 40% 63%;
-  --chart-2: 345 58% 17%;
-  --chart-3: 63 53% 29%;
+  --chart-2: 63 53% 29%;
+  --chart-3: 345 58% 17%;
   --chart-4: 38 95% 55%;
   --chart-5: 0 84% 55%;
 
-  /* === SIGNATURE GRADIENTS === */
-  --ocr-gradient: linear-gradient(135deg, hsl(345 58% 17%) 0%, hsl(351 40% 63%) 50%, hsl(346 64% 85%) 100%);
-  --ocr-gradient-text: linear-gradient(135deg, hsl(346 64% 94%) 0%, hsl(351 40% 63%) 45%, hsl(345 58% 17%) 100%);
-  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 40% 63% / 0.16) 0%, hsl(345 58% 17% / 0.06) 100%);
-  --ocr-gradient-border: linear-gradient(135deg, hsl(351 40% 63% / 0.65), hsl(345 58% 17% / 0.2));
-  --ocr-glow: 0 0 40px hsl(351 40% 63% / 0.35), 0 0 80px hsl(345 58% 17% / 0.15);
-  --ocr-glow-soft: 0 0 24px hsl(351 40% 63% / 0.22);
-  --ocr-glow-intense: 0 0 60px hsl(351 40% 63% / 0.5), 0 0 120px hsl(351 40% 63% / 0.25);
+  /* === SIGNATURE GRADIENTS (Lighter variants) === */
+  --ocr-gradient: linear-gradient(135deg, hsl(351 40% 63%) 0%, hsl(346 64% 85%) 100%);
+  --ocr-gradient-text: linear-gradient(135deg, hsl(345 58% 17%) 0%, hsl(351 40% 63%) 100%);
+  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 40% 63% / 0.1) 0%, hsl(345 58% 17% / 0.05) 100%);
+  --ocr-gradient-border: linear-gradient(135deg, hsl(351 40% 63% / 0.3), hsl(345 58% 17% / 0.1));
+  --ocr-glow: 0 0 20px hsl(351 40% 63% / 0.15);
+  --ocr-glow-soft: 0 0 10px hsl(351 40% 63% / 0.1);
+  --ocr-glow-intense: 0 0 30px hsl(351 40% 63% / 0.2);
 
   /* === SHADOWS === */
-  --shadow-performance: 0 25px 50px -12px rgb(0 0 0 / 0.8), 0 0 0 1px hsl(351 40% 63% / 0.06);
-  --shadow-card-lift: 0 20px 40px -10px rgb(0 0 0 / 0.65), 0 0 0 1px hsl(351 40% 63% / 0.12);
+  --shadow-performance: 0 10px 30px -10px rgb(68 18 30 / 0.1), 0 0 0 1px hsl(351 40% 63% / 0.1);
+  --shadow-card-lift: 0 15px 35px -10px rgb(68 18 30 / 0.15), 0 0 0 1px hsl(351 40% 63% / 0.2);
 
   /* === MOTION === */
   --ease-performance: cubic-bezier(0.16, 1, 0.3, 1);
@@ -99,35 +91,7 @@
   --dur-700: 700ms;
 }
 
-.light {
-  --primary: 345 58% 17%;
-  --primary-glow: 351 40% 63%;
-  --background: 346 64% 96%;
-  --foreground: 345 58% 17%;
-  --card: 0 0% 100%;
-  --card-foreground: 345 58% 17%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 345 58% 17%;
-  --secondary: 346 40% 90%;
-  --secondary-foreground: 345 58% 17%;
-  --muted: 346 30% 92%;
-  --muted-foreground: 345 20% 40%;
-  --accent: 351 40% 63%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 51%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 346 30% 86%;
-  --input: 346 30% 88%;
-  --ring: 351 40% 63%;
-  --sidebar-background: 0 0% 100%;
-  --sidebar-foreground: 345 40% 20%;
-  --sidebar-primary: 345 58% 17%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 346 40% 92%;
-  --sidebar-accent-foreground: 345 58% 17%;
-  --sidebar-border: 346 30% 88%;
-  --sidebar-ring: 345 58% 17%;
-}
+
 
 @theme {
   --color-background: hsl(var(--background));
@@ -173,8 +137,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(345 58% 17% / 0.09), transparent 70%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(351 40% 63% / 0.05), transparent 70%);
+      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(351 40% 63% / 0.2), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(345 58% 17% / 0.1), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -191,13 +155,13 @@
 /* === PREMIUM COMPONENTS === */
 @layer components {
   .ocr-glass {
-    background: hsl(var(--card) / 0.5);
+    background: hsl(var(--card) / 0.7);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid hsl(var(--border) / 0.6);
     box-shadow:
       inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
-      0 8px 32px hsl(0 0% 0% / 0.4);
+      0 8px 32px hsl(345 58% 17% / 0.1);
   }
 
   .ocr-glass-strong {
