@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Flower2, Coins, ArrowRight, ShieldCheck, Mail, Lock, User } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
@@ -10,13 +10,19 @@ type Mode = 'login' | 'register'
 
 export default function AuthPage() {
   const router = useRouter()
-  const { setUser } = useAuth()
+  const { user, loading: authLoading, setUser } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/dashboard')
+    }
+  }, [authLoading, user, router])
 
   const switchMode = (next: Mode) => {
     setMode(next)
@@ -54,11 +60,10 @@ export default function AuthPage() {
 
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
+        setUser(data.user)
         setTimeout(() => {
-          setUser(data.user)
           router.push('/dashboard')
-          router.refresh()
-        }, 1000)
+        }, 800)
       } else {
         toast.error(data.error || 'Erro ao processar requisição.')
         setLoading(false)
