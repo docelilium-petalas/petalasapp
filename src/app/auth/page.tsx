@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Flower2, Coins, ArrowRight, ShieldCheck, Mail, Lock, User } from 'lucide-react'
+import { Flower2, ArrowRight, Mail, Lock, User, ShieldCheck } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 
 type Mode = 'login' | 'register'
@@ -49,8 +49,6 @@ export default function AuthPage() {
 
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
-        // Hard navigation guarantees the auth cookie is sent with the next request
-        // and the proxy validates it before rendering the dashboard.
         window.location.href = '/dashboard'
       } else {
         const data = await res.json()
@@ -64,79 +62,56 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-background">
-      <Toaster theme="light" position="top-right" closeButton />
+    <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden select-none">
+      <Toaster theme="dark" position="top-right" closeButton />
 
-      {/* Logo no Canto Superior Esquerdo */}
-      <div className="absolute top-8 left-8 z-50 flex flex-col items-center justify-center w-28 h-40 border-2 border-primary rounded-t-full rounded-b-full p-2 bg-background/80 backdrop-blur-md shadow-lg shadow-primary/20 scale-90 origin-top-left">
-        <span className="text-[6px] sm:text-[8px] uppercase tracking-widest text-foreground font-medium mb-1" style={{ fontFamily: "var(--font-montserrat)" }}>Alma Feminina</span>
-        <Flower2 className="w-8 h-8 sm:w-12 sm:h-12 text-primary mb-1" />
-        <div className="flex flex-col items-center -space-y-2 sm:-space-y-3">
-          <span className="text-2xl sm:text-3xl text-foreground" style={{ fontFamily: "var(--font-signature)" }}>Doce</span>
-          <span className="text-2xl sm:text-3xl text-foreground ml-3 sm:ml-4" style={{ fontFamily: "var(--font-signature)" }}>Lilium</span>
-        </div>
-      </div>
+      {/* Ambient background blobs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C87783]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#44121E]/20 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Floating Ambient Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-md mx-4">
 
-      {/* LEFT SIDE: Marketing (Desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card/50 border-r border-border/30 relative">
-        <div className="pt-32 space-y-6 max-w-lg my-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary uppercase tracking-wider">
-            <Coins className="w-3.5 h-3.5" />
-            <span>Estilo & Elegância</span>
+        {/* Brand */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-[#C87783]/10 border border-[#C87783]/30 flex items-center justify-center mb-4">
+            <Flower2 className="w-8 h-8 text-[#C87783]" />
           </div>
-          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-foreground">
-            Vista-se de <span className="ocr-gradient-text">delicadeza e sofisticação.</span>
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            A identidade visual da Doce Lílium Closet transmite delicadeza, feminilidade e elegância em cada detalhe.
+          <h1
+            className="text-4xl text-white leading-none"
+            style={{ fontFamily: 'var(--font-signature, cursive)' }}
+          >
+            Doce Lilium
+          </h1>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 mt-1 font-medium">
+            Alma Feminina
           </p>
-          <div className="pt-6 grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-border/40 bg-card/40 backdrop-blur-sm">
-              <span className="block text-lg font-bold text-primary text-glow">10x</span>
-              <span className="text-[10px] text-muted-foreground uppercase font-medium">Beleza Refinada</span>
-            </div>
-            <div className="p-4 rounded-xl border border-border/40 bg-card/40 backdrop-blur-sm">
-              <span className="block text-lg font-bold text-primary text-glow">+45%</span>
-              <span className="text-[10px] text-muted-foreground uppercase font-medium">Essência Feminina</span>
-            </div>
-          </div>
         </div>
 
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <ShieldCheck className="w-4 h-4 text-primary" />
-          <span>Conformidade com a LGPD e criptografia de ponta a ponta.</span>
-        </div>
-      </div>
+        {/* Form card */}
+        <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
 
-      {/* RIGHT SIDE: Auth Card */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative z-10">
-        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
-
-          {/* Mobile brand */}
-          <div className="lg:hidden flex items-center gap-2 justify-center mb-6">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-              <Flower2 className="w-4 h-4" />
-            </div>
-            <span className="font-bold text-xs uppercase tracking-wider">Doce Lilium</span>
-          </div>
-
-          {/* Mode toggle */}
-          <div className="flex rounded-xl border border-border/60 bg-card/60 p-1 mb-8">
+          {/* Tab switcher */}
+          <div className="flex rounded-xl bg-neutral-800/60 p-1 mb-7 border border-neutral-700/50">
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'login' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+                mode === 'login'
+                  ? 'bg-[#C87783] text-white shadow-lg shadow-[#C87783]/20'
+                  : 'text-neutral-500 hover:text-neutral-300'
+              }`}
             >
               Entrar
             </button>
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'register' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+                mode === 'register'
+                  ? 'bg-[#C87783] text-white shadow-lg shadow-[#C87783]/20'
+                  : 'text-neutral-500 hover:text-neutral-300'
+              }`}
             >
               Criar conta
             </button>
@@ -144,13 +119,13 @@ export default function AuthPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              {mode === 'login' ? 'Bem-vindo à operação' : 'Criar nova conta'}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <h2 className="text-xl font-bold text-white">
+              {mode === 'login' ? 'Bem-vindo à operação' : 'Nova conta'}
+            </h2>
+            <p className="text-xs text-neutral-500 mt-1">
               {mode === 'login'
-                ? 'Preencha suas credenciais para acessar seu painel.'
-                : 'Preencha os dados para configurar seu acesso.'}
+                ? 'Preencha suas credenciais para acessar o painel.'
+                : 'Configure seu acesso à plataforma.'}
             </p>
           </div>
 
@@ -158,70 +133,70 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome</label>
-                <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-border bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25 transition-all">
-                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Nome</label>
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                  <User className="w-4 h-4 text-neutral-500 shrink-0" />
                   <input
                     type="text"
                     value={nome}
                     onChange={e => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">E-mail</label>
-              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-border bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25 transition-all">
-                <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+              <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">E-mail</label>
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                <Mail className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@empresa.com"
-                  className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Senha</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Senha</label>
                 {mode === 'login' && (
                   <button
                     type="button"
                     onClick={() => toast.info('Entre em contato com o administrador para resetar a senha.')}
-                    className="text-[10px] font-semibold text-primary hover:underline"
+                    className="text-[10px] font-semibold text-[#C87783] hover:underline"
                   >
                     Esqueceu a senha?
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-border bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25 transition-all">
-                <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                 />
               </div>
             </div>
 
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Confirmar senha</label>
-                <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-border bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25 transition-all">
-                  <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Confirmar senha</label>
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-neutral-800/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
+                  <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground"
+                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -230,10 +205,10 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#C87783] hover:bg-[#b8676f] text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#C87783]/20 hover:shadow-[#C87783]/30 disabled:opacity-60 disabled:cursor-not-allowed mt-2 cursor-pointer"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <span>{mode === 'login' ? 'Entrar' : 'Criar minha conta'}</span>
@@ -243,6 +218,11 @@ export default function AuthPage() {
             </button>
           </form>
 
+          {/* Footer */}
+          <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-neutral-600">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>LGPD · Criptografia de ponta a ponta</span>
+          </div>
         </div>
       </div>
     </div>
