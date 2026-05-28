@@ -1,0 +1,10 @@
+.env
+.env.*
+.git
+.gitignore
+node_modules
+.next
+*.tsbuildinfo
+coverage
+test.ts
+README.md

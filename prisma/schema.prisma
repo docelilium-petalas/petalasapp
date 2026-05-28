@@ -1,177 +1,629 @@
-generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
-}
-
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+// ENUMS
+enum AppRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+enum DealStatus {
+  OPEN
+  WON
+  LOST
+}
+
+enum DealPriority {
+  ALTA
+  MEDIA
+  BAIXA
+  NAO_RESPONDEU
+}
+
+enum LeadStatus {
+  ATIVO
+  ADD_LISTA
+  DISPARADO
+  DESCARTADO
+}
+
+enum StatusEnvio {
+  PENDENTE
+  ENVIANDO
+  ENVIADO
+  ERRO
+}
+
+enum ListaDisparoStatus {
+  ATIVA
+  EM_ANDAMENTO
+  PAUSADA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum ActivityStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum ProcessamentoStatus {
+  PROCESSANDO
+  CONCLUIDO
+  ERRO
+}
+
+// MODELS
+
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  profile      Profile?
+  roles        UserRole[]
+  permissions  UserFeaturePermission[]
+  teamMembers  TeamMember[]
+  pipelines    Pipeline[]
+  contacts     Contact[]          @relation("UserContacts")
+  ownedContacts Contact[]         @relation("OwnerContacts")
+  deals        Deal[]             @relation("UserDeals")
+  ownedDeals   Deal[]             @relation("OwnerDeals")
+  activities   Activity[]         @relation("UserActivities")
+  ownedActivities Activity[]      @relation("OwnerActivities")
+  leads        Lead[]             @relation("UserLeads")
+  ownedLeads   Lead[]             @relation("OwnerLeads")
+  leadsCnpj    LeadCnpj[]
+  buscaMaps    HistoricoBuscas[]
+  buscaCnpj    HistoricoBuscasCnpj[]
+  listas       ListaDisparo[]     @relation("UserListas")
+  ownedListas  ListaDisparo[]     @relation("OwnerListas")
+  templates    MessageTemplate[]
+  cadencias    Cadencia[]
+  segmentos    Segmento[]
+  tracking     TrackingEvent[]
+  integrations Integration[]
+  aiConfigs    AiAgentConfig[]
 }
 
 model Profile {
-  id            String    @id @default(uuid())
-  nome          String
-  email         String    @unique
-  password      String
-  avatar_url    String?
-  perfil        Role      @default(criador)
-  status        Status    @default(ativo)
-  cota_mensal   Int       @default(10)
-  cota_usada    Int       @default(0)
-  last_activity DateTime?
-  created_at    DateTime  @default(now())
-
-  videos          Video[]
-  pastas          Pasta[]
-  integracoes     Integracao[]
-  notificacoes    Notificacao[]
-  reset_tokens    PasswordResetToken[]
-  pipeline_stages PipelineStage[]
-  opportunities   Opportunity[]
-  contacts        Contact[]
-
-  @@map("profiles")
+  id                         String   @id @default(uuid())
+  userId                     String   @unique
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome                       String
+  sobrenome                  String
+  avatarUrl                  String?
+  telefone                   String?
+  leadSearchWebhookUrl       String?
+  cnpjSearchWebhookUrl       String?
+  disparoWebhookUrl          String?
+  disparoStatusWebhookUrl    String?
+  disparoCancelarWebhookUrl String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 }
 
-enum Role {
-  admin
-  criador
+model Team {
+  id        String       @id @default(uuid())
+  nome      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  members   TeamMember[]
+  pipelines Pipeline[]
 }
 
-enum Status {
-  ativo
-  inativo
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      AppRole  @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, userId])
 }
 
-model Video {
-  id                 String      @id @default(uuid())
-  user_id            String
-  nome_produto       String
-  descricao_produto  String
-  imagem_produto_url String?
-  logo_empresa_url   String?
-  formato            String
-  linha_editorial    String
-  duracao            Int
-  tom                String
-  status             VideoStatus @default(processando)
-  video_url          String?
-  pasta_id           String?
-  nano_banana_job_id String?
-  created_at         DateTime    @default(now())
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      AppRole  @default(USER)
+  createdAt DateTime @default(now())
 
-  user  Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  pasta Pasta?  @relation(fields: [pasta_id], references: [id])
-
-  @@map("videos")
+  @@unique([userId, role])
 }
 
-enum VideoStatus {
-  processando
-  concluido
-  erro
+model UserFeaturePermission {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feature   String
+  allowed   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, feature])
 }
 
-model Pasta {
-  id         String   @id @default(uuid())
-  user_id    String
-  nome       String
-  created_at DateTime @default(now())
-
-  user   Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  videos Video[]
-
-  @@map("pastas")
+model Pipeline {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  nome      String
+  isDefault Boolean  @default(false)
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stages    Stage[]
+  deals     Deal[]
 }
 
-model Integracao {
-  id            String   @id @default(uuid())
-  user_id       String
-  tipo          String
-  token_acesso  String?
-  configuracoes Json?
-  ativo         Boolean  @default(false)
-  created_at    DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, tipo])
-  @@map("integracoes")
-}
-
-model Notificacao {
-  id         String   @id @default(uuid())
-  user_id    String
-  mensagem   String
-  lida       Boolean  @default(false)
-  tipo       String
-  created_at DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("notificacoes")
-}
-
-model PasswordResetToken {
-  id         String   @id @default(uuid())
-  user_id    String
-  token      String   @unique
-  expires_at DateTime
-  used       Boolean  @default(false)
-  created_at DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("password_reset_tokens")
-}
-
-model PipelineStage {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  title      String
-  color      String
-  order      Int
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  user          Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  opportunities Opportunity[]
-
-  @@map("pipeline_stages")
-}
-
-model Opportunity {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  stageId     String   @map("stage_id")
-  title       String
-  value       Float
-  priority    String   @default("media")
-  description String?
-  responsible String?
-  date        DateTime @default(now())
-  isNew       Boolean  @default(true) @map("is_new")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  user  Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stage PipelineStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
-
-  @@map("opportunities")
+model Stage {
+  id             String             @id @default(uuid())
+  pipelineId     String
+  pipeline       Pipeline           @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  nome           String
+  cor            String
+  ordem          Int                @default(0)
+  probabilidade  Int                @default(0)
+  slaHours       Int                @default(24)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deals          Deal[]
+  historyFrom    DealStageHistory[] @relation("DeStage")
+  historyTo      DealStageHistory[] @relation("ParaStage")
 }
 
 model Contact {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
-  nome            String
-  empresa         String?
-  email           String?
-  telefone        String?
-  cargo           String?
-  status          String   @default("lead")
-  canal           String?
-  ultimaAtividade DateTime @default(now()) @map("ultima_activity")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id                 String          @id @default(uuid())
+  userId             String
+  user               User            @relation("UserContacts", fields: [userId], references: [id], onDelete: Cascade)
+  ownerUserId        String?
+  ownerUser          User?           @relation("OwnerContacts", fields: [ownerUserId], references: [id])
+  nome               String
+  sobrenome          String?
+  email              String?
+  telefone           String
+  documento          String?
+  cidade             String?
+  estado             String?
+  tags               String?         // Armazenado como string JSON ou texto
+  camposCustomizados String?         // String JSON
+  fbMetadata         String?         // String JSON
+  firstUtmSource     String?
+  firstUtmMedium     String?
+  firstUtmCampaign   String?
+  firstUtmContent    String?
+  firstUtmTerm       String?
+  firstLandingPage   String?
+  firstReferrerUrl   String?
+  firstUtmAt         DateTime?
+  lastUtmSource      String?
+  lastUtmMedium      String?
+  lastUtmCampaign    String?
+  lastUtmContent     String?
+  lastUtmTerm        String?
+  lastLandingPage    String?
+  lastReferrerUrl    String?
+  lastUtmAt          DateTime?
+  enderecoCompleto   String?
+  consentimentoLgpd  Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deals              Deal[]
+  activities         Activity[]
+  trackingEvents     TrackingEvent[]
+  cadenciaLeads      CadenciaLead[]
+}
 
-  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Deal {
+  id                      String          @id @default(uuid())
+  pipelineId              String
+  pipeline                Pipeline        @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  stageId                 String
+  stage                   Stage           @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  contactId               String
+  contact                 Contact         @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  userId                  String
+  user                    User            @relation("UserDeals", fields: [userId], references: [id], onDelete: Cascade)
+  ownerUserId             String?
+  ownerUser               User?           @relation("OwnerDeals", fields: [ownerUserId], references: [id])
+  titulo                  String
+  valorEstimado           Float           @default(0.0)
+  produtoInteresse        String?
+  origem                  String?
+  prioridade              DealPriority    @default(MEDIA)
+  status                  DealStatus      @default(OPEN)
+  motivoPerda             String?
+  fechadoEm               DateTime?
+  telefone                String?
+  ramoEmpresa             String?
+  faturamentoMensal       Float           @default(0.0)
+  utmSource               String?
+  utmMedium               String?
+  utmCampaign             String?
+  utmContent              String?
+  utmTerm                 String?
+  utmLandingPage          String?
+  utmReferrer             String?
+  utmCapturedAt           DateTime?
+  tags                    String?         // String JSON — ex: ["em-cadencia-leads-perdidos","vip"]
+  anotacoes               String?
+  anotacoesReuniao        String?
+  aiScore                 Int             @default(0)
+  aiScoreFactors          String?         // String JSON
+  aiAnalysis              String?
+  aiAnalyzedAt            DateTime?
+  aiRecommendedAction     String?
+  aiSessionId             String?
+  qualificationStatus     String?
+  qualificationData       String?         // String JSON
+  disqualificationReason  String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  activities              Activity[]
+  stageHistory            DealStageHistory[]
+  leadsListaDisparo       LeadListaDisparo[]
+  aiSessions              AiQualificationSession[]
+  cadenciaLeads           CadenciaLead[]
+}
 
-  @@map("contacts")
+model Activity {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
+  ownerUserId String?
+  ownerUser   User?          @relation("OwnerActivities", fields: [ownerUserId], references: [id])
+  dealId      String?
+  deal        Deal?          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contactId   String?
+  contact     Contact?       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tipo        String         // ligacao, reuniao, tarefa, nota, WhatsApp, email
+  titulo      String
+  descricao   String?
+  dueAt       DateTime?
+  status      ActivityStatus @default(OPEN)
+  doneAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model DealStageHistory {
+  id           String   @id @default(uuid())
+  dealId       String
+  deal         Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deStageId    String?
+  deStage      Stage?   @relation("DeStage", fields: [deStageId], references: [id])
+  paraStageId  String
+  paraStage    Stage    @relation("ParaStage", fields: [paraStageId], references: [id])
+  mudouEm      DateTime @default(now())
+  mudouPor     String
+  fonte        String   // kanban_drag, menu, bulk, api, ai
+}
+
+model Lead {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation("UserLeads", fields: [userId], references: [id], onDelete: Cascade)
+  ownerUserId String?
+  ownerUser   User?    @relation("OwnerLeads", fields: [ownerUserId], references: [id])
+  nome        String
+  nicho       String?
+  cidade      String?
+  estado      String?
+  telefone    String
+  site        String?
+  endereco    String?
+  avaliacao   Float    @default(0.0)
+  status      String   @default("ativo") // ativo, add_lista, disparado, descartado
+  notas       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cadenciaLeads CadenciaLead[]
+}
+
+model LeadCnpj {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cnpj          String   @unique
+  cnaeCodigo    String?
+  cnaeDescricao String?
+  situacao      String?
+  dataAbertura  String?
+  cidade        String?
+  estado        String?
+  email         String?
+  telefone      String?
+  nome          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HistoricoBuscas {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nicho              String
+  cidade             String
+  estado             String
+  quantidade         Int      @default(0)
+  statusProcessamento String   @default("processando") // processando, concluido, erro
+  payload            String?  // String JSON
+  erro               String?
+  createdAt          DateTime @default(now())
+}
+
+model HistoricoBuscasCnpj {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cnaeCodigo         String
+  cidade             String
+  estado             String
+  statusProcessamento String   @default("processando")
+  payload            String?  // String JSON
+  erro               String?
+  createdAt          DateTime @default(now())
+}
+
+model ListaDisparo {
+  id               String             @id @default(uuid())
+  userId           String
+  user             User               @relation("UserListas", fields: [userId], references: [id], onDelete: Cascade)
+  ownerUserId      String?
+  ownerUser        User?              @relation("OwnerListas", fields: [ownerUserId], references: [id])
+  nomeLista        String
+  descricao        String?
+  mensagemTemplate String
+  status           ListaDisparoStatus @default(ATIVA)
+  totalLeads       Int                @default(0)
+  enviados         Int                @default(0)
+  erros            Int                @default(0)
+  configEnvio      String?            // String JSON (delay, comercial, etc.)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  leads            LeadListaDisparo[]
+  historico        HistoricoDisparos[]
+}
+
+model LeadListaDisparo {
+  id               String            @id @default(uuid())
+  listaId          String
+  lista            ListaDisparo      @relation(fields: [listaId], references: [id], onDelete: Cascade)
+  leadId           String?
+  leadCnpjId       String?
+  dealId           String?
+  deal             Deal?             @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  nomeSnapshot     String
+  telefoneSnapshot String
+  mensagemFinal    String
+  statusEnvio      StatusEnvio       @default(PENDENTE)
+  tentativas       Int               @default(0)
+  mensagemErro     String?
+  dataEnvio        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  disparos         HistoricoDisparos[]
+}
+
+model HistoricoDisparos {
+  id             String           @id @default(uuid())
+  listaId        String
+  lista          ListaDisparo     @relation(fields: [listaId], references: [id], onDelete: Cascade)
+  leadListaId    String
+  leadLista      LeadListaDisparo @relation(fields: [leadListaId], references: [id], onDelete: Cascade)
+  telefone       String
+  nome           String
+  status         String           // enviado, erro, etc.
+  tempoRespostaMs Int             @default(0)
+  erro           String?
+  payload        String?          // String JSON
+  createdAt      DateTime         @default(now())
+}
+
+model MessageTemplate {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome      String
+  categoria String   // Sondagem / Follow-up / Recuperação / Reativação / Personalizado
+  corpo     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("message_templates")
+}
+
+model Cadencia {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome       String
+  tipo       String   // Follow-up / Recuperação / Reativação
+  webhookUrl String?  @map("webhook_url")
+  pipelineId String?  @map("pipeline_id")
+  status     String   @default("ATIVO") // ATIVO / PAUSADO
+  tipoOrigem String?  @default("personalizada") @map("tipo_origem") // 'template', 'personalizada'
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  etapas     CadenciaEtapa[]
+  leads      CadenciaLead[]
+
+  @@map("cadencias")
+}
+
+model CadenciaEtapa {
+  id          String   @id @default(uuid())
+  cadenciaId  String   @map("cadencia_id")
+  cadencia    Cadencia @relation(fields: [cadenciaId], references: [id], onDelete: Cascade)
+  ordem       Int
+  prazoValor  Int      @map("prazo_valor")
+  prazoUnidade String  @map("prazo_unidade") // horas / dias / semanas
+  mensagem    String   @db.Text
+  templateId  String?  @map("template_id")
+  pararAoResponder Boolean @default(true) @map("parar_ao_responder")
+
+  @@map("cadencia_etapas")
+}
+
+model CadenciaLead {
+  id          String   @id @default(uuid())
+  cadenciaId  String   @map("cadencia_id")
+  cadencia    Cadencia @relation(fields: [cadenciaId], references: [id], onDelete: Cascade)
+  leadId      String?  @map("lead_id")
+  lead        Lead?    @relation(fields: [leadId], references: [id])
+  dealId      String?  @map("deal_id")
+  deal        Deal?    @relation(fields: [dealId], references: [id])
+  contactId   String?  @map("contact_id")
+  contact     Contact? @relation(fields: [contactId], references: [id])
+  etapaAtual  Int      @default(1) @map("etapa_atual")
+  status      String   @default("ATIVO") // ATIVO, CONCLUIDA, RESPONDIDA
+  proximoEnvio DateTime? @map("proximo_envio")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("cadencia_leads")
+}
+
+model TrackingEvent {
+  id             String    @id @default(uuid())
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contactId      String?
+  contact        Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  sourceSystem   String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmContent     String?
+  utmTerm        String?
+  landingPage    String?
+  referrerUrl    String?
+  ipAddress      String?
+  userAgent      String?
+  payloadRaw     String?   // String JSON
+  createdAt      DateTime  @default(now())
+}
+
+model Integration {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tipo      String   // n8n, Meta, Evolution, Elementor, etc.
+  authType  String?
+  baseUrl   String?
+  settings  String?  // String JSON
+  secrets   String?  // String JSON
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AiAgentConfig {
+  id                       String   @id @default(uuid())
+  userId                   String
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome                     String
+  nomeExibicao             String
+  tomComunicacao           String
+  promptSistema            String
+  promptQualificacao       String
+  promptObjecoes           String
+  scriptAbertura           String
+  scriptQualificacao       String
+  scriptFechamentoPositivo String
+  scriptFechamentoNegativo String
+  criterios                String?  // BANT ou outros
+  acoesQualificado         String?  // Mover etapa, webhook, etc.
+  acoesDesqualificado      String?
+  modeloIa                 String   @default("gpt-4o")
+  temperatura              Float    @default(0.7)
+  maxTokens                Int      @default(1000)
+  emojisPermitidos         Boolean  @default(true)
+  evolutionInstanceId      String?
+  n8nWebhookUrl            String?
+  webhookSecret            String?
+  ativo                    Boolean  @default(false)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+model AiQualificationSession {
+  id                 String                @id @default(uuid())
+  dealId             String
+  deal               Deal                  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  sessionId          String                @unique
+  startedAt          DateTime              @default(now())
+  lastInteractionAt  DateTime              @default(now())
+  completedAt        DateTime?
+  mensagensEnviadas  Int                   @default(0)
+  mensagensRecebidas Int                   @default(0)
+  scoreInicial       Int                   @default(0)
+  scoreFinal         Int                   @default(0)
+  qualificationResult String?               // qualificado, desqualificado, em_andamento
+  tempoTotalMinutos  Int                   @default(0)
+  createdAt          DateTime              @default(now())
+  logs               AiConversationLog[]
+}
+
+model AiConversationLog {
+  id        String                 @id @default(uuid())
+  sessionId String
+  session   AiQualificationSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  dealId    String
+  role      String                 // user, assistant, system
+  content   String
+  metadata  String?                // String JSON
+  createdAt DateTime               @default(now())
+}
+
+model Segmento {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome       String
+  descricao  String?
+  prioridade String?  // 'maxima', 'media', 'baixa'
+  tipo       String   @default("personalizado") // 'template', 'personalizado'
+  filtros    String   @db.Text // JSON: SegmentoRegra[]
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("segmentos")
+}
+
+model EventIngestLog {
+  id        String   @id @default(uuid())
+  source    String
+  payload   String?  // String JSON
+  status    String
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+// Generic key-value config per user (stores segmentos rules, preferences, etc.)
+model UserConfig {
+  id        String   @id @default(uuid())
+  userId    String
+  key       String
+  value     String   // JSON string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
 }

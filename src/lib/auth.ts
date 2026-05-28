@@ -1,66 +1,44 @@
-import { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
-import { prisma } from './prisma'
+import { SignJWT, jwtVerify } from 'jose'
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Senha', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+export interface JwtPayload {
+  userId: string
+  email: string
+  role: string
+}
 
-        const user = await prisma.profile.findUnique({
-          where: { email: credentials.email },
-        })
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error(
+      'JWT_SECRET environment variable is required but not set. ' +
+      'Add JWT_SECRET=<random-64-char-string> to your .env file.'
+    )
+  }
+  return new TextEncoder().encode(secret)
+}
 
-        if (!user) return null
-        if (user.status === 'inativo') throw new Error('Conta inativa')
+export async function signToken(payload: JwtPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .sign(getJwtSecret())
+}
 
-        const valid = await bcrypt.compare(credentials.password, user.password)
-        if (!valid) return null
+export async function verifyToken(token: string): Promise<JwtPayload> {
+  const { payload } = await jwtVerify(token, getJwtSecret())
+  return {
+    userId: payload['userId'] as string,
+    email: payload['email'] as string,
+    role: payload['role'] as string,
+  }
+}
 
-        return {
-          id: user.id,
-          name: user.nome,
-          email: user.email,
-          perfil: user.perfil,
-          cota_mensal: user.cota_mensal,
-          cota_usada: user.cota_usada,
-        }
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.perfil = (user as any).perfil
-        token.cota_mensal = (user as any).cota_mensal
-        token.cota_usada = (user as any).cota_usada
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        (session.user as any).id = token.id
-        ;(session.user as any).perfil = token.perfil
-        ;(session.user as any).cota_mensal = token.cota_mensal
-        ;(session.user as any).cota_usada = token.cota_usada
-      }
-      return session
-    },
-  },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
-  session: {
-    strategy: 'jwt',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+export async function getUserFromRequest(request: Request): Promise<JwtPayload | null> {
+  const token = request.headers.get('cookie')?.match(/ocr_auth_token=([^;]+)/)?.[1]
+  if (!token) return null
+  try {
+    return await verifyToken(token)
+  } catch {
+    return null
+  }
 }
