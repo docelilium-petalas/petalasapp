@@ -682,7 +682,7 @@ function DroppableColumn({
           const isSelected = selectedDeals.has(deal.id)
           const dealActivities = activities.filter((a) => a.dealId === deal.id)
           const hasFutureActivity = dealActivities.some(
-            (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
+            (a) => a.status === 'OPEN' && !!a.dueAt && new Date(a.dueAt).getTime() > Date.now()
           )
           const contactPhone = (contact?.telefone || deal.telefone || '').replace(/\D/g, '')
           const msgData = lastMessageMap[contactPhone] || null
@@ -1016,12 +1016,9 @@ function PipelineContent() {
         produtoInteresse: newDeal.produtoInteresse || undefined,
         origem: newDeal.origem || undefined,
         prioridade: newDeal.prioridade as MockDeal['prioridade'],
-        status: 'OPEN' as MockDeal['status'],
         ramoEmpresa: newDeal.ramoEmpresa || undefined,
         faturamentoMensal: parseFloat(newDeal.faturamentoMensal) || 0,
         ownerUserId: newDeal.ownerUserId || undefined,
-        aiScore: 0,
-        userId: ''
       })
 
       setDeals((prev) => [...prev, created])
@@ -1751,7 +1748,7 @@ function PipelineContent() {
                   const isSelected = selectedDeals.has(deal.id)
                   const dealActivities = activities.filter((a) => a.dealId === deal.id)
                   const hasFutureActivity = dealActivities.some(
-                    (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
+                    (a) => a.status === 'OPEN' && !!a.dueAt && new Date(a.dueAt).getTime() > Date.now()
                   )
                   const contactPhone = (contact?.telefone || deal.telefone || '').replace(/\D/g, '')
                   const msgData = lastMessageMap[contactPhone] || null

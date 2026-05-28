@@ -790,7 +790,7 @@ export const crmService = {
 
   // --- ACTIVITIES SERVICES ---
   async getActivities(): Promise<mockData.MockActivity[]> {
-    return getState().activities.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+    return getState().activities.sort((a, b) => new Date(a.dueAt ?? 0).getTime() - new Date(b.dueAt ?? 0).getTime())
   },
 
   async createActivity(data: Omit<mockData.MockActivity, 'id' | 'createdAt'>): Promise<mockData.MockActivity> {

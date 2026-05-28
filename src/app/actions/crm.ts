@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers'
 import prisma from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { DealPriority, ListaDisparoStatus, type Prisma } from '@prisma/client'
+import { ActivityStatus, DealPriority, ListaDisparoStatus, type Prisma } from '@prisma/client'
 import type { Contact, Deal, Stage, Activity } from '@prisma/client'
 
 type ContactRow = Contact
@@ -610,7 +610,7 @@ export async function createDeal(data: DealCreateInput) {
       valorEstimado: parseFloat(String(data.valorEstimado ?? 0)) || 0,
       produtoInteresse: data.produtoInteresse || null,
       origem,
-      prioridade: data.prioridade || 'MEDIA',
+      prioridade: (data.prioridade || 'MEDIA') as DealPriority,
       status: 'OPEN',
       telefone,
       ramoEmpresa: data.ramoEmpresa || null,
@@ -661,7 +661,7 @@ export async function updateDeal(id: string, data: DealUpdateInput) {
       ...(data.valorEstimado !== undefined && { valorEstimado: parseFloat(String(data.valorEstimado)) || 0 }),
       ...(data.produtoInteresse !== undefined && { produtoInteresse: data.produtoInteresse }),
       ...(data.origem !== undefined && { origem: data.origem }),
-      ...(data.prioridade !== undefined && { prioridade: data.prioridade }),
+      ...(data.prioridade !== undefined && { prioridade: data.prioridade as DealPriority }),
       ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId || null }),
       ...(data.stageId !== undefined && { stageId: data.stageId }),
       ...(data.anotacoes !== undefined && { anotacoes: data.anotacoes }),
@@ -879,7 +879,7 @@ export async function createActivity(data: ActivityCreateInput) {
       titulo: data.titulo,
       descricao: data.descricao || null,
       dueAt: data.dueAt ? new Date(data.dueAt) : null,
-      status: data.status || 'OPEN',
+      status: (data.status || 'OPEN') as ActivityStatus,
       doneAt: data.doneAt ? new Date(data.doneAt) : null,
     },
     include: { deal: { include: { contact: true } }, contact: true }
@@ -906,11 +906,11 @@ export async function updateActivity(id: string, data: ActivityUpdateInput) {
       ...(data.titulo !== undefined && { titulo: data.titulo }),
       ...(data.descricao !== undefined && { descricao: data.descricao }),
       ...(data.tipo !== undefined && { tipo: data.tipo }),
-      ...(data.status !== undefined && { status: data.status }),
+      ...(data.status !== undefined && { status: data.status as ActivityStatus }),
       ...(data.dueAt !== undefined && { dueAt: data.dueAt ? new Date(data.dueAt) : null }),
       ...(data.doneAt !== undefined && { doneAt: data.doneAt ? new Date(data.doneAt) : null }),
-      ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId || null }),
-    },
+      ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId ?? null }),
+    } as Prisma.ActivityUpdateInput,
     include: { deal: { include: { contact: true } }, contact: true }
   })
   
@@ -1040,7 +1040,7 @@ export async function getBussolaAlerts() {
       where: {
         OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }],
         status: 'OPEN',
-        prioridade: 'ALTA',
+        prioridade: 'ALTA' as DealPriority,
         updatedAt: { lte: fortyEightHoursAgo }
       }
     }),

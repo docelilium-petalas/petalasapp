@@ -698,9 +698,9 @@ function ActivitiesContent() {
                                         ? 'bg-neutral-900/60 text-muted-foreground/50 border-neutral-800 line-through'
                                         : `${config.bg} ${config.color} ${config.border} hover:brightness-110`
                                     }`}
-                                    title={`${evt.titulo} (${format(new Date(evt.dueAt), 'HH:mm')})`}
+                                    title={`${evt.titulo} (${evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''})`}
                                   >
-                                    <span className="text-[9px] opacity-80">{format(new Date(evt.dueAt), 'HH:mm')}</span>
+                                    <span className="text-[9px] opacity-80">{evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''}</span>
                                     <span className="truncate">{evt.titulo}</span>
                                   </div>
                                 )
@@ -770,7 +770,7 @@ function ActivitiesContent() {
                                     >
                                       <div className="flex items-center justify-between text-[8px] font-bold opacity-80">
                                         <span className="uppercase">{config.label}</span>
-                                        <span>{format(new Date(evt.dueAt), 'HH:mm')}</span>
+                                        <span>{evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''}</span>
                                       </div>
                                       <span className="text-[11px] font-bold leading-tight truncate">{evt.titulo}</span>
                                       {evt.contact && (

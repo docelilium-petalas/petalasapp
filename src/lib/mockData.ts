@@ -232,7 +232,7 @@ export interface MockActivity {
   tipo: string // ligacao, reuniao, tarefa, nota, WhatsApp, email
   titulo: string
   descricao?: string
-  dueAt: string
+  dueAt?: string
   status: ActivityStatus
   doneAt?: string
   createdAt: string
