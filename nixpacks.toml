@@ -8,7 +8,7 @@ cmds = ["npm ci --include=dev"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [phases.setup]
-nixPkgs = ["openssl"]
+addedPkgs = ["openssl"]
 
 [start]
 cmd = "node .next/standalone/server.js"
