@@ -1,39 +1,11 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { after } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { ActivityStatus, DealPriority, ListaDisparoStatus, type Prisma } from '@prisma/client'
-import type { Contact, Deal, Stage, Activity } from '@prisma/client'
-
-type ContactRow = Contact
-type DealRow = Deal & { contact?: Contact | null; stage?: Stage | null }
-type ActivityRow = Activity & { deal?: DealRow | null; contact?: Contact | null }
-
-type DealCreateInput = {
-  contactId: string; pipelineId: string; stageId: string; titulo: string
-  valorEstimado?: number | string; produtoInteresse?: string | null
-  origem?: string | null; prioridade?: string; ownerUserId?: string | null
-  telefone?: string; ramoEmpresa?: string | null; faturamentoMensal?: number | string
-  utmSource?: string; utmMedium?: string; utmCampaign?: string
-  utmContent?: string; utmTerm?: string; utmLandingPage?: string
-  utmReferrer?: string; utmCapturedAt?: string
-}
-type DealUpdateInput = {
-  titulo?: string; valorEstimado?: number | string; produtoInteresse?: string | null
-  origem?: string | null; prioridade?: string; ownerUserId?: string | null
-  stageId?: string; anotacoes?: string | null; anotacoesReuniao?: string | null
-  ramoEmpresa?: string | null; faturamentoMensal?: number | string
-}
-type ActivityCreateInput = {
-  ownerUserId?: string | null; dealId?: string | null; contactId?: string | null
-  tipo: string; titulo: string; descricao?: string | null
-  dueAt?: string | null; status?: string; doneAt?: string | null
-}
-type ActivityUpdateInput = {
-  titulo?: string; descricao?: string | null; tipo?: string; status?: string
-  dueAt?: string | null; doneAt?: string | null; ownerUserId?: string | null
-}
+import { DealPriority } from '@prisma/client'
 
 async function requireAuth() {
   const cookieStore = await cookies()
@@ -42,8 +14,22 @@ async function requireAuth() {
   return await verifyToken(token)
 }
 
-// Returns the userId of the current user plus all teammates
-async function getTeamScope(userId: string): Promise<string[]> {
+// Returns the userId of the current user plus all teammates (or just the user if restricted)
+export async function getTeamScope(userId: string): Promise<string[]> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { roles: true, permissions: true }
+  })
+  if (!user) return [userId]
+
+  const isAdmin = user.roles.some(r => r.role === 'ADMIN')
+  const canViewAll = user.permissions.some(p => p.feature === 'view-all-deals' && p.allowed)
+
+  // If not admin and doesn't have view-all-deals permission, restrict to own data
+  if (!isAdmin && !canViewAll) {
+    return [userId]
+  }
+
   const memberships = await prisma.teamMember.findMany({
     where: { userId },
     select: { teamId: true },
@@ -56,8 +42,24 @@ async function getTeamScope(userId: string): Promise<string[]> {
   return Array.from(new Set([userId, ...allMembers.map((m) => m.userId)]))
 }
 
+export async function getCurrentUser() {
+  const auth = await requireAuth()
+  const user = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    include: { roles: true }
+  })
+  if (!user) throw new Error('Usuário não encontrado')
+  return {
+    id: user.id,
+    email: user.email,
+    roles: user.roles.map(r => r.role),
+    isAdmin: user.roles.some(r => r.role === 'ADMIN')
+  }
+}
+
 // ─── Helper: serialise Prisma Contact → MockContact-compatible plain object ───
-function serializeContact(c: ContactRow) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function serializeContact(c: any) {
   const customRaw = c.camposCustomizados ? safeJsonParse(c.camposCustomizados, {}) : {}
   // Extra UI fields not present as first-class columns are stored in camposCustomizados
   const { _origem, _dataNascimento, ...camposCustomizados } = customRaw as Record<string, unknown>
@@ -98,7 +100,7 @@ function serializeContact(c: ContactRow) {
   }
 }
 
-function serializeDeal(d: DealRow) {
+function serializeDeal(d: any) {
   if (!d) throw new Error('Não é possível serializar um negócio nulo ou indefinido')
   return {
     id: d.id,
@@ -127,6 +129,7 @@ function serializeDeal(d: DealRow) {
     utmLandingPage: d.utmLandingPage ?? undefined,
     utmReferrer: d.utmReferrer ?? undefined,
     utmCapturedAt: d.utmCapturedAt?.toISOString() ?? undefined,
+    tags: d.tags ?? undefined,
     anotacoes: d.anotacoes ?? undefined,
     anotacoesReuniao: d.anotacoesReuniao ?? undefined,
     aiScore: d.aiScore,
@@ -153,7 +156,7 @@ function serializeDeal(d: DealRow) {
   }
 }
 
-function serializeActivity(a: ActivityRow) {
+function serializeActivity(a: any) {
   if (!a) throw new Error('Não é possível serializar uma atividade nula ou indefinida')
   return {
     id: a.id,
@@ -253,6 +256,27 @@ export async function getAllDeals() {
     },
     orderBy: { createdAt: 'desc' },
     take: 100,
+  })
+  return rows.map(serializeDeal)
+}
+
+export async function getArchivedDeals() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const rows = await prisma.deal.findMany({
+    where: { 
+      OR: [
+        { userId: { in: scope } },
+        { ownerUserId: { in: scope } }
+      ],
+      status: { in: ['WON', 'LOST'] }
+    },
+    include: {
+      contact: true,
+      stage: { include: { pipeline: true } },
+    },
+    orderBy: { fechadoEm: 'desc' },
+    take: 500,
   })
   return rows.map(serializeDeal)
 }
@@ -562,6 +586,189 @@ export async function getStages(pipelineId: string) {
   })
 }
 
+export async function getAllStages() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  return prisma.stage.findMany({
+    where: { pipeline: { userId: { in: scope } } },
+    orderBy: { ordem: 'asc' },
+  })
+}
+
+export async function createPipeline(nome: string) {
+  const auth = await requireAuth()
+  let team = await prisma.team.findFirst({
+    where: { members: { some: { userId: auth.userId } } }
+  })
+  if (!team) {
+    team = await prisma.team.create({
+      data: {
+        nome: 'Meu Time',
+        members: {
+          create: {
+            userId: auth.userId,
+            role: 'ADMIN'
+          }
+        }
+      }
+    })
+  }
+  const count = await prisma.pipeline.count({
+    where: { userId: auth.userId }
+  })
+  return prisma.pipeline.create({
+    data: {
+      userId: auth.userId,
+      teamId: team.id,
+      nome,
+      isDefault: count === 0,
+      ordem: count,
+      ativo: true
+    }
+  })
+}
+
+export async function updatePipeline(id: string, data: any) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.pipeline.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Funil não encontrado')
+  return prisma.pipeline.update({
+    where: { id },
+    data: {
+      ...(data.nome !== undefined && { nome: data.nome }),
+      ...(data.ativo !== undefined && { ativo: data.ativo }),
+      ...(data.isDefault !== undefined && { isDefault: data.isDefault }),
+      ...(data.ordem !== undefined && { ordem: data.ordem })
+    }
+  })
+}
+
+export async function deletePipeline(id: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const pipeline = await prisma.pipeline.findFirst({
+    where: { id, userId: { in: scope } }
+  })
+  if (!pipeline) throw new Error('Funil não encontrado')
+
+  await prisma.pipeline.delete({
+    where: { id }
+  })
+
+  if (pipeline.isDefault) {
+    const first = await prisma.pipeline.findFirst({
+      where: { userId: auth.userId }
+    })
+    if (first) {
+      await prisma.pipeline.update({
+        where: { id: first.id },
+        data: { isDefault: true }
+      })
+    }
+  }
+}
+
+export async function setDefaultPipeline(pipelineId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  await prisma.$transaction([
+    prisma.pipeline.updateMany({
+      where: { userId: { in: scope } },
+      data: { isDefault: false }
+    }),
+    prisma.pipeline.update({
+      where: { id: pipelineId },
+      data: { isDefault: true }
+    })
+  ])
+}
+
+export async function createStage(data: any) {
+  const auth = await requireAuth()
+  const count = await prisma.stage.count({
+    where: { pipelineId: data.pipelineId }
+  })
+  const created = await prisma.stage.create({
+    data: {
+      pipelineId: data.pipelineId,
+      nome: data.nome,
+      cor: data.cor,
+      probabilidade: parseInt(data.probabilidade) || 0,
+      slaHours: parseInt(data.slaHours) || 24,
+      ordem: data.ordem !== undefined ? parseInt(data.ordem) : count + 1
+    }
+  })
+  revalidatePath('/pipeline')
+  revalidatePath('/settings')
+  return created
+}
+
+export async function updateStage(id: string, data: any) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const stage = await prisma.stage.findFirst({
+    where: { id, pipeline: { userId: { in: scope } } }
+  })
+  if (!stage) throw new Error('Estágio não encontrado')
+
+  const updated = await prisma.stage.update({
+    where: { id },
+    data: {
+      ...(data.nome !== undefined && { nome: data.nome }),
+      ...(data.cor !== undefined && { cor: data.cor }),
+      ...(data.probabilidade !== undefined && { probabilidade: parseInt(data.probabilidade) || 0 }),
+      ...(data.slaHours !== undefined && { slaHours: parseInt(data.slaHours) || 0 }),
+      ...(data.ordem !== undefined && { ordem: parseInt(data.ordem) || 0 })
+    }
+  })
+  revalidatePath('/pipeline')
+  revalidatePath('/settings')
+  return updated
+}
+
+export async function deleteStage(id: string, migrationStageId?: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const stage = await prisma.stage.findFirst({
+    where: { id, pipeline: { userId: { in: scope } } }
+  })
+  if (!stage) throw new Error('Estágio não encontrado')
+
+  if (migrationStageId) {
+    await prisma.deal.updateMany({
+      where: { stageId: id },
+      data: { stageId: migrationStageId }
+    })
+  }
+
+  await prisma.stage.delete({
+    where: { id }
+  })
+  revalidatePath('/pipeline')
+  revalidatePath('/settings')
+}
+
+export async function reorderStages(pipelineId: string, stages: any[]) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const pipeline = await prisma.pipeline.findFirst({
+    where: { id: pipelineId, userId: { in: scope } }
+  })
+  if (!pipeline) throw new Error('Pipeline não encontrada')
+
+  await prisma.$transaction(
+    stages.map((s, index) =>
+      prisma.stage.update({
+        where: { id: s.id },
+        data: { ordem: index + 1 }
+      })
+    )
+  )
+  revalidatePath('/pipeline')
+  revalidatePath('/settings')
+}
+
 export async function getAllHistory() {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
@@ -581,7 +788,7 @@ export async function getAllHistory() {
   }))
 }
 
-export async function createDeal(data: DealCreateInput) {
+export async function createDeal(data: any) {
   const auth = await requireAuth()
   
   if (!data.contactId) {
@@ -607,14 +814,14 @@ export async function createDeal(data: DealCreateInput) {
       contactId: data.contactId,
       ownerUserId: data.ownerUserId || null,
       titulo: data.titulo,
-      valorEstimado: parseFloat(String(data.valorEstimado ?? 0)) || 0,
+      valorEstimado: parseFloat(data.valorEstimado) || 0,
       produtoInteresse: data.produtoInteresse || null,
       origem,
-      prioridade: (data.prioridade || 'MEDIA') as DealPriority,
+      prioridade: data.prioridade || 'MEDIA',
       status: 'OPEN',
       telefone,
       ramoEmpresa: data.ramoEmpresa || null,
-      faturamentoMensal: parseFloat(String(data.faturamentoMensal ?? 0)) || 0,
+      faturamentoMensal: parseFloat(data.faturamentoMensal) || 0,
       utmSource: contact.firstUtmSource || data.utmSource || 'Tráfego Direto',
       utmMedium: contact.firstUtmMedium || data.utmMedium || '',
       utmCampaign: contact.firstUtmCampaign || data.utmCampaign || '',
@@ -639,7 +846,7 @@ export async function createDeal(data: DealCreateInput) {
   return serializeDeal(created)
 }
 
-export async function updateDeal(id: string, data: DealUpdateInput) {
+export async function updateDeal(id: string, data: any) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   
@@ -658,16 +865,16 @@ export async function updateDeal(id: string, data: DealUpdateInput) {
     where: { id },
     data: {
       ...(data.titulo !== undefined && { titulo: data.titulo }),
-      ...(data.valorEstimado !== undefined && { valorEstimado: parseFloat(String(data.valorEstimado)) || 0 }),
+      ...(data.valorEstimado !== undefined && { valorEstimado: parseFloat(data.valorEstimado) || 0 }),
       ...(data.produtoInteresse !== undefined && { produtoInteresse: data.produtoInteresse }),
       ...(data.origem !== undefined && { origem: data.origem }),
-      ...(data.prioridade !== undefined && { prioridade: data.prioridade as DealPriority }),
+      ...(data.prioridade !== undefined && { prioridade: data.prioridade }),
       ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId || null }),
       ...(data.stageId !== undefined && { stageId: data.stageId }),
       ...(data.anotacoes !== undefined && { anotacoes: data.anotacoes }),
       ...(data.anotacoesReuniao !== undefined && { anotacoesReuniao: data.anotacoesReuniao }),
       ...(data.ramoEmpresa !== undefined && { ramoEmpresa: data.ramoEmpresa }),
-      ...(data.faturamentoMensal !== undefined && { faturamentoMensal: parseFloat(String(data.faturamentoMensal)) || 0 }),
+      ...(data.faturamentoMensal !== undefined && { faturamentoMensal: parseFloat(data.faturamentoMensal) || 0 }),
     },
     include: { contact: true, stage: true }
   })
@@ -680,6 +887,41 @@ export async function updateDeal(id: string, data: DealUpdateInput) {
         paraStageId: newStageId,
         mudouPor: 'Vendedor',
         fonte: 'menu'
+      }
+    })
+  }
+
+  // Create Activity log if notes changed
+  if (data.anotacoes !== undefined && data.anotacoes !== oldDeal.anotacoes && data.anotacoes.trim().length > 0) {
+    await prisma.activity.create({
+      data: {
+        tipo: 'nota',
+        titulo: 'Anotação no Deal',
+        descricao: data.anotacoes,
+        status: 'DONE',
+        dueAt: new Date(),
+        doneAt: new Date(),
+        userId: auth.userId,
+        ownerUserId: auth.userId,
+        dealId: id,
+        contactId: oldDeal.contactId
+      }
+    })
+  }
+
+  if (data.anotacoesReuniao !== undefined && data.anotacoesReuniao !== oldDeal.anotacoesReuniao && data.anotacoesReuniao.trim().length > 0) {
+    await prisma.activity.create({
+      data: {
+        tipo: 'nota',
+        titulo: 'Anotação de Reunião no Deal',
+        descricao: data.anotacoesReuniao,
+        status: 'DONE',
+        dueAt: new Date(),
+        doneAt: new Date(),
+        userId: auth.userId,
+        ownerUserId: auth.userId,
+        dealId: id,
+        contactId: oldDeal.contactId
       }
     })
   }
@@ -821,7 +1063,7 @@ export async function reopenDeal(dealId: string) {
   return serializeDeal(updated)
 }
 
-export async function deleteDeal(id: string) {
+export async function deleteDeal(id: string, forcePermanent: boolean = false) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   
@@ -833,9 +1075,30 @@ export async function deleteDeal(id: string) {
   })
   if (!deal) throw new Error('Negociação não encontrada')
   
-  await prisma.deal.delete({
-    where: { id }
-  })
+  if (forcePermanent) {
+    await prisma.deal.delete({
+      where: { id }
+    })
+  } else {
+    await prisma.deal.update({
+      where: { id },
+      data: {
+        status: 'LOST',
+        motivoPerda: 'Excluído / Arquivado',
+        fechadoEm: new Date()
+      }
+    })
+    
+    await prisma.dealStageHistory.create({
+      data: {
+        dealId: id,
+        deStageId: deal.stageId,
+        paraStageId: deal.stageId,
+        mudouPor: 'Sistema',
+        fonte: 'arquivamento'
+      }
+    })
+  }
 }
 
 export async function getDealStageHistory(dealId: string) {
@@ -866,7 +1129,7 @@ export async function getDealStageHistory(dealId: string) {
   }))
 }
 
-export async function createActivity(data: ActivityCreateInput) {
+export async function createActivity(data: any) {
   const auth = await requireAuth()
   
   const created = await prisma.activity.create({
@@ -879,16 +1142,18 @@ export async function createActivity(data: ActivityCreateInput) {
       titulo: data.titulo,
       descricao: data.descricao || null,
       dueAt: data.dueAt ? new Date(data.dueAt) : null,
-      status: (data.status || 'OPEN') as ActivityStatus,
+      status: data.status || 'OPEN',
       doneAt: data.doneAt ? new Date(data.doneAt) : null,
     },
     include: { deal: { include: { contact: true } }, contact: true }
   })
   
+  revalidatePath('/activities')
+  revalidatePath('/pipeline')
   return serializeActivity(created)
 }
 
-export async function updateActivity(id: string, data: ActivityUpdateInput) {
+export async function updateActivity(id: string, data: any) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   
@@ -906,14 +1171,16 @@ export async function updateActivity(id: string, data: ActivityUpdateInput) {
       ...(data.titulo !== undefined && { titulo: data.titulo }),
       ...(data.descricao !== undefined && { descricao: data.descricao }),
       ...(data.tipo !== undefined && { tipo: data.tipo }),
-      ...(data.status !== undefined && { status: data.status as ActivityStatus }),
+      ...(data.status !== undefined && { status: data.status }),
       ...(data.dueAt !== undefined && { dueAt: data.dueAt ? new Date(data.dueAt) : null }),
       ...(data.doneAt !== undefined && { doneAt: data.doneAt ? new Date(data.doneAt) : null }),
-      ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId ?? null }),
-    } as Prisma.ActivityUpdateInput,
+      ...(data.ownerUserId !== undefined && { ownerUserId: data.ownerUserId || null }),
+    },
     include: { deal: { include: { contact: true } }, contact: true }
   })
   
+  revalidatePath('/activities')
+  revalidatePath('/pipeline')
   return serializeActivity(updated)
 }
 
@@ -932,52 +1199,41 @@ export async function deleteActivity(id: string) {
   await prisma.activity.delete({
     where: { id }
   })
+  revalidatePath('/activities')
+  revalidatePath('/pipeline')
 }
 
 export async function getReportOverviewData(
-  pipelineId: string | null,
-  start: string | null,
-  end: string | null,
-  ownerIds: string[]
+  _pipelineId: string | null,
+  _start: string | null,
+  _end: string | null,
+  _ownerIds: string[]
 ) {
-  const auth = await requireAuth()
-  const scope = await getTeamScope(auth.userId)
-
-  const where: Prisma.DealWhereInput = {
-    OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }],
-    ...(pipelineId ? { pipelineId } : {}),
-    ...(ownerIds.length > 0 ? { ownerUserId: { in: ownerIds } } : {}),
-    ...((start || end) ? { createdAt: { ...(start ? { gte: new Date(start) } : {}), ...(end ? { lte: new Date(end) } : {}) } } : {}),
+  await requireAuth() // auth check; full implementation uses auth.userId when queries are built
+  return {
+    receitaTotal: 0,
+    ticketMedio: 0,
+    leadsGerados: 0,
+    dealsGanhos: 0,
+    dealsPerdidos: 0,
+    cicloMedioDias: 0,
+    taxaConversao: 0,
   }
-
-  const [won, dealsPerdidos, leadsGerados] = await Promise.all([
-    prisma.deal.findMany({ where: { ...where, status: 'WON' }, select: { valorEstimado: true, createdAt: true, fechadoEm: true } }),
-    prisma.deal.count({ where: { ...where, status: 'LOST' } }),
-    prisma.deal.count({ where }),
-  ])
-
-  const receitaTotal = won.reduce((s, d) => s + d.valorEstimado, 0)
-  const dealsGanhos = won.length
-  const taxaConversao = leadsGerados > 0 ? (dealsGanhos / leadsGerados) * 100 : 0
-  const ticketMedio = dealsGanhos > 0 ? receitaTotal / dealsGanhos : 0
-  const withCycle = won.filter(d => d.fechadoEm)
-  const cicloMedioDias = withCycle.length > 0
-    ? Math.round(withCycle.reduce((s, d) => s + (d.fechadoEm!.getTime() - d.createdAt.getTime()) / 86_400_000, 0) / withCycle.length)
-    : 0
-
-  return { receitaTotal, ticketMedio, leadsGerados, dealsGanhos, dealsPerdidos, cicloMedioDias, taxaConversao }
 }
 
 export async function getBussolaFontes() {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
 
-  // groupBy aggregates at the DB level — avoids loading all deals into memory
-  const grouped = await prisma.deal.groupBy({
-    by: ['origem', 'status'],
-    where: { OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] },
-    _count: { id: true },
-    _sum: { valorEstimado: true },
+  const deals = await prisma.deal.findMany({
+    where: { 
+      OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] 
+    },
+    select: {
+      origem: true,
+      status: true,
+      valorEstimado: true,
+    }
   })
 
   const groups: Record<string, { label: string; iconName: string; color: string; leads: number; deals: number; receita: number; custo: number }> = {}
@@ -985,35 +1241,69 @@ export async function getBussolaFontes() {
   const defaults = [
     { key: 'meta', label: 'Meta Ads', iconName: 'Megaphone', color: '#60A5FA', custoPerLead: 15 },
     { key: 'google', label: 'Google Ads', iconName: 'Search', color: '#FFB300', custoPerLead: 20 },
-    { key: 'whatsapp', label: 'WhatsApp / Orgânico', iconName: 'MessageCircle', color: '#00E676', custoPerLead: 0 },
     { key: 'indicacao', label: 'Indicação', iconName: 'Star', color: '#a855f7', custoPerLead: 0 },
     { key: 'site', label: 'Site / Direto', iconName: 'Globe', color: '#FF5722', custoPerLead: 0 }
   ]
-  defaults.forEach(d => { groups[d.key] = { label: d.label, iconName: d.iconName, color: d.color, leads: 0, deals: 0, receita: 0, custo: 0 } })
 
-  grouped.forEach(row => {
-    const orig = row.origem
+  defaults.forEach(d => {
+    groups[d.key] = {
+      label: d.label,
+      iconName: d.iconName,
+      color: d.color,
+      leads: 0,
+      deals: 0,
+      receita: 0,
+      custo: 0
+    }
+  })
+
+  deals.forEach(deal => {
+    const orig = deal.origem
     const norm = (orig || '').trim().toLowerCase()
-    let key = 'site'; let label = orig || 'Site / Direto'; let iconName = 'Globe'; let color = '#FF5722'; let custoPerLead = 0
+    let key = 'site'
+    let label = orig || 'Site / Direto'
+    let iconName = 'Globe'
+    let color = '#FF5722'
+    let custoPerLead = 0
 
-    if (norm.includes('facebook') || norm.includes('instagram') || norm.includes('meta') || norm.includes('ads')) {
-      key = 'meta'; label = 'Meta Ads'; iconName = 'Megaphone'; color = '#60A5FA'; custoPerLead = 15
+    if (norm.includes('facebook') || norm.includes('instagram') || norm.includes('meta') || norm.includes('ads') || norm === 'ia' || norm === 'inteligência artificial') {
+      key = 'meta'
+      label = 'Meta Ads'
+      iconName = 'Megaphone'
+      color = '#60A5FA'
+      custoPerLead = 15
     } else if (norm.includes('google') || norm.includes('search')) {
-      key = 'google'; label = 'Google Ads'; iconName = 'Search'; color = '#FFB300'; custoPerLead = 20
+      key = 'google'
+      label = 'Google Ads'
+      iconName = 'Search'
+      color = '#FFB300'
+      custoPerLead = 20
     } else if (norm.includes('whatsapp') || norm.includes('whats') || norm.includes('organico') || norm.includes('orgânico')) {
-      key = 'whatsapp'; label = 'WhatsApp / Orgânico'; iconName = 'MessageCircle'; color = '#00E676'; custoPerLead = 0
+      key = 'whatsapp'
+      label = 'WhatsApp / Orgânico'
+      iconName = 'MessageCircle'
+      color = '#00E676'
+      custoPerLead = 0
     } else if (norm.includes('indicacao') || norm.includes('indicação') || norm.includes('indicado')) {
-      key = 'indicacao'; label = 'Indicação'; iconName = 'Star'; color = '#a855f7'; custoPerLead = 0
+      key = 'indicacao'
+      label = 'Indicação'
+      iconName = 'Star'
+      color = '#a855f7'
+      custoPerLead = 0
     } else if (orig) {
       key = norm.replace(/\s+/g, '_')
     }
 
-    if (!groups[key]) { groups[key] = { label, iconName, color, leads: 0, deals: 0, receita: 0, custo: 0 } }
+    if (!groups[key]) {
+      groups[key] = { label, iconName, color, leads: 0, deals: 0, receita: 0, custo: 0 }
+    }
 
-    const count = row._count.id
-    groups[key].leads += count
-    if (row.status === 'WON') { groups[key].deals += count; groups[key].receita += row._sum.valorEstimado ?? 0 }
-    groups[key].custo += custoPerLead * count
+    groups[key].leads += 1
+    if (deal.status === 'WON') {
+      groups[key].deals += 1
+      groups[key].receita += deal.valorEstimado
+    }
+    groups[key].custo += custoPerLead
   })
 
   return Object.entries(groups).map(([id, val]) => ({
@@ -1040,7 +1330,7 @@ export async function getBussolaAlerts() {
       where: {
         OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }],
         status: 'OPEN',
-        prioridade: 'ALTA' as DealPriority,
+        prioridade: 'ALTA',
         updatedAt: { lte: fortyEightHoursAgo }
       }
     }),
@@ -1172,12 +1462,15 @@ export async function getChatHistory(phone: string, dealId: string) {
         const type = msg?.type
         const content = msg?.content || ''
         const sender = (type === 'human' || type === 'user') ? 'lead' : 'user'
+        const createdAt = r.created_at || r.timestamp || new Date().toISOString()
+        const dateObj = new Date(createdAt)
 
         return {
           id: String(r.id),
           sender,
           text: content,
-          time: ''
+          time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
         }
       })
     } catch (dbErr) {
@@ -1189,12 +1482,16 @@ export async function getChatHistory(phone: string, dealId: string) {
       })
 
       if (logs.length > 0) {
-        return logs.map(l => ({
-          id: l.id,
-          sender: l.role === 'user' ? 'lead' : l.role === 'assistant' ? 'ai' : 'user',
-          text: l.content,
-          time: new Date(l.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }))
+        return logs.map(l => {
+          const d = new Date(l.createdAt)
+          return {
+            id: l.id,
+            sender: l.role === 'user' ? 'lead' : l.role === 'assistant' ? 'ai' : 'user',
+            text: l.content,
+            time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          }
+        })
       }
 
       // Default mock messages
@@ -1215,8 +1512,9 @@ export async function getChatHistory(phone: string, dealId: string) {
 
 export async function getTemplates() {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   return prisma.messageTemplate.findMany({
-    where: { userId: auth.userId },
+    where: { userId: { in: scope } },
     orderBy: { createdAt: 'desc' }
   })
 }
@@ -1235,29 +1533,40 @@ export async function createTemplate(data: { nome: string; categoria: string; co
 
 export async function updateTemplate(id: string, data: { nome?: string; categoria?: string; corpo?: string }) {
   const auth = await requireAuth()
-  return prisma.messageTemplate.update({
-    where: { id, userId: auth.userId },
-    data
-  })
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.messageTemplate.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Template não encontrado')
+  return prisma.messageTemplate.update({ where: { id }, data })
 }
 
 export async function deleteTemplate(id: string) {
   const auth = await requireAuth()
-  return prisma.messageTemplate.delete({
-    where: { id, userId: auth.userId }
-  })
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.messageTemplate.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Template não encontrado')
+  return prisma.messageTemplate.delete({ where: { id } })
 }
 
 // ====== LISTAS DE DISPARO ======
 
 export async function getListasDisparo() {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   return prisma.listaDisparo.findMany({
-    where: { userId: auth.userId },
+    where: { userId: { in: scope } },
     include: {
       leads: true
     },
     orderBy: { createdAt: 'desc' }
+  })
+}
+
+export async function getListaDisparoDetails(listaId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  return prisma.listaDisparo.findFirst({
+    where: { id: listaId, userId: { in: scope } },
+    include: { leads: { orderBy: { createdAt: 'asc' } } }
   })
 }
 
@@ -1275,26 +1584,65 @@ export async function createListaDisparo(data: { nomeLista: string; descricao?: 
   })
 }
 
-export async function updateListaDisparo(id: string, data: { nomeLista?: string; descricao?: string; mensagemTemplate?: string; status?: ListaDisparoStatus; configEnvio?: string }) {
+export async function updateListaDisparo(id: string, data: { nomeLista?: string; descricao?: string; mensagemTemplate?: string; status?: any; configEnvio?: string }) {
   const auth = await requireAuth()
-  return prisma.listaDisparo.update({
-    where: { id, userId: auth.userId },
-    data
-  })
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.listaDisparo.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Lista não encontrada')
+  return prisma.listaDisparo.update({ where: { id }, data })
 }
 
 export async function deleteListaDisparo(id: string) {
   const auth = await requireAuth()
-  return prisma.listaDisparo.delete({
-    where: { id, userId: auth.userId }
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.listaDisparo.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Lista não encontrada')
+  return prisma.listaDisparo.delete({ where: { id } })
+}
+
+export async function reutilizarListaDisparo(listaId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const original = await prisma.listaDisparo.findFirst({
+    where: { id: listaId, userId: { in: scope } },
+    include: { leads: true }
   })
+  if (!original) throw new Error('Lista não encontrada')
+
+  const nova = await prisma.listaDisparo.create({
+    data: {
+      userId: auth.userId,
+      nomeLista: `${original.nomeLista} — Reenvio`,
+      descricao: original.descricao || null,
+      mensagemTemplate: original.mensagemTemplate,
+      status: 'ATIVA',
+      configEnvio: original.configEnvio || null,
+      totalLeads: original.leads.length
+    }
+  })
+
+  if (original.leads.length > 0) {
+    await prisma.leadListaDisparo.createMany({
+      data: original.leads.map(l => ({
+        listaId: nova.id,
+        dealId: l.dealId || null,
+        leadId: l.leadId || null,
+        nomeSnapshot: l.nomeSnapshot,
+        telefoneSnapshot: l.telefoneSnapshot,
+        mensagemFinal: l.mensagemFinal
+      }))
+    })
+  }
+
+  return nova
 }
 
 export async function addLeadsToListaDisparo(listaId: string, itemIds: string[], type: 'deal' | 'contact') {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   
   const list = await prisma.listaDisparo.findFirst({
-    where: { id: listaId, userId: auth.userId }
+    where: { id: listaId, userId: { in: scope } }
   })
   if (!list) throw new Error('Lista não encontrada')
 
@@ -1302,7 +1650,7 @@ export async function addLeadsToListaDisparo(listaId: string, itemIds: string[],
 
   if (type === 'deal') {
     const deals = await prisma.deal.findMany({
-      where: { id: { in: itemIds }, userId: auth.userId },
+      where: { id: { in: itemIds }, userId: { in: scope } },
       include: { contact: true }
     })
     leadsData = deals.map(d => ({
@@ -1312,7 +1660,7 @@ export async function addLeadsToListaDisparo(listaId: string, itemIds: string[],
     }))
   } else {
     const contacts = await prisma.contact.findMany({
-      where: { id: { in: itemIds }, userId: auth.userId }
+      where: { id: { in: itemIds }, userId: { in: scope } }
     })
     leadsData = contacts.map(c => ({
       nome: `${c.nome} ${c.sobrenome || ''}`.trim(),
@@ -1345,15 +1693,407 @@ export async function addLeadsToListaDisparo(listaId: string, itemIds: string[],
     }
   })
 
+  // Tag contacts and deals with "listado"
+  if (type === 'deal') {
+    const dealsToTag = await prisma.deal.findMany({ where: { id: { in: itemIds } } })
+    for (const d of dealsToTag) {
+      const existingTags: string[] = d.tags ? JSON.parse(d.tags) : []
+      if (!existingTags.includes('listado')) {
+        existingTags.push('listado')
+        await prisma.deal.update({ where: { id: d.id }, data: { tags: JSON.stringify(existingTags) } })
+      }
+    }
+  } else {
+    const contactsToTag = await prisma.contact.findMany({ where: { id: { in: itemIds } } })
+    for (const c of contactsToTag) {
+      const existingTags: string[] = c.tags ? JSON.parse(c.tags) : []
+      if (!existingTags.includes('listado')) {
+        existingTags.push('listado')
+        await prisma.contact.update({ where: { id: c.id }, data: { tags: JSON.stringify(existingTags) } })
+      }
+    }
+  }
+
   return created.length
+}
+
+// ====== AÇÕES CAIXA RÁPIDO (multi-step) ======
+
+function calcDataAgendamento(startTime: Date, etapas: { prazoValor: number; prazoUnidade: string }[], etapaIndex: number): Date {
+  let cumulativeMs = 0
+  for (let i = 0; i <= etapaIndex; i++) {
+    const e = etapas[i]
+    if (e.prazoUnidade === 'horas') cumulativeMs += e.prazoValor * 60 * 60 * 1000
+    else if (e.prazoUnidade === 'dias') cumulativeMs += e.prazoValor * 24 * 60 * 60 * 1000
+    else if (e.prazoUnidade === 'semanas') cumulativeMs += e.prazoValor * 7 * 24 * 60 * 60 * 1000
+  }
+  return new Date(startTime.getTime() + cumulativeMs)
+}
+
+async function buildLeadEntries(
+  scope: string[],
+  dealIds: string[],
+  contactIds: string[],
+  mensagem: string,
+  googleLeadIds: string[] = []
+) {
+  const entries: Array<{ nomeSnapshot: string; telefoneSnapshot: string; dealId?: string; leadId?: string; mensagemFinal: string }> = []
+
+  if (dealIds.length > 0) {
+    const deals = await prisma.deal.findMany({
+      where: { id: { in: dealIds }, userId: { in: scope } },
+      include: { contact: true }
+    })
+    for (const d of deals) {
+      const telefone = (d.telefone || d.contact?.telefone || '').replace(/\D/g, '')
+      if (!telefone) continue
+      const nome = d.contact?.nome ? `${d.contact.nome} ${d.contact.sobrenome || ''}`.trim() : d.titulo
+      entries.push({ nomeSnapshot: nome, telefoneSnapshot: telefone, dealId: d.id, mensagemFinal: mensagem })
+    }
+  }
+
+  if (contactIds.length > 0) {
+    const contacts = await prisma.contact.findMany({ where: { id: { in: contactIds }, userId: { in: scope } } })
+    for (const c of contacts) {
+      const telefone = c.telefone.replace(/\D/g, '')
+      if (!telefone) continue
+      entries.push({ nomeSnapshot: `${c.nome} ${c.sobrenome || ''}`.trim(), telefoneSnapshot: telefone, leadId: c.id, mensagemFinal: mensagem })
+    }
+  }
+
+  if (googleLeadIds.length > 0) {
+    const googleLeads = await prisma.googleLead.findMany({ where: { id: { in: googleLeadIds }, userId: { in: scope } } })
+    for (const gl of googleLeads) {
+      const telefone = (gl.telefone || '').replace(/\D/g, '')
+      if (!telefone) continue
+      entries.push({ nomeSnapshot: `${gl.nome || 'Google Lead'}`.trim(), telefoneSnapshot: telefone, mensagemFinal: mensagem })
+    }
+  }
+
+  return entries
+}
+
+export async function createAcaoCaixaRapido(data: {
+  nome: string
+  descricao?: string
+  cadenciaId: string
+  dealIds: string[]
+  contactIds: string[]
+  googleLeadIds?: string[]
+  configEnvio?: string
+  dataHoraInicio?: string
+}) {
+  const auth = await requireAuth()
+
+  const scope = await getTeamScope(auth.userId)
+  const cadencia = await prisma.cadencia.findFirst({
+    where: { id: data.cadenciaId, userId: { in: scope } },
+    include: { etapas: { orderBy: { ordem: 'asc' } } }
+  })
+  if (!cadencia) throw new Error('Cadência não encontrada')
+  if (cadencia.etapas.length < 1) throw new Error('Cadência sem etapas')
+
+  const startTime = data.dataHoraInicio ? new Date(data.dataHoraInicio) : new Date()
+  const totalLeads = data.dealIds.length + data.contactIds.length + (data.googleLeadIds?.length || 0)
+
+  const acao = await prisma.acaoCaixaRapido.create({
+    data: {
+      userId: auth.userId,
+      nome: data.nome,
+      descricao: data.descricao || null,
+      cadenciaId: data.cadenciaId,
+      totalEtapas: cadencia.etapas.length,
+      totalLeads,
+      configEnvio: data.configEnvio || null
+    }
+  })
+
+  for (let i = 0; i < cadencia.etapas.length; i++) {
+    const etapa = cadencia.etapas[i]
+    const dataAgendamento = calcDataAgendamento(startTime, cadencia.etapas, i)
+
+    const lista = await prisma.listaDisparo.create({
+      data: {
+        userId: auth.userId,
+        acaoId: acao.id,
+        etapaNumero: etapa.ordem,
+        dataAgendamento,
+        nomeLista: `${data.nome} — Etapa ${etapa.ordem}`,
+        mensagemTemplate: etapa.mensagem,
+        status: 'AGENDADA',
+        configEnvio: data.configEnvio || null
+      }
+    })
+
+    const entries = await buildLeadEntries(scope, data.dealIds, data.contactIds, etapa.mensagem, data.googleLeadIds)
+    if (entries.length > 0) {
+      await prisma.leadListaDisparo.createMany({
+        data: entries.map(e => ({ ...e, listaId: lista.id }))
+      })
+      await prisma.listaDisparo.update({ where: { id: lista.id }, data: { totalLeads: entries.length } })
+    }
+  }
+
+  // After the for loop, find and dispatch lists that should fire now
+  const listsToFireNow = await prisma.listaDisparo.findMany({
+    where: { acaoId: acao.id, status: 'AGENDADA', dataAgendamento: { lte: new Date() } },
+    select: { id: true, userId: true }
+  })
+  for (const l of listsToFireNow) {
+    try { await dispararListaInternal(l.id, l.userId) } catch (err: any) {
+      console.error('[createAcaoCaixaRapido] erro ao disparar lista imediata:', err?.message)
+    }
+  }
+
+  // Tag deals and contacts as "listado"
+  if (data.dealIds.length > 0) {
+    const dealsToTag = await prisma.deal.findMany({ where: { id: { in: data.dealIds } } })
+    for (const d of dealsToTag) {
+      let existingTags: string[] = []
+      try { existingTags = d.tags ? JSON.parse(d.tags) : [] } catch { existingTags = [] }
+      if (!existingTags.includes('listado')) {
+        existingTags.push('listado')
+        await prisma.deal.update({ where: { id: d.id }, data: { tags: JSON.stringify(existingTags) } })
+      }
+    }
+  }
+  if (data.contactIds.length > 0) {
+    const contactsToTag = await prisma.contact.findMany({ where: { id: { in: data.contactIds } } })
+    for (const c of contactsToTag) {
+      let existingTags: string[] = []
+      try { existingTags = c.tags ? JSON.parse(c.tags) : [] } catch { existingTags = [] }
+      if (!existingTags.includes('listado')) {
+        existingTags.push('listado')
+        await prisma.contact.update({ where: { id: c.id }, data: { tags: JSON.stringify(existingTags) } })
+      }
+    }
+  }
+
+  return acao
+}
+
+export async function getAcoesCaixaRapido() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const result = await prisma.acaoCaixaRapido.findMany({
+    where: { userId: { in: scope } },
+    include: {
+      listas: {
+        include: { leads: { select: { id: true, statusEnvio: true, nomeSnapshot: true, telefoneSnapshot: true }, orderBy: { createdAt: 'asc' } } },
+        orderBy: { etapaNumero: 'asc' }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // Fallback: dispatch any overdue scheduled lists in background (guards against cron not running)
+  after(async () => {
+    const now = new Date()
+    const overdue = await prisma.listaDisparo.findMany({
+      where: { userId: { in: scope }, status: 'AGENDADA', dataAgendamento: { lte: now } },
+      select: { id: true, userId: true }
+    })
+    for (const lista of overdue) {
+      await dispararListaInternal(lista.id, lista.userId).catch(() => {})
+    }
+  })
+
+  return result
+}
+
+export async function cancelarListaDaAcao(listaId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const lista = await prisma.listaDisparo.findFirst({
+    where: { id: listaId, userId: { in: scope }, acaoId: { not: null } }
+  })
+  if (!lista) throw new Error('Lista não encontrada')
+  if (lista.status === 'EM_ANDAMENTO') throw new Error('Lista em andamento não pode ser cancelada')
+
+  await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'CANCELADA' } })
+
+  const acao = await prisma.acaoCaixaRapido.findFirst({ where: { id: lista.acaoId! } })
+  if (acao) {
+    const activeLists = await prisma.listaDisparo.count({
+      where: { acaoId: acao.id, status: { notIn: ['CANCELADA', 'CONCLUIDA'] } }
+    })
+    if (activeLists === 0) {
+      await prisma.acaoCaixaRapido.update({ where: { id: acao.id }, data: { status: 'CANCELADA' } })
+    }
+  }
+
+  return { success: true }
+}
+
+export async function cancelarAcaoCaixaRapido(acaoId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const acao = await prisma.acaoCaixaRapido.findFirst({ where: { id: acaoId, userId: { in: scope } } })
+  if (!acao) throw new Error('Ação não encontrada')
+
+  await prisma.listaDisparo.updateMany({
+    where: { acaoId, status: { in: ['AGENDADA', 'ATIVA', 'PAUSADA'] } },
+    data: { status: 'CANCELADA' }
+  })
+  await prisma.acaoCaixaRapido.update({ where: { id: acaoId }, data: { status: 'CANCELADA' } })
+  return { success: true }
+}
+
+export async function excluirAcaoCaixaRapido(acaoId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const acao = await prisma.acaoCaixaRapido.findFirst({
+    where: { id: acaoId, userId: { in: scope } },
+    include: { listas: { select: { id: true } } }
+  })
+  if (!acao) throw new Error('Ação não encontrada')
+  if (acao.status === 'ATIVA') throw new Error('Cancele a ação antes de excluir.')
+
+  const listaIds = acao.listas.map((l: any) => l.id)
+  if (listaIds.length > 0) {
+    await prisma.leadListaDisparo.deleteMany({ where: { listaId: { in: listaIds } } })
+    await prisma.listaDisparo.deleteMany({ where: { id: { in: listaIds } } })
+  }
+  await prisma.acaoCaixaRapido.delete({ where: { id: acaoId } })
+  return { success: true }
+}
+
+export async function removeLeadFromLista(leadListaId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const item = await prisma.leadListaDisparo.findFirst({
+    where: { id: leadListaId },
+    include: { lista: true }
+  })
+  if (!item || !scope.includes(item.lista.userId)) throw new Error('Lead não encontrado')
+  if (item.statusEnvio !== 'PENDENTE') throw new Error('Lead já processado')
+
+  await prisma.leadListaDisparo.delete({ where: { id: leadListaId } })
+  await prisma.listaDisparo.update({
+    where: { id: item.listaId },
+    data: { totalLeads: { decrement: 1 } }
+  })
+  return { success: true }
+}
+
+export async function addLeadsToListaDaAcao(listaId: string, dealIds: string[], contactIds: string[]) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const lista = await prisma.listaDisparo.findFirst({
+    where: { id: listaId, userId: { in: scope }, acaoId: { not: null } }
+  })
+  if (!lista) throw new Error('Lista não encontrada')
+  if (!['AGENDADA', 'ATIVA'].includes(lista.status)) throw new Error('Lista não está em estado editável')
+
+  const entries = await buildLeadEntries(scope, dealIds, contactIds, lista.mensagemTemplate)
+  if (entries.length === 0) return 0
+
+  const existingPhones = new Set(
+    (await prisma.leadListaDisparo.findMany({ where: { listaId }, select: { telefoneSnapshot: true } }))
+      .map(l => l.telefoneSnapshot)
+  )
+  const novos = entries.filter(e => !existingPhones.has(e.telefoneSnapshot))
+  if (novos.length === 0) return 0
+
+  await prisma.leadListaDisparo.createMany({ data: novos.map(e => ({ ...e, listaId })) })
+  await prisma.listaDisparo.update({ where: { id: listaId }, data: { totalLeads: { increment: novos.length } } })
+  return novos.length
+}
+
+// Internal dispatch used by cron and direct calls
+export async function dispararListaInternal(listaId: string, userId: string) {
+  const list = await prisma.listaDisparo.findFirst({
+    where: { id: listaId, userId },
+    include: { leads: { where: { statusEnvio: 'PENDENTE' } } }
+  })
+  if (!list) throw new Error('Lista não encontrada')
+  if (list.leads.length === 0) {
+    await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'CONCLUIDA' } })
+    return { success: true, skipped: true }
+  }
+
+  const isScheduled = !!list.dataAgendamento
+
+  const profile = await prisma.profile.findUnique({ where: { userId } })
+  const configObj = list.configEnvio ? (() => { try { return JSON.parse(list.configEnvio) } catch { return {} } })() : {}
+  const webhookUrl = configObj.webhookUrl || profile?.disparoWebhookUrl || 'https://auto.devnetlife.com/webhook/disparo-docelilium'
+  const intervaloSegundos: number = configObj.intervaloSegundos ?? 30
+
+  await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'EM_ANDAMENTO' } })
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+
+  try {
+    const payload = {
+      lista_id: list.id,
+      nome_lista: list.nomeLista,
+      mensagem_template: list.mensagemTemplate,
+      intervalo_segundos: intervaloSegundos,
+      leads: list.leads.map(l => ({ nome: l.nomeSnapshot, telefone: l.telefoneSnapshot, mensagem: l.mensagemFinal })),
+      callback_url: 'https://petalas.docelilium.com.br/api/webhook/doce-lilium'
+    }
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
+    if (!response.ok) {
+      const body = await response.text().catch(() => '')
+      throw new Error(`Webhook retornou HTTP ${response.status}${body ? ': ' + body.slice(0, 300) : ''}`)
+    }
+  } catch (error: any) {
+    clearTimeout(timeout)
+    const novosErros = (list.erros ?? 0) + 1
+    // For scheduled lists: retry up to 3 times before giving up
+    if (isScheduled && novosErros < 3) {
+      await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'AGENDADA', erros: novosErros } }).catch(() => {})
+    } else {
+      await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'ATIVA', erros: novosErros } }).catch(() => {})
+    }
+    throw new Error(error.name === 'AbortError' ? 'Timeout: webhook não respondeu em 15s' : (error.message ?? String(error)))
+  }
+
+  return { success: true }
+}
+
+// ====== WEBHOOKS CADASTRADOS ======
+
+export async function getWebhooks() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  return prisma.webhook.findMany({
+    where: { userId: { in: scope } },
+    orderBy: { createdAt: 'desc' }
+  })
+}
+
+export async function createWebhook(data: { nome: string; url: string }) {
+  const auth = await requireAuth()
+  if (!data.nome?.trim()) throw new Error('Nome obrigatório')
+  if (!data.url?.trim()) throw new Error('URL obrigatória')
+  return prisma.webhook.create({
+    data: { userId: auth.userId, nome: data.nome.trim(), url: data.url.trim() }
+  })
+}
+
+export async function deleteWebhook(id: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.webhook.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Webhook não encontrado')
+  return prisma.webhook.delete({ where: { id } })
 }
 
 // ====== CADENCIAS ======
 
 export async function getCadencias() {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   return prisma.cadencia.findMany({
-    where: { userId: auth.userId },
+    where: { userId: { in: scope } },
     include: {
       etapas: true,
       leads: true
@@ -1406,8 +2146,11 @@ export async function updateCadence(id: string, data: {
   etapas?: Array<{ id?: string; ordem: number; prazoValor: number; prazoUnidade: string; mensagem: string; templateId?: string; pararAoResponder?: boolean }> 
 }) {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.cadencia.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Cadência não encontrada')
   
-  const updateData: Prisma.CadenciaUpdateInput = {
+  const updateData: any = {
     ...(data.nome !== undefined && { nome: data.nome }),
     ...(data.tipo !== undefined && { tipo: data.tipo }),
     ...(data.webhookUrl !== undefined && { webhookUrl: data.webhookUrl || null }),
@@ -1433,7 +2176,7 @@ export async function updateCadence(id: string, data: {
   }
 
   return prisma.cadencia.update({
-    where: { id, userId: auth.userId },
+    where: { id },
     data: updateData,
     include: {
       etapas: true
@@ -1443,16 +2186,18 @@ export async function updateCadence(id: string, data: {
 
 export async function deleteCadence(id: string) {
   const auth = await requireAuth()
-  return prisma.cadencia.delete({
-    where: { id, userId: auth.userId }
-  })
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.cadencia.findFirst({ where: { id, userId: { in: scope } } })
+  if (!existing) throw new Error('Cadência não encontrada')
+  return prisma.cadencia.delete({ where: { id } })
 }
 
 export async function addLeadsToCadence(cadenceId: string, itemIds: string[], type: 'deal' | 'contact') {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   
   const cadence = await prisma.cadencia.findFirst({
-    where: { id: cadenceId, userId: auth.userId },
+    where: { id: cadenceId, userId: { in: scope } },
     include: { etapas: true }
   })
   if (!cadence) throw new Error('Cadência não encontrada')
@@ -1475,73 +2220,108 @@ export async function addLeadsToCadence(cadenceId: string, itemIds: string[], ty
 
   const cadenceTag = `em-cadencia-${cadence.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`
 
-  // Batch dedup check
-  const existingIds = new Set<string>()
-  if (type === 'deal') {
-    const rows = await prisma.cadenciaLead.findMany({ where: { cadenciaId: cadenceId, status: 'ATIVO', dealId: { in: itemIds } }, select: { dealId: true } })
-    rows.forEach(r => { if (r.dealId) existingIds.add(r.dealId) })
-  } else {
-    const rows = await prisma.cadenciaLead.findMany({ where: { cadenciaId: cadenceId, status: 'ATIVO', leadId: { in: itemIds } }, select: { leadId: true } })
-    rows.forEach(r => { if (r.leadId) existingIds.add(r.leadId) })
-  }
-  const newIds = itemIds.filter(id => !existingIds.has(id))
-  if (newIds.length === 0) return 0
+  const created = await Promise.all(
+    itemIds.map(async id => {
+      const existing = await prisma.cadenciaLead.findFirst({
+        where: {
+          cadenciaId: cadenceId,
+          dealId: type === 'deal' ? id : null,
+          leadId: type === 'contact' ? id : null,
+          status: 'ATIVO'
+        }
+      })
+      if (existing) return null
 
-  // Batch create
-  await prisma.cadenciaLead.createMany({
-    data: newIds.map(id => type === 'deal'
-      ? { cadenciaId: cadenceId, dealId: id, etapaAtual: 1, status: 'ATIVO', proximoEnvio }
-      : { cadenciaId: cadenceId, leadId: id, etapaAtual: 1, status: 'ATIVO', proximoEnvio }
-    ),
-  })
+      const record = await prisma.cadenciaLead.create({
+        data: {
+          cadenciaId: cadenceId,
+          dealId: type === 'deal' ? id : null,
+          leadId: type === 'contact' ? id : null,
+          etapaAtual: 1,
+          status: 'ATIVO',
+          proximoEnvio
+        }
+      })
 
-  // Batch tag deals
-  if (type === 'deal') {
-    const deals = await prisma.deal.findMany({ where: { id: { in: newIds } }, select: { id: true, tags: true } })
-    await Promise.all(
-      deals
-        .filter(d => { const t: string[] = safeJsonParse(d.tags ?? '', []); return !t.includes(cadenceTag) })
-        .map(d => { const t: string[] = safeJsonParse(d.tags ?? '', []); t.push(cadenceTag); return prisma.deal.update({ where: { id: d.id }, data: { tags: JSON.stringify(t) } }) })
-    )
-  }
+      // Add auto-tag to deal
+      if (type === 'deal') {
+        const deal = await prisma.deal.findUnique({ where: { id } })
+        if (deal) {
+          let tags: string[] = []
+          try { tags = deal.tags ? JSON.parse(deal.tags as string) : [] } catch { tags = [] }
+          if (!tags.includes(cadenceTag)) {
+            tags.push(cadenceTag)
+            await prisma.deal.update({ where: { id }, data: { tags: JSON.stringify(tags) } })
+          }
+        }
+      }
 
-  return newIds.length
+      return record
+    })
+  )
+
+  const filtered = created.filter(c => c !== null)
+  return filtered.length
 }
 
 export async function getCadenceDashboard(cadenceId: string) {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   
   const cadence = await prisma.cadencia.findFirst({
-    where: { id: cadenceId, userId: auth.userId },
-    include: { etapas: true, leads: { include: { deal: { include: { contact: true } } } } }
+    where: { id: cadenceId, userId: { in: scope } },
+    include: { etapas: true, leads: true }
   })
   if (!cadence) throw new Error('Cadência não encontrada')
 
-  // leadId stores Contact IDs (legacy convention) — batch-fetch in one query
-  const leadContactIds = cadence.leads.filter(l => l.leadId).map(l => l.leadId!)
-  const contactMap = leadContactIds.length > 0
-    ? new Map((await prisma.contact.findMany({ where: { id: { in: leadContactIds } } })).map(c => [c.id, c]))
-    : new Map<string, Contact>()
-
   const activeLeads = cadence.leads.filter(l => l.status === 'ATIVO')
+  
   const stageCounts: Record<number, number> = {}
-  cadence.etapas.forEach(e => { stageCounts[e.ordem] = 0 })
-  activeLeads.forEach(l => { stageCounts[l.etapaAtual] = (stageCounts[l.etapaAtual] || 0) + 1 })
+  cadence.etapas.forEach(e => {
+    stageCounts[e.ordem] = 0
+  })
+  activeLeads.forEach(l => {
+    stageCounts[l.etapaAtual] = (stageCounts[l.etapaAtual] || 0) + 1
+  })
 
   const totalCompleted = cadence.leads.filter(l => l.status === 'CONCLUIDA').length
   const totalStopped = cadence.leads.filter(l => l.status === 'RESPONDIDA').length
 
-  const leadsList = cadence.leads.map(l => {
-    let nome = 'Lead'; let telefone = ''
-    if (l.deal) {
-      nome = l.deal.contact?.nome ? `${l.deal.contact.nome} ${l.deal.contact.sobrenome || ''}`.trim() : l.deal.titulo
-      telefone = l.deal.telefone || l.deal.contact?.telefone || ''
-    } else if (l.leadId) {
-      const c = contactMap.get(l.leadId)
-      if (c) { nome = `${c.nome} ${c.sobrenome || ''}`.trim(); telefone = c.telefone }
-    }
-    return { id: l.id, nome, telefone, etapaAtual: l.etapaAtual, status: l.status, proximoEnvio: l.proximoEnvio ? l.proximoEnvio.toISOString() : null, updatedAt: l.updatedAt.toISOString() }
-  })
+  const leadsList = await Promise.all(
+    cadence.leads.map(async l => {
+      let nome = 'Lead'
+      let telefone = ''
+
+      if (l.dealId) {
+        const d = await prisma.deal.findUnique({
+          where: { id: l.dealId },
+          include: { contact: true }
+        })
+        if (d) {
+          nome = d.contact?.nome ? `${d.contact.nome} ${d.contact.sobrenome || ''}`.trim() : d.titulo
+          telefone = d.telefone || d.contact?.telefone || ''
+        }
+      } else if (l.leadId) {
+        const c = await prisma.contact.findUnique({
+          where: { id: l.leadId }
+        })
+        if (c) {
+          nome = `${c.nome} ${c.sobrenome || ''}`.trim()
+          telefone = c.telefone
+        }
+      }
+
+      return {
+        id: l.id,
+        nome,
+        telefone,
+        etapaAtual: l.etapaAtual,
+        status: l.status,
+        proximoEnvio: l.proximoEnvio ? l.proximoEnvio.toISOString() : null,
+        updatedAt: l.updatedAt.toISOString()
+      }
+    })
+  )
 
   return {
     totalAtivos: activeLeads.length,
@@ -1554,11 +2334,12 @@ export async function getCadenceDashboard(cadenceId: string) {
 
 export async function updateCadenceLeadStatus(cadenceLeadId: string, status: string) {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   const lead = await prisma.cadenciaLead.findFirst({
     where: { id: cadenceLeadId },
     include: { cadencia: true }
   })
-  if (!lead || lead.cadencia.userId !== auth.userId) {
+  if (!lead || !scope.includes(lead.cadencia.userId)) {
     throw new Error('Lead de cadência não encontrado ou permissão negada')
   }
 
@@ -1586,11 +2367,12 @@ export async function updateCadenceLeadStatus(cadenceLeadId: string, status: str
 
 export async function removeLeadFromCadence(cadenceLeadId: string) {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   const lead = await prisma.cadenciaLead.findFirst({
     where: { id: cadenceLeadId },
     include: { cadencia: true }
   })
-  if (!lead || lead.cadencia.userId !== auth.userId) {
+  if (!lead || !scope.includes(lead.cadencia.userId)) {
     throw new Error('Lead de cadência não encontrado ou permissão negada')
   }
 
@@ -1637,6 +2419,7 @@ export type SegmentoRegra =
   | { tipo: 'prioridade'; prioridade: string }
   | { tipo: 'origem'; origem: string }
   | { tipo: 'sem_responsavel' }
+  | { tipo: 'aniversariantes' }
 
 export type SegmentoItem = {
   id: string
@@ -1650,11 +2433,12 @@ export type SegmentoItem = {
 
 export async function getSegmentos(): Promise<SegmentoItem[]> {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   const rows = await prisma.segmento.findMany({
     where: {
       OR: [
         { userId: null },
-        { userId: auth.userId }
+        { userId: { in: scope } }
       ]
     },
     orderBy: [
@@ -1701,10 +2485,12 @@ export async function createSegmento(data: {
 
 export async function updateSegmento(id: string, data: Partial<{ nome: string; descricao: string; regras: SegmentoRegra[]; pipelineId: string }>): Promise<SegmentoItem> {
   const auth = await requireAuth()
-  const existing = await prisma.segmento.findFirst({
-    where: { id, userId: auth.userId }
-  })
-  if (!existing) throw new Error('Segmento não encontrado ou sem permissão para editar')
+  const scope = await getTeamScope(auth.userId)
+  const existing = await prisma.segmento.findFirst({ where: { id } })
+  if (!existing) throw new Error('Segmento não encontrado')
+  if (existing.tipo !== 'template' && !scope.includes(existing.userId!)) {
+    throw new Error('Sem permissão para editar este segmento')
+  }
   const updated = await prisma.segmento.update({
     where: { id },
     data: {
@@ -1726,8 +2512,9 @@ export async function updateSegmento(id: string, data: Partial<{ nome: string; d
 
 export async function deleteSegmento(id: string): Promise<void> {
   const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
   const existing = await prisma.segmento.findFirst({
-    where: { id, userId: auth.userId }
+    where: { id, userId: { in: scope } }
   })
   if (!existing) throw new Error('Segmento não encontrado ou sem permissão para remover')
   await prisma.segmento.delete({ where: { id } })
@@ -1738,35 +2525,101 @@ async function runSegmentoRegras(
   regras: SegmentoRegra[],
   scope: string[]
 ): Promise<{ dealIds: string[]; contactIds: string[] }> {
-  const results = await Promise.all(regras.map(async (regra) => {
-    const sel = { id: true, contactId: true }
-    let deals: { id: string; contactId: string }[] = []
+  let dealIds: string[] = []
+  let contactIds: string[] = []
 
+  for (const regra of regras) {
     if (regra.tipo === 'sem_resposta') {
-      const cutoff = new Date(); cutoff.setHours(cutoff.getHours() - regra.horasMin)
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } }, select: sel })
+      const cutoff = new Date()
+      cutoff.setHours(cutoff.getHours() - regra.horasMin)
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'negocios_perdidos') {
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'LOST', ...(regra.motivoPerda ? { motivoPerda: regra.motivoPerda } : {}) }, select: sel })
+      const deals = await prisma.deal.findMany({
+        where: {
+          userId: { in: scope },
+          status: 'LOST',
+          ...(regra.motivoPerda ? { motivoPerda: regra.motivoPerda } : {})
+        },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'etapa_especifica') {
-      const w: Prisma.DealWhereInput = { userId: { in: scope }, status: 'OPEN', stageId: regra.stageId }
-      if (regra.horasMin) { const c = new Date(); c.setHours(c.getHours() - regra.horasMin); w.updatedAt = { lte: c } }
-      deals = await prisma.deal.findMany({ where: w, select: sel })
+      const whereClause: any = { userId: { in: scope }, status: 'OPEN', stageId: regra.stageId }
+      if (regra.horasMin) {
+        const cutoff = new Date()
+        cutoff.setHours(cutoff.getHours() - regra.horasMin)
+        whereClause.updatedAt = { lte: cutoff }
+      }
+      const deals = await prisma.deal.findMany({ where: whereClause, select: { id: true, contactId: true } })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'leads_frios') {
-      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - regra.diasSemAtividade)
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } }, select: sel })
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - regra.diasSemAtividade)
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN', updatedAt: { lte: cutoff } },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'prioridade') {
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', prioridade: regra.prioridade as DealPriority }, select: sel })
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN', prioridade: regra.prioridade as DealPriority },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'origem') {
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', origem: regra.origem }, select: sel })
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN', origem: regra.origem },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
     } else if (regra.tipo === 'sem_responsavel') {
-      deals = await prisma.deal.findMany({ where: { userId: { in: scope }, status: 'OPEN', ownerUserId: null }, select: sel })
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN', ownerUserId: null },
+        select: { id: true, contactId: true }
+      })
+      dealIds.push(...deals.map(d => d.id))
+      contactIds.push(...deals.map(d => d.contactId))
+    } else if (regra.tipo === 'aniversariantes') {
+      const deals = await prisma.deal.findMany({
+        where: { userId: { in: scope }, status: 'OPEN' },
+        include: { contact: true }
+      })
+      const today = new Date()
+      const todayMonth = today.getMonth() + 1 // 1-12
+      const todayDay = today.getDate() // 1-31
+
+      for (const d of deals) {
+        if (!d.contact) continue
+        const customRaw = d.contact.camposCustomizados ? safeJsonParse<any>(d.contact.camposCustomizados, {}) : {}
+        const birthDateStr = customRaw._dataNascimento // "YYYY-MM-DD"
+        if (birthDateStr && typeof birthDateStr === 'string') {
+          const parts = birthDateStr.split('-')
+          if (parts.length === 3) {
+            const birthMonth = parseInt(parts[1], 10)
+            const birthDay = parseInt(parts[2], 10)
+            if (birthMonth === todayMonth && birthDay === todayDay) {
+              dealIds.push(d.id)
+              contactIds.push(d.contactId)
+            }
+          }
+        }
+      }
     }
-    return { dealIds: deals.map(d => d.id), contactIds: deals.map(d => d.contactId) }
-  }))
+  }
 
   return {
-    dealIds: Array.from(new Set(results.flatMap(r => r.dealIds))),
-    contactIds: Array.from(new Set(results.flatMap(r => r.contactIds))),
+    dealIds: Array.from(new Set(dealIds)),
+    contactIds: Array.from(new Set(contactIds))
   }
 }
 
@@ -1881,3 +2734,55 @@ export async function getSegmentoDealsPreview(segmentoId: string): Promise<DealP
   }))
 }
 
+export async function dispararLista(listaId: string) {
+  const auth = await requireAuth()
+  return dispararListaInternal(listaId, auth.userId)
+}
+
+export async function testWebhook(url: string) {
+  await requireAuth()
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        test: true,
+        event: 'webhook_test',
+        timestamp: new Date().toISOString(),
+        details: 'Disparo de teste simulado pela interface'
+      })
+    })
+    return { success: res.ok, status: res.status }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function tagDealsAsListado(dealIds: string[]): Promise<void> {
+  const auth = await requireAuth()
+  const deals = await prisma.deal.findMany({ where: { id: { in: dealIds }, userId: auth.userId } })
+  for (const d of deals) {
+    const existingTags: string[] = d.tags ? JSON.parse(d.tags) : []
+    if (!existingTags.includes('listado')) {
+      existingTags.push('listado')
+      await prisma.deal.update({ where: { id: d.id }, data: { tags: JSON.stringify(existingTags) } })
+    }
+  }
+}
+
+export async function updateUser(userId: string, data: Partial<{ nome: string; sobrenome: string; email: string }>): Promise<void> {
+  const auth = await requireAuth();
+  const currentUser = await prisma.user.findUnique({ where: { id: auth.userId }, include: { roles: true } });
+  const isAdmin = currentUser?.roles.some((r: any) => r.role === 'ADMIN');
+  if (!isAdmin && auth.userId !== userId) throw new Error('Acesso Negado');
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.nome && { nome: data.nome }),
+      ...(data.sobrenome !== undefined && { sobrenome: data.sobrenome }),
+      ...(data.email && { email: data.email })
+    }
+  });
+}

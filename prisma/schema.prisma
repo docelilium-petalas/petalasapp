@@ -42,9 +42,16 @@ enum StatusEnvio {
 }
 
 enum ListaDisparoStatus {
+  AGENDADA
   ATIVA
   EM_ANDAMENTO
   PAUSADA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum AcaoStatus {
+  ATIVA
   CONCLUIDA
   CANCELADA
 }
@@ -59,6 +66,12 @@ enum ProcessamentoStatus {
   PROCESSANDO
   CONCLUIDO
   ERRO
+}
+
+enum GoogleLeadStatus {
+  NOVO
+  IMPORTADO
+  DESCARTADO
 }
 
 // MODELS
@@ -87,12 +100,16 @@ model User {
   buscaCnpj    HistoricoBuscasCnpj[]
   listas       ListaDisparo[]     @relation("UserListas")
   ownedListas  ListaDisparo[]     @relation("OwnerListas")
+  acoes        AcaoCaixaRapido[]
+  webhooks     Webhook[]
   templates    MessageTemplate[]
   cadencias    Cadencia[]
   segmentos    Segmento[]
   tracking     TrackingEvent[]
   integrations Integration[]
   aiConfigs    AiAgentConfig[]
+  googleLeads  GoogleLead[]
+  niches       Niche[]
 }
 
 model Profile {
@@ -380,12 +397,46 @@ model HistoricoBuscasCnpj {
   createdAt          DateTime @default(now())
 }
 
+model AcaoCaixaRapido {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome        String
+  descricao   String?
+  cadenciaId  String?     @map("cadencia_id")
+  status      AcaoStatus  @default(ATIVA)
+  totalEtapas Int         @default(0)
+  totalLeads  Int         @default(0)
+  configEnvio String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  listas      ListaDisparo[]
+
+  @@map("acoes_caixa_rapido")
+}
+
+model Webhook {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome      String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("webhooks")
+}
+
 model ListaDisparo {
   id               String             @id @default(uuid())
   userId           String
   user             User               @relation("UserListas", fields: [userId], references: [id], onDelete: Cascade)
   ownerUserId      String?
   ownerUser        User?              @relation("OwnerListas", fields: [ownerUserId], references: [id])
+  acaoId           String?            @map("acao_id")
+  acao             AcaoCaixaRapido?   @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+  etapaNumero      Int?               @map("etapa_numero")
+  dataAgendamento  DateTime?          @map("data_agendamento")
   nomeLista        String
   descricao        String?
   mensagemTemplate String
@@ -393,7 +444,7 @@ model ListaDisparo {
   totalLeads       Int                @default(0)
   enviados         Int                @default(0)
   erros            Int                @default(0)
-  configEnvio      String?            // String JSON (delay, comercial, etc.)
+  configEnvio      String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   leads            LeadListaDisparo[]
@@ -626,4 +677,72 @@ model UserConfig {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, key])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  chave     String   @unique
+  valor     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model GoogleLead {
+  id              String             @id @default(dbgenerated("gen_random_uuid()"))
+  userId          String
+  nome            String?
+  telefone        String?
+  endereco        String?
+  cidade          String?
+  uf              String?
+  nicho           String?
+  site            String?
+  dataBusca       DateTime           @default(now())
+  status          GoogleLeadStatus   @default(NOVO)
+  notas           String?
+  importedToCrm   Boolean            @default(false)
+  importedAt      DateTime?
+  crmContactId    String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([cidade])
+  @@index([uf])
+  @@index([nicho])
+
+  @@map("google_leads")
+}
+
+model Niche {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?
+  categoria   String   @default("PROSPECCAO")
+  status      String   @default("ativo")
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([nome, userId])
+  @@index([userId])
+
+  @@map("niches")
+}
+
+model N8nChatHistory {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @map("session_id")
+  message   Json     @map("message")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("n8n_chat_histories")
 }
