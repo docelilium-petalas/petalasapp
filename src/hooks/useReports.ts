@@ -389,16 +389,16 @@ export function useReportTimeline(
       }
 
       filtered.forEach(d => {
-        const dateKey = (d.createdAt as string).split('T')[0]
+        const dateKey = (typeof d.createdAt === 'string' ? d.createdAt : d.createdAt.toISOString()).split('T')[0]
         if (!dailyMap[dateKey]) dailyMap[dateKey] = { criados: 0, ganhos: 0, perdidos: 0 }
         dailyMap[dateKey].criados++
 
         if (d.status === 'WON' && d.fechadoEm) {
-          const closeKey = (d.fechadoEm as string).split('T')[0]
+          const closeKey = (typeof d.fechadoEm === 'string' ? d.fechadoEm : d.fechadoEm.toISOString()).split('T')[0]
           if (!dailyMap[closeKey]) dailyMap[closeKey] = { criados: 0, ganhos: 0, perdidos: 0 }
           dailyMap[closeKey].ganhos++
         } else if (d.status === 'LOST' && d.fechadoEm) {
-          const closeKey = (d.fechadoEm as string).split('T')[0]
+          const closeKey = (typeof d.fechadoEm === 'string' ? d.fechadoEm : d.fechadoEm.toISOString()).split('T')[0]
           if (!dailyMap[closeKey]) dailyMap[closeKey] = { criados: 0, ganhos: 0, perdidos: 0 }
           dailyMap[closeKey].perdidos++
         }

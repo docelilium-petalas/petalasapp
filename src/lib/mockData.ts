@@ -211,6 +211,7 @@ export interface MockDeal {
   qualificationStatus?: string // qualificado, desqualificado, em_andamento
   qualificationData?: string // JSON string
   disqualificationReason?: string
+  tags?: string
   createdAt: string
   updatedAt: string
 }
@@ -232,7 +233,7 @@ export interface MockActivity {
   tipo: string // ligacao, reuniao, tarefa, nota, WhatsApp, email
   titulo: string
   descricao?: string
-  dueAt?: string
+  dueAt: string
   status: ActivityStatus
   doneAt?: string
   createdAt: string
@@ -352,14 +353,14 @@ export interface MockLeadReactivationHistory {
 
 export const INITIAL_USER: MockUser = {
   id: 'usr-admin-123',
-  email: 'admin@caixarapido.com.br',
-  nome: 'Diretor',
-  sobrenome: 'Comercial',
+  email: 'gabriel@caixarapido.com.br',
+  nome: 'Gabriel',
+  sobrenome: 'Diretor',
   telefone: '5562999999999',
   role: 'ADMIN',
   lead_search_webhook_url: 'https://auto.devnetlife.com/webhook/buscar-google',
   cnpj_search_webhook_url: 'https://auto.devnetlife.com/webhook/pesquisacnpj',
-  disparo_webhook_url: 'https://auto.devnetlife.com/webhook/disparar-whatsapp',
+  disparo_webhook_url: 'https://auto.devnetlife.com/webhook/disparo-ocr',
   disparo_status_webhook_url: 'https://auto.devnetlife.com/webhook/status-disparo',
   disparo_cancelar_webhook_url: 'https://auto.devnetlife.com/webhook/cancelar-disparo',
   permissions: ['dashboard', 'pipeline', 'contacts', 'activities', 'lead-search-google', 'lead-search-cnpj', 'listas-disparo', 'utm-analytics', 'ai-insights', 'relatorios'],
@@ -504,7 +505,7 @@ export const INITIAL_PIPELINES: MockPipeline[] = [
 ]
 
 export const INITIAL_STAGES: MockStage[] = [
-  { id: 'stage-1', pipelineId: 'pipe-principal', nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 4, ordem: 1 },
+  { id: 'stage-1', pipelineId: 'pipe-principal', nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 72, ordem: 1 },
   { id: 'stage-2', pipelineId: 'pipe-principal', nome: 'Qualificação', cor: '#39FF88', probabilidade: 25, slaHours: 12, ordem: 2 },
   { id: 'stage-3', pipelineId: 'pipe-principal', nome: 'Proposta', cor: '#FFB300', probabilidade: 50, slaHours: 24, ordem: 3 },
   { id: 'stage-4', pipelineId: 'pipe-principal', nome: 'Negociação', cor: '#FF5722', probabilidade: 75, slaHours: 48, ordem: 4 },

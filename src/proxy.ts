@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
 async function verifyAuthToken(token: string): Promise<boolean> {
-  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
+  const secret = process.env.JWT_SECRET
   if (!secret) return false
   try {
     await jwtVerify(token, new TextEncoder().encode(secret))
@@ -20,6 +20,8 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     pathname.startsWith('/auth') ||
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/webhook') ||
+    pathname.startsWith('/api/cron') ||
     pathname.startsWith('/_next') ||
     pathname.includes('.')
 

@@ -1,9 +1,6 @@
 [variables]
 NIXPACKS_NODE_VERSION = "22"
 
-[phases.setup]
-addedPkgs = ["openssl"]
-
 [phases.install]
 cmds = ["npm ci --include=dev"]
 
@@ -11,9 +8,8 @@ cmds = ["npm ci --include=dev"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "npx prisma migrate resolve --applied '20260526134424_add_cadencias_and_templates' 2>/dev/null || true && npx prisma migrate deploy && node_modules/.bin/next start -H 0.0.0.0"
+cmd = "npm run start"
 
 [environment]
 NODE_ENV = "production"
 PORT = "3000"
-NEXT_TELEMETRY_DISABLED = "1"

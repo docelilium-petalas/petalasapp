@@ -7,10 +7,10 @@ export interface JwtPayload {
 }
 
 function getJwtSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
+  const secret = process.env.JWT_SECRET
   if (!secret) {
     throw new Error(
-      'JWT_SECRET or NEXTAUTH_SECRET environment variable is required but not set. ' +
+      'JWT_SECRET environment variable is required but not set. ' +
       'Add JWT_SECRET=<random-64-char-string> to your .env file.'
     )
   }

@@ -12,10 +12,9 @@ export const DEFAULT_PRODUCTS = [
 
 export const DEFAULT_ORIGINS = [
   'Meta Ads',
-  'Google Ads',
-  'WhatsApp',
+  'Google',
+  'WhatsApp Orgânico',
   'Indicação',
-  'Orgânico',
 ]
 
 export const DEFAULT_TAGS = [

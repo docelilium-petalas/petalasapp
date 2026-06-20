@@ -11,14 +11,7 @@ export const dynamic = 'force-dynamic'
 const loginAttempts = new Map<string, { count: number; resetAt: number }>()
 
 function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = loginAttempts.get(ip)
-  if (!entry || now > entry.resetAt) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
-    return true
-  }
-  entry.count += 1
-  return entry.count <= 5
+  return true // Rate limit disabled by user request
 }
 
 export async function POST(request: Request) {
@@ -38,7 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
     }
 
-    const { email, password } = body as Record<string, unknown>
+    const { email, password, keepConnected } = body as Record<string, unknown>
 
     if (typeof email !== 'string' || !email.trim()) {
       return NextResponse.json({ error: 'Email é obrigatório.' }, { status: 400 })
@@ -86,12 +79,14 @@ export async function POST(request: Request) {
 
     const token = await signToken({ userId: user.id, email: user.email, role: user.role })
 
+    const maxAge = keepConnected ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 days or 1 day
+
     const response = NextResponse.json({ success: true, user })
     response.cookies.set('ocr_auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge,
       path: '/',
     })
 

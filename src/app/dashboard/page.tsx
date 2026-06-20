@@ -32,7 +32,7 @@ const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
   NAO_RESPONDEU: { label: 'NÃO RESPONDEU', color: 'text-neutral-400' },
 }
 
-type DashboardDeal = { id: string; titulo: string; status: string; valorEstimado: number; prioridade?: string; pipelineId?: string; contactId?: string; ownerUserId?: string; createdAt: string }
+type DashboardDeal = { id: string; titulo: string; status: string; valorEstimado: number; prioridade?: string; pipelineId?: string; stageId?: string; contactId?: string; ownerUserId?: string; origem?: string | null; createdAt: string }
 type DashboardContact = { id: string; nome: string; sobrenome?: string }
 type DashboardActivity = { id: string; titulo: string; tipo: string; status: string; dueAt?: string | Date }
 type DashboardCampaign = { campanha: string; leads: number; conversao?: number }
@@ -65,8 +65,15 @@ export default function DashboardPage() {
   const [todayActivities, setTodayActivities] = useState<DashboardActivity[]>([])
   const [topCampaigns, setTopCampaigns] = useState<DashboardCampaign[]>([])
   const [stageCounts, setStageCounts] = useState<DashboardStageCount[]>([])
+  const [stages, setStages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>('all')
+  // Timeline filters
+  const [timelineMonth, setTimelineMonth] = useState<string>(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
+  const [timelineDay, setTimelineDay] = useState<string>('')
 
   useEffect(() => {
     const fetchData = () => {
@@ -76,12 +83,14 @@ export default function DashboardPage() {
         crmActions.getContacts(),
         crmActions.getDashboardKpis('30d'),
         crmActions.getActivities(),
-      ]).then(([pipes, allDeals, allContacts, kpis, acts]) => {
+        crmActions.getAllStages(),
+      ]).then(([pipes, allDeals, allContacts, kpis, acts, allStages]) => {
         setPipelines((pipes || []) as DashboardPipeline[])
         setAllDealsRaw((allDeals || []) as unknown as DashboardDeal[])
         setContacts((allContacts || []) as DashboardContact[])
         setTopCampaigns((kpis?.topCampaigns || []) as DashboardCampaign[])
         setStageCounts((kpis?.stageCounts || []) as DashboardStageCount[])
+        setStages((allStages || []) as any[])
         const todayStr = new Date().toISOString().split('T')[0]
         const todayActs = ((acts || []) as DashboardActivity[]).filter(a => {
           if (a.status !== 'OPEN') return false
@@ -149,6 +158,56 @@ export default function DashboardPage() {
     })
   }, [pipelines, allDealsRaw])
 
+  // ── Stage counts breakdown ────────────────────────────────────────────────────
+  const computedStageCounts = useMemo(() => {
+    if (!stages.length) return [];
+    
+    const counts: Record<string, number> = {};
+    stages.forEach(s => { counts[s.id] = 0 });
+    openDeals.forEach(d => {
+      if (d.stageId && counts[d.stageId] !== undefined) {
+        counts[d.stageId]++;
+      }
+    });
+
+    return stages
+      .filter(s => selectedPipelineId === 'all' || s.pipelineId === selectedPipelineId)
+      .map(s => ({
+        name: s.nome,
+        value: counts[s.id] || 0
+      }))
+      .filter(s => s.value > 0);
+  }, [openDeals, stages, selectedPipelineId]);
+
+  // ── Timeline chart data ───────────────────────────────────────────────────────
+  const timelineChartData = useMemo(() => {
+    const [year, month] = timelineMonth.split('-').map(Number);
+    const filtered = deals.filter(d => {
+      const dt = new Date(d.createdAt);
+      return dt.getFullYear() === year && (dt.getMonth() + 1) === month;
+    });
+    
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const data = Array.from({ length: daysInMonth }, (_, i) => ({
+      dia: String(i + 1).padStart(2, '0'),
+      total: 0,
+      ganhos: 0,
+      perdidos: 0,
+      abertos: 0
+    }));
+    
+    filtered.forEach(d => {
+      const dt = new Date(d.createdAt);
+      const dayIndex = dt.getDate() - 1;
+      data[dayIndex].total++;
+      if (d.status === 'WON') data[dayIndex].ganhos++;
+      else if (d.status === 'LOST') data[dayIndex].perdidos++;
+      else data[dayIndex].abertos++;
+    });
+    
+    return data;
+  }, [deals, timelineMonth]);
+
   // ── Top sellers ranking ────────────────────────────────────────────────────
   const topSellers = useMemo(() => {
     return SELLERS.map(s => {
@@ -165,10 +224,31 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-full min-h-[60vh]">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground animate-pulse">Carregando dashboard...</p>
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="h-7 w-52 rounded-xl bg-neutral-800/50 animate-pulse" />
+              <div className="h-4 w-72 rounded-lg bg-neutral-800/40 animate-pulse" />
+            </div>
+            <div className="h-9 w-36 rounded-xl bg-neutral-800/40 animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-border/30 bg-neutral-900/30 p-5 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="h-9 w-9 rounded-xl bg-neutral-800/60 animate-pulse" />
+                  <div className="h-4 w-10 rounded-lg bg-neutral-800/40 animate-pulse" />
+                </div>
+                <div className="h-3 w-24 rounded bg-neutral-800/40 animate-pulse" />
+                <div className="h-8 w-20 rounded-lg bg-neutral-800/50 animate-pulse" />
+                <div className="h-3 w-32 rounded bg-neutral-800/30 animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className={`rounded-2xl border border-border/30 bg-neutral-900/30 p-5 h-48 animate-pulse ${i === 0 ? '' : 'lg:col-span-1'}`} />
+            ))}
           </div>
         </div>
       </AppLayout>
@@ -179,12 +259,12 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" />
-      <div className="p-6 lg:p-8 space-y-6 animate-fade-in select-none">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Comercial</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Visão executiva consolidada da sua operação de vendas
             </p>
@@ -194,14 +274,14 @@ export default function DashboardPage() {
             <select
               value={selectedPipelineId}
               onChange={e => setSelectedPipelineId(e.target.value)}
-              className="text-xs bg-card/60 border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
+              className="text-xs bg-neutral-900/60 border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
             >
               <option value="all">Todos os produtos</option>
               {pipelines.map(p => (
                 <option key={p.id} value={p.id}>{p.nome}</option>
               ))}
             </select>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-muted/40 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-neutral-900/40 text-xs text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Ao vivo
             </div>
@@ -209,7 +289,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── KPI CARDS ───────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* Total Contatos */}
           <div className="ocr-card card-padding group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
@@ -280,9 +360,9 @@ export default function DashboardPage() {
         {/* ── MID ROW: Funil + Atividades de Hoje + Deals Recentes ───────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          {/* Funil do Pipeline */}
-          <div className="lg:col-span-1 ocr-card card-padding">
-            <div className="flex items-center justify-between mb-5">
+          {/* Funil do Pipeline - Leads por Etapa */}
+          <div className="lg:col-span-1 ocr-card card-padding flex flex-col h-[320px]">
+            <div className="flex items-center justify-between mb-4 shrink-0">
               <div>
                 <h3 className="font-semibold text-foreground">Funil do Pipeline</h3>
                 <p className="text-xs text-muted-foreground">Deals abertos por etapa</p>
@@ -291,29 +371,31 @@ export default function DashboardPage() {
                 <Kanban className="w-4 h-4" />
               </div>
             </div>
-            {stageCounts.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={stageCounts} barSize={20} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(150 25% 13%)" horizontal={false} />
-                  <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" width={90} tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [v ?? 0, 'Deals']} />
-                  <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                    {stageCounts.map((_entry, i: number) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            {computedStageCounts.length > 0 ? (
+              <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={computedStageCounts} barSize={16} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(150 25% 13%)" horizontal={false} />
+                    <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" width={80} tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [v ?? 0, 'Deals']} />
+                    <Bar dataKey="value" fill="#00E676" radius={[0, 6, 6, 0]}>
+                      {computedStageCounts.map((_entry, i: number) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground opacity-30">
+              <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground opacity-30">
                 <BarChart3 className="w-10 h-10 mb-2" />
                 <p className="text-xs">Nenhum deal no funil</p>
               </div>
             )}
             <button
               onClick={() => router.push('/pipeline')}
-              className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs text-primary hover:underline font-semibold py-1"
+              className="shrink-0 mt-3 flex items-center justify-center gap-1.5 text-xs text-primary hover:underline font-semibold py-1"
             >
               Ver Pipeline Completo <ChevronRight className="w-3 h-3" />
             </button>
@@ -437,68 +519,41 @@ export default function DashboardPage() {
         {/* ── BOTTOM ROW: Canais UTM + Top Vendedores ─────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          {/* UTM Widget */}
-          <div className="lg:col-span-2 ocr-card card-padding">
-            <div className="flex items-center justify-between mb-5">
+          {/* Timeline de Deals */}
+          <div className="lg:col-span-2 ocr-card card-padding overflow-hidden flex flex-col h-[320px]">
+            <div className="flex items-center justify-between mb-3 shrink-0">
               <div>
-                <h3 className="font-semibold text-foreground">Performance por Canal UTM</h3>
-                <p className="text-xs text-muted-foreground">Leads, conversão e receita por fonte de tráfego</p>
+                <h3 className="font-semibold text-foreground">Timeline de Negócios</h3>
+                <p className="text-xs text-muted-foreground">Histórico de deals por data de criação</p>
               </div>
-              <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Mini pie chart */}
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie
-                    data={topCampaigns}
-                    dataKey="leads"
-                    nameKey="campanha"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={48}
-                    outerRadius={70}
-                    paddingAngle={3}
-                  >
-                    {topCampaigns.map((_entry, i: number) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
-                </PieChart>
-              </ResponsiveContainer>
-
-              {/* Legend table */}
-              <div className="space-y-1.5 flex flex-col justify-center">
-                {topCampaigns.slice(0, 5).map((c, i: number) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                      <span className="text-muted-foreground truncate max-w-[100px]">{c.campanha}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-foreground">{c.leads}</span>
-                      <span className="text-primary font-bold w-10 text-right">{(c.conversao || 0).toFixed(0)}%</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2">
+                <input
+                  type="month"
+                  value={timelineMonth}
+                  onChange={e => { setTimelineMonth(e.target.value); setTimelineDay('') }}
+                  className="px-2 py-1 rounded-lg border border-border bg-neutral-900 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
               </div>
             </div>
-
-            {/* Conversão bar */}
-            <div className="mt-4 space-y-2">
-              {topCampaigns.slice(0, 4).map((c, i: number) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="text-[10px] text-muted-foreground w-24 truncate shrink-0">{c.campanha}</span>
-                  <div className="flex-1 bg-muted rounded-full h-1.5">
-                    <div className="h-1.5 rounded-full transition-all" style={{ width: `${Math.min(c.conversao || 0, 100)}%`, background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                  </div>
-                  <span className="text-[10px] font-bold w-8 text-right" style={{ color: CHART_COLORS[i % CHART_COLORS.length] }}>{(c.conversao || 0).toFixed(0)}%</span>
+            <div className="flex-1 min-h-0 mt-4">
+              {timelineChartData.reduce((sum, d) => sum + d.total, 0) > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={timelineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(150 25% 13%)" vertical={false} />
+                    <XAxis dataKey="dia" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Bar dataKey="abertos" name="Abertos" fill="#3B82F6" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="ganhos" name="Ganhos" fill="#10B981" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="perdidos" name="Perdidos" fill="#F43F5E" radius={[4, 4, 0, 0]} stackId="a" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <Activity className="w-8 h-8 text-muted-foreground opacity-20 mb-2" />
+                  <p className="text-xs text-muted-foreground">Nenhum negócio neste período.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -516,7 +571,7 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               {topSellers.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/40 transition-colors">
+                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
                   {/* Rank */}
                   <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-neutral-300' : 'text-amber-700'}`}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
@@ -545,74 +600,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── INDICADORES POR PIPELINE (sempre todos) ──────────────────────── */}
-        {pipelineBreakdown.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="font-bold text-foreground">Indicadores por Pipeline</h2>
-                <p className="text-xs text-muted-foreground">Métricas separadas por funil — exibe todos, independente do filtro acima</p>
-              </div>
-              <span className="text-[10px] text-muted-foreground bg-card border border-border/30 px-2 py-1 rounded-lg">
-                {pipelineBreakdown.length} funis
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {pipelineBreakdown.map(pipe => (
-                <div
-                  key={pipe.id}
-                  className="ocr-card card-padding hover:border-primary/30 transition-all cursor-pointer group"
-                  onClick={() => router.push(`/pipeline?pipelineId=${pipe.id}`)}
-                  style={{ borderTop: `3px solid ${pipe.cor}` }}
-                >
-                  {/* Pipeline name */}
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-bold text-foreground truncate">{pipe.nome}</h4>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-
-                  {/* Mini stats row */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    {[
-                      { label: 'Abertos', value: pipe.open, color: 'text-blue-400' },
-                      { label: 'Ganhos', value: pipe.won, color: 'text-primary' },
-                      { label: 'Perdidos', value: pipe.lost, color: 'text-destructive' },
-                    ].map(stat => (
-                      <div key={stat.label} className="text-center p-2 rounded-lg bg-card/50 border border-border/20">
-                        <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
-                        <p className="text-[9px] text-muted-foreground uppercase">{stat.label}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Financial metrics */}
-                  <div className="space-y-1.5 border-t border-border/20 pt-3">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Receita Fechada</span>
-                      <span className="font-bold text-primary">{BRL(pipe.revenue)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Previsão (pipeline)</span>
-                      <span className="font-semibold text-foreground">{BRL(pipe.forecast)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Conversão</span>
-                      <span className={`font-bold ${pipe.conversion >= 30 ? 'text-primary' : pipe.conversion >= 15 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
-                        {pipe.conversion}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Conversion bar */}
-                  <div className="mt-3 w-full bg-muted rounded-full h-1">
-                    <div className="h-1 rounded-full transition-all" style={{ width: `${pipe.conversion}%`, background: pipe.cor }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </AppLayout>
   )

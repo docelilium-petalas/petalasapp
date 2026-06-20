@@ -22,7 +22,7 @@ export function getProductGroup(titulo?: string): 'HMI' | 'Sistema' {
 }
 
 export function normalizeSourceLabel(source?: string): string {
-  if (!source) return 'Tráfego Direto'
+  if (!source || source === 'undefined' || source === 'null') return 'Tráfego Direto'
   const src = source.toLowerCase().trim()
   if (/^(facebook|fb|meta|instagram|ig|meta ads)$/.test(src)) {
     return 'Meta Ads'

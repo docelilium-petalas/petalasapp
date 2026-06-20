@@ -13,13 +13,9 @@ export async function PUT(request: Request) {
     sobrenome?: string
     telefone?: string
     avatarUrl?: string
-  }
-
-  if (body.avatarUrl !== undefined) {
-    const url = body.avatarUrl.trim()
-    if (url && !url.startsWith('https://')) {
-      return NextResponse.json({ error: 'URL do avatar deve usar HTTPS.' }, { status: 400 })
-    }
+    disparo_webhook_url?: string
+    disparo_status_webhook_url?: string
+    disparo_cancelar_webhook_url?: string
   }
 
   const updated = await prisma.profile.update({
@@ -29,6 +25,9 @@ export async function PUT(request: Request) {
       ...(body.sobrenome !== undefined && { sobrenome: body.sobrenome.trim() }),
       ...(body.telefone !== undefined && { telefone: body.telefone.trim() }),
       ...(body.avatarUrl !== undefined && { avatarUrl: body.avatarUrl.trim() }),
+      ...(body.disparo_webhook_url !== undefined && { disparoWebhookUrl: body.disparo_webhook_url.trim() }),
+      ...(body.disparo_status_webhook_url !== undefined && { disparoStatusWebhookUrl: body.disparo_status_webhook_url.trim() }),
+      ...(body.disparo_cancelar_webhook_url !== undefined && { disparoCancelarWebhookUrl: body.disparo_cancelar_webhook_url.trim() }),
     },
   })
 
@@ -38,5 +37,8 @@ export async function PUT(request: Request) {
     sobrenome: updated.sobrenome,
     telefone: updated.telefone ?? '',
     avatarUrl: updated.avatarUrl ?? '',
+    disparo_webhook_url: updated.disparoWebhookUrl ?? '',
+    disparo_status_webhook_url: updated.disparoStatusWebhookUrl ?? '',
+    disparo_cancelar_webhook_url: updated.disparoCancelarWebhookUrl ?? '',
   })
 }

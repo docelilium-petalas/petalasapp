@@ -1,18 +1,22 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Flower2, ArrowRight, Mail, Lock, User, ShieldCheck } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Zap, Coins, ArrowRight, ShieldCheck, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 
 type Mode = 'login' | 'register'
 
 export default function AuthPage() {
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [keepConnected, setKeepConnected] = useState(false)
 
   const switchMode = (next: Mode) => {
     setMode(next)
@@ -38,7 +42,7 @@ export default function AuthPage() {
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register'
       const payload = mode === 'login'
-        ? { email, password }
+        ? { email, password, keepConnected }
         : { nome, email, password }
 
       const res = await fetch(endpoint, {
@@ -46,12 +50,15 @@ export default function AuthPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+      const data = await res.json()
 
       if (res.ok) {
         toast.success(mode === 'login' ? 'Acesso autorizado! Carregando painel...' : 'Conta criada! Entrando...')
-        window.location.href = '/dashboard'
+        setTimeout(() => {
+          router.push('/dashboard')
+          router.refresh()
+        }, 1000)
       } else {
-        const data = await res.json()
         toast.error(data.error || 'Erro ao processar requisição.')
         setLoading(false)
       }
@@ -62,56 +69,81 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden select-none">
+    <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-black">
       <Toaster theme="dark" position="top-right" closeButton />
 
-      {/* Ambient background blobs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C87783]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#44121E]/20 rounded-full blur-[100px] pointer-events-none" />
+      {/* Floating Ambient Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
 
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-md mx-4">
-
-        {/* Brand */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-[#C87783]/10 border border-[#C87783]/30 flex items-center justify-center mb-4">
-            <Flower2 className="w-8 h-8 text-[#C87783]" />
+      {/* LEFT SIDE: Marketing (Desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-neutral-950/20 border-r border-border/30 relative">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-primary/20 text-primary ocr-glow-soft shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
           </div>
-          <h1
-            className="text-4xl text-foreground leading-none"
-            style={{ fontFamily: 'var(--font-signature, cursive)' }}
-          >
-            Doce Lilium
-          </h1>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-neutral-500 mt-1 font-medium">
-            Alma Feminina
-          </p>
+          <div className="flex flex-col">
+            <span className="font-bold tracking-tight text-sm uppercase">Operação Caixa Rápido</span>
+            <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] -mt-0.5">Máquina de Vendas</span>
+          </div>
         </div>
 
-        {/* Form card */}
-        <div className="bg-card/80 border border-neutral-800 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
+        <div className="space-y-6 max-w-lg my-auto">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary uppercase tracking-wider">
+            <Coins className="w-3.5 h-3.5" />
+            <span>Foco em Faturamento</span>
+          </div>
+          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-white">
+            Controle sua operação comercial e <span className="ocr-gradient-text">acelere o caixa.</span>
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Pipeline, prospecção ativa, disparos de WhatsApp, inteligência artificial e métricas comerciais consolidadas em uma única máquina de vendas.
+          </p>
+          <div className="pt-6 grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl border border-border/40 bg-neutral-900/10 backdrop-blur-sm">
+              <span className="block text-lg font-bold text-primary text-glow">10x</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-medium">Velocidade de Prospecção</span>
+            </div>
+            <div className="p-4 rounded-xl border border-border/40 bg-neutral-900/10 backdrop-blur-sm">
+              <span className="block text-lg font-bold text-primary text-glow">+45%</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-medium">Conversão Comercial</span>
+            </div>
+          </div>
+        </div>
 
-          {/* Tab switcher */}
-          <div className="flex rounded-xl bg-muted/60 p-1 mb-7 border border-neutral-700/50">
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <ShieldCheck className="w-4 h-4 text-primary" />
+          <span>Conformidade com a LGPD e criptografia de ponta a ponta.</span>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE: Auth Card */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative z-10">
+        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border/80 bg-neutral-950/60 backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
+
+          {/* Mobile brand */}
+          <div className="lg:hidden flex items-center gap-2 justify-center mb-6">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 flex items-center justify-center text-primary">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+            </div>
+            <span className="font-bold text-xs uppercase tracking-wider">Caixa Rápido</span>
+          </div>
+
+          {/* Mode toggle */}
+          <div className="flex rounded-xl border border-border/60 bg-neutral-900/60 p-1 mb-8">
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
-                mode === 'login'
-                  ? 'bg-[#C87783] text-foreground shadow-lg shadow-[#C87783]/20'
-                  : 'text-neutral-500 hover:text-neutral-300'
-              }`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'login' ? 'bg-primary text-black shadow' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Entrar
             </button>
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
-                mode === 'register'
-                  ? 'bg-[#C87783] text-foreground shadow-lg shadow-[#C87783]/20'
-                  : 'text-neutral-500 hover:text-neutral-300'
-              }`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'register' ? 'bg-primary text-black shadow' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Criar conta
             </button>
@@ -119,13 +151,13 @@ export default function AuthPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-foreground">
-              {mode === 'login' ? 'Bem-vindo à operação' : 'Nova conta'}
-            </h2>
-            <p className="text-xs text-neutral-500 mt-1">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              {mode === 'login' ? 'Bem-vindo à operação' : 'Criar nova conta'}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
               {mode === 'login'
-                ? 'Preencha suas credenciais para acessar o painel.'
-                : 'Configure seu acesso à plataforma.'}
+                ? 'Preencha suas credenciais para acessar seu painel.'
+                : 'Preencha os dados para configurar seu acesso.'}
             </p>
           </div>
 
@@ -134,14 +166,14 @@ export default function AuthPage() {
             {mode === 'register' && (
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Nome</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
-                  <User className="w-4 h-4 text-neutral-500 shrink-0" />
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                  <User className="w-4 h-4 text-neutral-600 shrink-0" />
                   <input
                     type="text"
                     value={nome}
                     onChange={e => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -149,14 +181,14 @@ export default function AuthPage() {
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">E-mail</label>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
-                <Mail className="w-4 h-4 text-neutral-500 shrink-0" />
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <Mail className="w-4 h-4 text-neutral-600 shrink-0" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@empresa.com"
-                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                 />
               </div>
             </div>
@@ -168,35 +200,57 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => toast.info('Entre em contato com o administrador para resetar a senha.')}
-                    className="text-[10px] font-semibold text-[#C87783] hover:underline"
+                    className="text-[10px] font-semibold text-primary hover:underline"
                   >
                     Esqueceu a senha?
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
-                <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <Lock className="w-4 h-4 text-neutral-600 shrink-0" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 hover:bg-neutral-900 rounded-md text-neutral-600 hover:text-neutral-400 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
+
+            {mode === 'login' && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="keepConnected"
+                  checked={keepConnected}
+                  onChange={e => setKeepConnected(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-700 bg-black text-primary focus:ring-primary focus:ring-offset-black"
+                />
+                <label htmlFor="keepConnected" className="text-xs text-neutral-500 cursor-pointer">
+                  Manter conectado
+                </label>
+              </div>
+            )}
 
             {mode === 'register' && (
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Confirmar senha</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-700 bg-muted/60 focus-within:border-[#C87783]/60 focus-within:ring-1 focus-within:ring-[#C87783]/20 transition-all">
-                  <Lock className="w-4 h-4 text-neutral-500 shrink-0" />
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                  <Lock className="w-4 h-4 text-neutral-600 shrink-0" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -205,24 +259,19 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#C87783] hover:bg-[#b8676f] text-foreground font-bold text-sm tracking-wide transition-all shadow-lg shadow-[#C87783]/20 hover:shadow-[#C87783]/30 disabled:opacity-60 disabled:cursor-not-allowed mt-2 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-black font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>{mode === 'login' ? 'Entrar' : 'Criar minha conta'}</span>
+                  <span>{mode === 'login' ? 'Entrar na operação' : 'Criar minha conta'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-neutral-600">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>LGPD · Criptografia de ponta a ponta</span>
-          </div>
         </div>
       </div>
     </div>

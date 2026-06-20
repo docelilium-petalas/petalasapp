@@ -36,6 +36,9 @@ export async function GET(request: Request) {
               telefone: dbUser.profile?.telefone ?? '',
               avatarUrl: dbUser.profile?.avatarUrl ?? '',
               role: decoded.role,
+              disparo_webhook_url: dbUser.profile?.disparoWebhookUrl ?? '',
+              disparo_status_webhook_url: dbUser.profile?.disparoStatusWebhookUrl ?? '',
+              disparo_cancelar_webhook_url: dbUser.profile?.disparoCancelarWebhookUrl ?? '',
             },
           })
         }

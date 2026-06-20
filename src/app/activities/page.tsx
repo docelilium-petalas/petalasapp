@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo, Suspense } from 'react'
 import { AppLayout } from '@/components/AppLayout'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { toast, Toaster } from 'sonner'
@@ -55,7 +56,7 @@ const TIPO_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ c
   ligacao: { label: 'Ligação', icon: Phone, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
   reuniao: { label: 'Reunião', icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
   tarefa: { label: 'Tarefa', icon: CheckCircle2, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
-  nota: { label: 'Nota', icon: FileText, color: 'text-neutral-400', bg: 'bg-muted/40', border: 'border-neutral-700/30' },
+  nota: { label: 'Nota', icon: FileText, color: 'text-neutral-400', bg: 'bg-neutral-800/40', border: 'border-neutral-700/30' },
   whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
   email: { label: 'E-mail', icon: Mail, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
 }
@@ -70,8 +71,10 @@ function ActivitiesContent() {
   const { execute: completeAct } = useCompleteActivity()
   const { execute: deleteAct } = useDeleteActivity()
 
+  const isMobile = useIsMobile()
   // State for view and filters
   const [view, setView] = useState<'lista' | 'calendario'>('lista')
+  const effectiveView = isMobile ? 'lista' : view
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'done'>('open')
   const [typeFilter, setTypeFilter] = useState<string>('all')
 
@@ -181,7 +184,7 @@ function ActivitiesContent() {
       return matchStatus && matchType
     })
 
-    if (view === 'calendario') {
+    if (effectiveView === 'calendario') {
       return filtered
     }
 
@@ -229,7 +232,7 @@ function ActivitiesContent() {
     })
 
     return groups
-  }, [activities, statusFilter, typeFilter, view])
+  }, [activities, statusFilter, typeFilter, effectiveView])
 
   // Calendar day calculation helpers
   const calendarDays = useMemo(() => {
@@ -284,7 +287,9 @@ function ActivitiesContent() {
     try {
       let finalDueAt = ''
       if (data.dueAtDate) {
-        finalDueAt = `${data.dueAtDate}T${data.dueAtTime || '00:00'}:00`
+        const [year, month, day] = data.dueAtDate.split('-').map(Number)
+        const [hour, minute] = (data.dueAtTime || '00:00').split(':').map(Number)
+        finalDueAt = new Date(year, month - 1, day, hour, minute).toISOString()
       } else {
         toast.error('Data da atividade é obrigatória')
         return
@@ -293,7 +298,7 @@ function ActivitiesContent() {
       const payload = {
         titulo: data.titulo,
         tipo: data.tipo,
-        dueAt: new Date(finalDueAt).toISOString(),
+        dueAt: finalDueAt,
         descricao: data.descricao || undefined,
         contactId: data.contactId || undefined,
         dealId: data.dealId || undefined
@@ -350,38 +355,44 @@ function ActivitiesContent() {
     <div className="flex flex-col h-full bg-[#0a0a0c] text-foreground select-none">
       
       {/* Topbar / KPIs */}
-      <div className="px-6 py-5 border-b border-border/30 bg-background/80 backdrop-blur-xl shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2 tracking-wide text-neutral-100">
-            <Calendar className="w-5 h-5 text-primary" />
-            Atividades
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Gerenciamento e controle de compromissos operacionais</p>
+      <div className="px-4 sm:px-6 py-4 border-b border-border/30 bg-black/40 backdrop-blur-xl shrink-0 flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold flex items-center gap-2 tracking-wide text-neutral-100">
+              <Calendar className="w-5 h-5 text-primary" />
+              Atividades
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">Gerenciamento e controle de compromissos operacionais</p>
+          </div>
+
+          <button
+            onClick={() => handleOpenForm(null)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
+          >
+            <Plus className="w-4 h-4" /> <span className="hidden xs:inline">Nova </span>Atividade
+          </button>
         </div>
 
-        {/* Counter cards */}
-        <div className="flex items-center gap-3">
+        {/* Counter cards + view switcher */}
+        <div className="flex items-center justify-between gap-2">
           <div className="flex gap-2">
-            <div className="px-3.5 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5 flex flex-col justify-center min-w-[70px]">
-              <span className="text-[10px] uppercase font-bold text-rose-400">Atrasadas</span>
+            <div className="px-3 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5 flex flex-col justify-center min-w-[62px]">
+              <span className="text-[9px] uppercase font-bold text-rose-400">Atrasadas</span>
               <span className="text-sm font-bold text-rose-300">{kpis.atrasadas}</span>
             </div>
-            <div className="px-3.5 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/5 flex flex-col justify-center min-w-[70px]">
-              <span className="text-[10px] uppercase font-bold text-amber-400">Hoje</span>
+            <div className="px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/5 flex flex-col justify-center min-w-[62px]">
+              <span className="text-[9px] uppercase font-bold text-amber-400">Hoje</span>
               <span className="text-sm font-bold text-amber-300">{kpis.hoje}</span>
             </div>
-            <div className="px-3.5 py-1.5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col justify-center min-w-[70px]">
-              <span className="text-[10px] uppercase font-bold text-primary">Pendentes</span>
+            <div className="px-3 py-1.5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col justify-center min-w-[62px]">
+              <span className="text-[9px] uppercase font-bold text-primary">Pendentes</span>
               <span className="text-sm font-bold text-primary">{kpis.pendentes}</span>
             </div>
           </div>
 
-          <div className="h-8 w-px bg-border/30 mx-1" />
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            {/* View switcher */}
-            <div className="p-1 rounded-xl bg-card border border-border/40 flex items-center gap-1">
+          {/* View switcher — desktop only */}
+          {!isMobile && (
+            <div className="p-1 rounded-xl bg-neutral-900 border border-border/40 flex items-center gap-1">
               <button
                 onClick={() => setView('lista')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'lista' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-foreground'}`}
@@ -395,14 +406,7 @@ function ActivitiesContent() {
                 Calendário
               </button>
             </div>
-
-            <button
-              onClick={() => handleOpenForm(null)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
-            >
-              <Plus className="w-4 h-4" /> Nova Atividade
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -415,7 +419,7 @@ function ActivitiesContent() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as 'all' | 'open' | 'done')}
-              className="px-2.5 py-1.5 rounded-xl border border-border/40 bg-card text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer"
+              className="px-2.5 py-1.5 rounded-xl border border-border/40 bg-neutral-900 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer"
             >
               <option value="all">Todos os Status</option>
               <option value="open">Abertas</option>
@@ -426,7 +430,7 @@ function ActivitiesContent() {
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value)}
-            className="px-2.5 py-1.5 rounded-xl border border-border/40 bg-card text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer"
+            className="px-2.5 py-1.5 rounded-xl border border-border/40 bg-neutral-900 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer"
           >
             <option value="all">Todos os Canais</option>
             {Object.entries(TIPO_CONFIG).map(([k, v]) => (
@@ -436,18 +440,18 @@ function ActivitiesContent() {
         </div>
 
         {/* Date Navigation for Calendar */}
-        {view === 'calendario' && (
+        {effectiveView === 'calendario' && (
           <div className="flex items-center gap-4 animate-fade-in">
-            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-card border border-border/40">
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-border/40">
               <button
                 onClick={() => setCalendarMode('mes')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${calendarMode === 'mes' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${calendarMode === 'mes' ? 'bg-neutral-800 text-foreground' : 'text-muted-foreground'}`}
               >
                 Mês
               </button>
               <button
                 onClick={() => setCalendarMode('semana')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${calendarMode === 'semana' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all ${calendarMode === 'semana' ? 'bg-neutral-800 text-foreground' : 'text-muted-foreground'}`}
               >
                 Semana
               </button>
@@ -456,7 +460,7 @@ function ActivitiesContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCalendarDate(prev => calendarMode === 'mes' ? subMonths(prev, 1) : subWeeks(prev, 1))}
-                className="p-1.5 rounded-lg border border-border/40 hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg border border-border/40 hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
@@ -468,7 +472,7 @@ function ActivitiesContent() {
               </span>
               <button
                 onClick={() => setCalendarDate(prev => calendarMode === 'mes' ? addMonths(prev, 1) : addWeeks(prev, 1))}
-                className="p-1.5 rounded-lg border border-border/40 hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg border border-border/40 hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -495,11 +499,11 @@ function ActivitiesContent() {
         ) : (
           <>
             {/* VIEW: LIST */}
-            {view === 'lista' && (
+            {effectiveView === 'lista' && (
               <div className="space-y-8 max-w-3xl mx-auto">
                 {/* Empty State check */}
                 {Object.values(groupedAndFilteredActivities as Record<string, EnrichedActivity[]>).every(arr => arr.length === 0) ? (
-                  <div className="text-center py-20 text-muted-foreground bg-card/10 rounded-2xl border border-border/10">
+                  <div className="text-center py-20 text-muted-foreground bg-neutral-900/10 rounded-2xl border border-border/10">
                     <Calendar className="w-12 h-12 mx-auto mb-3 opacity-10" />
                     <p className="text-sm font-semibold">Nenhuma atividade encontrada</p>
                     <p className="text-xs text-muted-foreground mt-1">Experimente alterar os filtros ou crie uma nova atividade.</p>
@@ -540,10 +544,10 @@ function ActivitiesContent() {
                                   key={act.id}
                                   className={`flex items-start gap-4 p-4 rounded-2xl border transition-all ${
                                     isDone
-                                      ? 'opacity-40 border-border/10 bg-card/20'
+                                      ? 'opacity-40 border-border/10 bg-neutral-950/20'
                                       : isPast
                                       ? 'border-rose-500/30 bg-rose-500/5 hover:border-rose-500/40'
-                                      : 'border-border/40 bg-muted/30 hover:border-primary/30 hover:bg-card/50'
+                                      : 'border-border/40 bg-neutral-900/30 hover:border-primary/30 hover:bg-neutral-900/50'
                                   }`}
                                 >
                                   {/* Checkbox: disabled if already completed */}
@@ -569,12 +573,12 @@ function ActivitiesContent() {
 
                                       {/* Links */}
                                       {act.contact && (
-                                        <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-md border border-border/20">
+                                        <span className="text-[10px] text-muted-foreground bg-neutral-800/40 px-2 py-0.5 rounded-md border border-border/20">
                                           Contato: <strong className="text-neutral-300">{act.contact.nome} {act.contact.sobrenome || ''}</strong>
                                         </span>
                                       )}
                                       {act.deal && (
-                                        <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-md border border-border/20">
+                                        <span className="text-[10px] text-muted-foreground bg-neutral-800/40 px-2 py-0.5 rounded-md border border-border/20">
                                           Negócio: <strong className="text-neutral-300">{act.deal.titulo}</strong>
                                         </span>
                                       )}
@@ -615,7 +619,7 @@ function ActivitiesContent() {
                                     {!isDone && (
                                       <button
                                         onClick={() => handleOpenForm(act)}
-                                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors"
                                         title="Editar"
                                       >
                                         <Edit3 className="w-3.5 h-3.5" />
@@ -623,7 +627,7 @@ function ActivitiesContent() {
                                     )}
                                     <button
                                       onClick={() => handleDelete(act.id)}
-                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-colors"
+                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-colors"
                                       title="Excluir"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -642,13 +646,13 @@ function ActivitiesContent() {
             )}
 
             {/* VIEW: CALENDAR */}
-            {view === 'calendario' && (
+            {effectiveView === 'calendario' && (
               <div className="h-full flex flex-col gap-4 animate-fade-in">
                 {calendarMode === 'mes' ? (
                   // Month View Grid
-                  <div className="flex-1 min-h-[500px] border border-border/20 rounded-2xl overflow-hidden bg-card/20 flex flex-col">
+                  <div className="flex-1 min-h-[500px] border border-border/20 rounded-2xl overflow-hidden bg-neutral-950/20 flex flex-col">
                     {/* Weekday headers */}
-                    <div className="grid grid-cols-7 border-b border-border/20 bg-card/40 py-2.5 text-center">
+                    <div className="grid grid-cols-7 border-b border-border/20 bg-neutral-950/40 py-2.5 text-center">
                       {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
                         <span key={day} className="text-[10px] uppercase font-bold text-muted-foreground">
                           {day}
@@ -675,8 +679,8 @@ function ActivitiesContent() {
                             key={idx}
                             onClick={() => handleOpenForm(null, day)}
                             className={`border-r border-b border-border/10 p-2 flex flex-col min-h-[80px] transition-colors cursor-pointer group ${
-                              isCurrentMonth ? 'bg-card/10' : 'bg-card/40 text-muted-foreground/30'
-                            } ${isTodayDay ? 'ring-1 ring-primary ring-inset bg-primary/[0.02]' : 'hover:bg-muted/40'}`}
+                              isCurrentMonth ? 'bg-neutral-900/10' : 'bg-neutral-950/40 text-muted-foreground/30'
+                            } ${isTodayDay ? 'ring-1 ring-primary ring-inset bg-primary/[0.02]' : 'hover:bg-neutral-900/40'}`}
                           >
                             <span className={`text-xs font-bold self-start w-5 h-5 rounded-full flex items-center justify-center ${
                               isTodayDay ? 'bg-primary text-black font-extrabold' : isCurrentMonth ? 'text-neutral-300' : 'text-neutral-600'
@@ -695,12 +699,12 @@ function ActivitiesContent() {
                                     onClick={() => handleOpenForm(evt)}
                                     className={`px-1.5 py-0.5 rounded text-[10px] font-semibold truncate border flex items-center gap-1 transition-all ${
                                       isDone
-                                        ? 'bg-card/60 text-muted-foreground/50 border-neutral-800 line-through'
+                                        ? 'bg-neutral-900/60 text-muted-foreground/50 border-neutral-800 line-through'
                                         : `${config.bg} ${config.color} ${config.border} hover:brightness-110`
                                     }`}
-                                    title={`${evt.titulo} (${evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''})`}
+                                    title={`${evt.titulo} (${format(new Date(evt.dueAt), 'HH:mm')})`}
                                   >
-                                    <span className="text-[9px] opacity-80">{evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''}</span>
+                                    <span className="text-[9px] opacity-80">{format(new Date(evt.dueAt), 'HH:mm')}</span>
                                     <span className="truncate">{evt.titulo}</span>
                                   </div>
                                 )
@@ -734,7 +738,7 @@ function ActivitiesContent() {
                         <div
                           key={idx}
                           onClick={() => handleOpenForm(null, day)}
-                          className={`flex-1 flex flex-col rounded-2xl border bg-card/20 p-3 cursor-pointer transition-all ${
+                          className={`flex-1 flex flex-col rounded-2xl border bg-neutral-950/20 p-3 cursor-pointer transition-all ${
                             isTodayDay ? 'border-primary shadow-lg shadow-primary/5 bg-primary/[0.01]' : 'border-border/20 hover:border-border/40'
                           }`}
                         >
@@ -764,13 +768,13 @@ function ActivitiesContent() {
                                       onClick={() => handleOpenForm(evt)}
                                       className={`p-2 rounded-xl border flex flex-col gap-1 transition-all ${
                                         isDone
-                                          ? 'bg-card/60 text-muted-foreground/45 border-neutral-800 line-through opacity-60'
+                                          ? 'bg-neutral-900/60 text-muted-foreground/45 border-neutral-800 line-through opacity-60'
                                           : `${config.bg} ${config.color} ${config.border} hover:scale-[1.02]`
                                       }`}
                                     >
                                       <div className="flex items-center justify-between text-[8px] font-bold opacity-80">
                                         <span className="uppercase">{config.label}</span>
-                                        <span>{evt.dueAt ? format(new Date(evt.dueAt), 'HH:mm') : ''}</span>
+                                        <span>{format(new Date(evt.dueAt), 'HH:mm')}</span>
                                       </div>
                                       <span className="text-[11px] font-bold leading-tight truncate">{evt.titulo}</span>
                                       {evt.contact && (
@@ -800,11 +804,16 @@ function ActivitiesContent() {
 
       {/* CREATE/EDIT MODAL */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in max-md:items-end max-md:p-0">
           <div
             onClick={e => e.stopPropagation()}
-            className="w-full max-w-lg rounded-3xl border border-border/60 bg-[#0e0e11] shadow-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto scrollbar-thin"
+            className="w-full max-w-lg rounded-3xl border border-border/60 bg-[#0e0e11] shadow-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto scrollbar-thin max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
           >
+            {/* Sheet Handle */}
+            <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+            </div>
+
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border/20 pb-4 mb-4">
               <div>
@@ -819,7 +828,7 @@ function ActivitiesContent() {
                   setShowForm(false)
                   setEditingActivity(null)
                 }}
-                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -834,7 +843,7 @@ function ActivitiesContent() {
                   type="text"
                   placeholder="Ex: Ligação de acompanhamento da proposta"
                   {...register('titulo', { required: 'O título é obrigatório' })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                 />
                 {errors.titulo && (
                   <span className="text-[10px] text-rose-400 mt-1 block">{errors.titulo.message}</span>
@@ -862,8 +871,8 @@ function ActivitiesContent() {
                                 onClick={() => field.onChange(k)}
                                 className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                                   isSelected
-                                    ? 'bg-muted border-primary text-primary shadow-inner shadow-black/20'
-                                    : 'border-border/30 bg-muted/40 text-muted-foreground hover:text-foreground hover:border-border'
+                                    ? 'bg-neutral-800 border-primary text-primary shadow-inner shadow-black/20'
+                                    : 'border-border/30 bg-neutral-900/40 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 <TypeIcon className="w-3.5 h-3.5 shrink-0" />
@@ -886,7 +895,7 @@ function ActivitiesContent() {
                     <button
                       type="button"
                       onClick={() => setShowDatePicker(!showDatePicker)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm focus:outline-none text-left text-foreground flex items-center justify-between"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-sm focus:outline-none text-left text-foreground flex items-center justify-between"
                     >
                       <span>
                         {formSelectedDate ? format(formSelectedDate, 'dd/MM/yyyy') : 'Selecione...'}
@@ -902,13 +911,13 @@ function ActivitiesContent() {
 
                     {/* Popover Custom Calendar */}
                     {showDatePicker && (
-                      <div className="absolute top-full left-0 z-50 mt-1 p-3 rounded-2xl border border-border/80 bg-card shadow-2xl w-[260px] animate-scale-in">
+                      <div className="absolute top-full left-0 z-50 mt-1 p-3 rounded-2xl border border-border/80 bg-neutral-950 shadow-2xl w-[260px] animate-scale-in">
                         {/* Popover Calendar Header */}
                         <div className="flex items-center justify-between mb-2">
                           <button
                             type="button"
                             onClick={() => setFormCalendarMonth(prev => subMonths(prev, 1))}
-                            className="p-1 rounded hover:bg-muted text-muted-foreground"
+                            className="p-1 rounded hover:bg-neutral-800 text-muted-foreground"
                           >
                             <ChevronLeft className="w-3.5 h-3.5" />
                           </button>
@@ -918,7 +927,7 @@ function ActivitiesContent() {
                           <button
                             type="button"
                             onClick={() => setFormCalendarMonth(prev => addMonths(prev, 1))}
-                            className="p-1 rounded hover:bg-muted text-muted-foreground"
+                            className="p-1 rounded hover:bg-neutral-800 text-muted-foreground"
                           >
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>
@@ -947,8 +956,8 @@ function ActivitiesContent() {
                                   isSel
                                     ? 'bg-primary text-black'
                                     : isCurrentM
-                                    ? 'text-neutral-200 hover:bg-muted'
-                                    : 'text-neutral-600 hover:bg-muted/40'
+                                    ? 'text-neutral-200 hover:bg-neutral-800'
+                                    : 'text-neutral-600 hover:bg-neutral-900/40'
                                 }`}
                               >
                                 {format(day, 'd')}
@@ -970,7 +979,7 @@ function ActivitiesContent() {
                     <input
                       type="time"
                       {...register('dueAtTime', { required: 'O horário é obrigatório' })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                     <Clock className="w-4 h-4 text-muted-foreground absolute right-3.5 top-3.5 pointer-events-none" />
                   </div>
@@ -987,7 +996,7 @@ function ActivitiesContent() {
                   placeholder="Detalhamento operacional da atividade..."
                   rows={2}
                   {...register('descricao')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground resize-none"
                 />
               </div>
 
@@ -997,7 +1006,7 @@ function ActivitiesContent() {
                   <label className="ocr-label mb-1.5 block">Contato Vinculado</label>
                   <select
                     {...register('contactId')}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                   >
                     <option value="">-- Nenhum --</option>
                     {contacts.map(c => (
@@ -1012,7 +1021,7 @@ function ActivitiesContent() {
                   <label className="ocr-label mb-1.5 block">Negócio (Deal)</label>
                   <select
                     {...register('dealId')}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                   >
                     <option value="">-- Nenhum --</option>
                     {deals.map(d => (
@@ -1032,7 +1041,7 @@ function ActivitiesContent() {
                     setShowForm(false)
                     setEditingActivity(null)
                   }}
-                  className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-card hover:text-foreground transition-all"
+                  className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-neutral-900 hover:text-foreground transition-all"
                 >
                   Cancelar
                 </button>

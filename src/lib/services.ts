@@ -790,7 +790,7 @@ export const crmService = {
 
   // --- ACTIVITIES SERVICES ---
   async getActivities(): Promise<mockData.MockActivity[]> {
-    return getState().activities.sort((a, b) => new Date(a.dueAt ?? 0).getTime() - new Date(b.dueAt ?? 0).getTime())
+    return getState().activities.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
   },
 
   async createActivity(data: Omit<mockData.MockActivity, 'id' | 'createdAt'>): Promise<mockData.MockActivity> {
@@ -1349,7 +1349,7 @@ export const crmService = {
   async getCurrentUser(): Promise<mockData.MockUser> {
     const res = await fetch('/api/auth/me', { credentials: 'include' })
     if (!res.ok) throw new Error('Não autenticado')
-    const data = await res.json() as { authenticated: boolean; user: { id: string; email: string; nome: string; sobrenome: string; telefone?: string; avatarUrl?: string; role: string } }
+    const data = await res.json() as { authenticated: boolean; user: { id: string; email: string; nome: string; sobrenome: string; telefone?: string; avatarUrl?: string; role: string; disparo_webhook_url?: string; disparo_status_webhook_url?: string; disparo_cancelar_webhook_url?: string } }
     if (!data.authenticated) throw new Error('Não autenticado')
     const u = data.user
     return {
@@ -1360,6 +1360,9 @@ export const crmService = {
       telefone: u.telefone ?? '',
       avatarUrl: u.avatarUrl ?? '',
       role: (u.role as mockData.MockUser['role']) || 'USER',
+      disparo_webhook_url: u.disparo_webhook_url ?? '',
+      disparo_status_webhook_url: u.disparo_status_webhook_url ?? '',
+      disparo_cancelar_webhook_url: u.disparo_cancelar_webhook_url ?? '',
     }
   },
 
@@ -1373,10 +1376,13 @@ export const crmService = {
         sobrenome: data.sobrenome,
         telefone: data.telefone,
         avatarUrl: data.avatarUrl,
+        disparo_webhook_url: data.disparo_webhook_url,
+        disparo_status_webhook_url: data.disparo_status_webhook_url,
+        disparo_cancelar_webhook_url: data.disparo_cancelar_webhook_url,
       }),
     })
     if (!res.ok) throw new Error('Erro ao atualizar perfil')
-    const updated = await res.json() as { id: string; nome: string; sobrenome: string; telefone: string; avatarUrl: string }
+    const updated = await res.json() as { id: string; nome: string; sobrenome: string; telefone: string; avatarUrl: string; disparo_webhook_url?: string; disparo_status_webhook_url?: string; disparo_cancelar_webhook_url?: string }
     const current = await this.getCurrentUser()
 
     if (isBrowser) {

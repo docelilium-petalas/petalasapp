@@ -77,6 +77,13 @@ const TEMPLATE_SEGMENTOS = [
     prioridade: 'baixa',
     filtros: JSON.stringify([{ tipo: 'leads_frios', diasSemAtividade: 365 }])
   },
+  {
+    id: 'tmpl_seg_p1e',
+    nome: 'P1-E — Aniversariantes do dia',
+    descricao: 'Contatos que fazem aniversário hoje — enviar felicitações e ofertas',
+    prioridade: 'maxima',
+    filtros: JSON.stringify([{ tipo: 'aniversariantes' }])
+  },
 ]
 
 const TEMPLATE_CADENCIAS = [
@@ -341,7 +348,7 @@ async function main() {
 
   // 7. Criar Etapas do Pipeline (Stages)
   const stageData = [
-    { nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 4, ordem: 1 },
+    { nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 72, ordem: 1 },
     { nome: 'Qualificação', cor: '#39FF88', probabilidade: 25, slaHours: 12, ordem: 2 },
     { nome: 'Proposta', cor: '#FFB300', probabilidade: 50, slaHours: 24, ordem: 3 },
     { nome: 'Negociação', cor: '#FF5722', probabilidade: 75, slaHours: 48, ordem: 4 },

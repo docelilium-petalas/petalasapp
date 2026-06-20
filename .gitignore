@@ -41,10 +41,3 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
-
-# dev/debug scripts
-list_tables.mjs
-list_tables.sql
-list_tables.ts
-test.ts
-src/proxy.ts

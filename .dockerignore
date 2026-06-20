@@ -8,5 +8,3 @@ node_modules
 coverage
 test.ts
 README.md
-Dockerfile
-.dockerignore

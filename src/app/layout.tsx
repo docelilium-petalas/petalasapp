@@ -1,22 +1,21 @@
 import type { Metadata } from 'next'
-import { Montserrat, Great_Vibes } from 'next/font/google'
+import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 
-const montserrat = Montserrat({
-  variable: '--font-montserrat',
+const geistSans = Geist({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
 })
 
-const signature = Great_Vibes({
-  weight: '400',
-  variable: '--font-signature',
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
   subsets: ['latin'],
 })
 
 export const metadata: Metadata = {
-  title: 'Doce Lilium Closet | Alma Feminina',
-  description: 'A identidade visual da Doce Lílium Closet transmite delicadeza, feminilidade e elegância.',
+  title: 'Caixa Rápido | CRM Operacional',
+  description: 'Máquina de reativação de leads, prospecção ativa e outbound automático.',
 }
 
 export default function RootLayout({
@@ -27,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${montserrat.variable} ${signature.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>{children}</AuthProvider>

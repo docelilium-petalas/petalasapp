@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { crmService } from '@/lib/services'
+import * as crmActions from '@/app/actions/crm'
 import { MockActivity, MockContact, MockDeal } from '@/lib/mockData'
 import { ActivityStatus } from '@prisma/client'
 
@@ -23,14 +23,14 @@ export function useActivities() {
   const load = useCallback(async () => {
     try {
       const [rawActivities, contacts, deals] = await Promise.all([
-        crmService.getActivities(),
-        crmService.getContacts(),
-        crmService.getAllDeals()
+        crmActions.getActivities(),
+        crmActions.getContacts(),
+        crmActions.getAllDeals()
       ])
 
-      const enriched: EnrichedActivity[] = rawActivities.map(act => {
-        const contact = contacts.find((c: MockContact) => c.id === act.contactId)
-        const deal = deals.find((d: MockDeal) => d.id === act.dealId)
+      const enriched: EnrichedActivity[] = (rawActivities as any[]).map(act => {
+        const contact = contacts.find((c: any) => c.id === act.contactId)
+        const deal = deals.find((d: any) => d.id === act.dealId)
         return {
           ...act,
           contact: contact ? { id: contact.id, nome: contact.nome, sobrenome: contact.sobrenome } : undefined,
@@ -112,7 +112,7 @@ export function useCreateActivity() {
   }) => {
     try {
       setLoading(true)
-      const activity = await crmService.createActivity({
+      const activity = await crmActions.createActivity({
         ...data,
         status: data.status ?? ActivityStatus.OPEN
       })
@@ -136,7 +136,7 @@ export function useUpdateActivity() {
   const execute = async (id: string, data: Partial<MockActivity>) => {
     try {
       setLoading(true)
-      const activity = await crmService.updateActivity(id, data)
+      const activity = await crmActions.updateActivity(id, data)
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('crm-activities-updated'))
         window.dispatchEvent(new Event('crm-contacts-updated'))
@@ -156,7 +156,7 @@ export function useCompleteActivity() {
   const execute = async (id: string) => {
     try {
       setLoading(true)
-      const activity = await crmService.updateActivity(id, {
+      const activity = await crmActions.updateActivity(id, {
         status: ActivityStatus.DONE,
         doneAt: new Date().toISOString()
       })
@@ -179,7 +179,7 @@ export function useDeleteActivity() {
   const execute = async (id: string) => {
     try {
       setLoading(true)
-      await crmService.deleteActivity(id)
+      await crmActions.deleteActivity(id)
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('crm-activities-updated'))
         window.dispatchEvent(new Event('crm-contacts-updated'))
@@ -191,3 +191,4 @@ export function useDeleteActivity() {
 
   return { execute, loading }
 }
+

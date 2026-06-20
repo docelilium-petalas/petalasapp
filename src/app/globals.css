@@ -1,85 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  /* === BACKGROUND & FOREGROUND === */
-  --background: 346 50% 94%; /* FBE6EB */
-  --foreground: 345 58% 17%; /* 44121E */
+  /* === PRIMARY: Verde caixa rápido (Supabase Emerald #3ecf8e) === */
+  --primary: 153 60% 53%;
+  --primary-foreground: 0 0% 9%;
+  --primary-glow: 148 83% 58%;
+  --primary-deep: 158 66% 42%;
+
+  /* === BACKGROUND: Preto premium (Supabase Ink #171717 / Canvas Night #1c1c1c) === */
+  --background: 0 0% 9%;
+  --foreground: 0 0% 100%;
 
   /* === SURFACES === */
-  --card: 63 46% 91%; /* F6F7DA */
-  --card-foreground: 345 58% 17%;
-  --popover: 63 46% 91%;
-  --popover-foreground: 345 58% 17%;
-  --secondary: 346 40% 90%;
-  --secondary-foreground: 345 58% 17%;
-  --muted: 346 30% 92%;
-  --muted-foreground: 345 20% 40%;
-  
-  /* === PRIMARY: Rose Pink === */
-  --primary: 351 40% 63%; /* C87783 */
-  --primary-foreground: 0 0% 100%;
-  --primary-glow: 345 58% 17%;
-  --primary-deep: 345 58% 17%; /* 44121E */
-
-  /* === ACCENT === */
-  --accent: 351 40% 63%;
-  --accent-foreground: 0 0% 100%;
+  --card: 0 0% 11%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 11%;
+  --popover-foreground: 0 0% 100%;
+  --secondary: 0 0% 13%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 13%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 153 60% 13%;
+  --accent-foreground: 153 60% 75%;
 
   /* === STATUS === */
-  --destructive: 0 84% 51%;
+  --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
-  --success: 63 53% 29%; /* 6D7123 */
-  --success-foreground: 0 0% 100%;
+  --success: 153 60% 53%;
+  --success-foreground: 0 0% 9%;
   --warning: 38 95% 55%;
-  --warning-foreground: 0 0% 0%;
+  --warning-foreground: 0 0% 9%;
   --info: 200 90% 55%;
-  --info-foreground: 0 0% 0%;
+  --info-foreground: 0 0% 9%;
 
   /* === LINHAS === */
-  --border: 346 30% 86%;
-  --input: 346 30% 88%;
-  --ring: 351 40% 63%;
+  --border: 0 0% 18%;
+  --input: 0 0% 15%;
+  --ring: 153 60% 53%;
 
   --radius: 0.75rem;
 
-  /* === GRAY SCALE LIGHT-NATIVE === */
-  --gray-50: 0 0% 100%;
-  --gray-100: 346 40% 96%;
-  --gray-200: 346 40% 92%;
-  --gray-400: 345 20% 60%;
-  --gray-500: 345 20% 50%;
-  --gray-600: 345 20% 40%;
-  --gray-900: 345 58% 17%;
+  /* === GRAY SCALE DARK-NATIVE === */
+  --gray-50: 150 20% 7%;
+  --gray-100: 150 18% 10%;
+  --gray-200: 150 15% 14%;
+  --gray-400: 150 8% 45%;
+  --gray-500: 150 8% 58%;
+  --gray-600: 150 8% 72%;
+  --gray-900: 0 0% 100%;
+
+  /* === SEMÂNTICOS DE NEGÓCIO === */
+  --priority-alta: 0 84% 55%;
+  --priority-media: 38 95% 55%;
+  --priority-baixa: 145 100% 45%;
+  --priority-nao-respondeu: 150 8% 45%;
+
+  --status-open: 145 100% 45%;
+  --status-won: 142 100% 50%;
+  --status-lost: 0 84% 55%;
 
   /* === SIDEBAR === */
-  --sidebar-background: 63 46% 91%;
-  --sidebar-foreground: 345 58% 17%;
-  --sidebar-primary: 351 40% 63%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 346 50% 94%;
-  --sidebar-accent-foreground: 345 58% 17%;
-  --sidebar-border: 346 30% 86%;
-  --sidebar-ring: 351 40% 63%;
+  --sidebar-background: 0 0% 0%;
+  --sidebar-foreground: 150 12% 76%;
+  --sidebar-primary: 145 100% 45%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 145 80% 12%;
+  --sidebar-accent-foreground: 142 100% 75%;
+  --sidebar-border: 150 25% 10%;
+  --sidebar-ring: 145 100% 45%;
 
   /* === CHARTS === */
-  --chart-1: 351 40% 63%;
-  --chart-2: 63 53% 29%;
-  --chart-3: 345 58% 17%;
+  --chart-1: 145 100% 45%;
+  --chart-2: 142 100% 61%;
+  --chart-3: 120 70% 48%;
   --chart-4: 38 95% 55%;
   --chart-5: 0 84% 55%;
 
-  /* === SIGNATURE GRADIENTS (Lighter variants) === */
-  --ocr-gradient: linear-gradient(135deg, hsl(351 40% 63%) 0%, hsl(346 64% 85%) 100%);
-  --ocr-gradient-text: linear-gradient(135deg, hsl(345 58% 17%) 0%, hsl(351 40% 63%) 100%);
-  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 40% 63% / 0.1) 0%, hsl(345 58% 17% / 0.05) 100%);
-  --ocr-gradient-border: linear-gradient(135deg, hsl(351 40% 63% / 0.3), hsl(345 58% 17% / 0.1));
-  --ocr-glow: 0 0 20px hsl(351 40% 63% / 0.15);
-  --ocr-glow-soft: 0 0 10px hsl(351 40% 63% / 0.1);
-  --ocr-glow-intense: 0 0 30px hsl(351 40% 63% / 0.2);
+  /* === SIGNATURE GRADIENTS === */
+  --ocr-gradient: linear-gradient(135deg, hsl(148 100% 27%) 0%, hsl(145 100% 45%) 50%, hsl(142 100% 61%) 100%);
+  --ocr-gradient-text: linear-gradient(135deg, hsl(142 100% 75%) 0%, hsl(145 100% 55%) 45%, hsl(0 0% 100%) 100%);
+  --ocr-gradient-soft: linear-gradient(135deg, hsl(145 100% 45% / 0.16) 0%, hsl(142 100% 61% / 0.06) 100%);
+  --ocr-gradient-border: linear-gradient(135deg, hsl(142 100% 61% / 0.65), hsl(145 100% 45% / 0.2));
+  --ocr-glow: 0 0 40px hsl(145 100% 45% / 0.35), 0 0 80px hsl(142 100% 61% / 0.15);
+  --ocr-glow-soft: 0 0 24px hsl(145 100% 45% / 0.22);
+  --ocr-glow-intense: 0 0 60px hsl(142 100% 61% / 0.5), 0 0 120px hsl(145 100% 45% / 0.25);
 
   /* === SHADOWS === */
-  --shadow-performance: 0 10px 30px -10px rgb(68 18 30 / 0.1), 0 0 0 1px hsl(351 40% 63% / 0.1);
-  --shadow-card-lift: 0 15px 35px -10px rgb(68 18 30 / 0.15), 0 0 0 1px hsl(351 40% 63% / 0.2);
+  --shadow-performance: 0 25px 50px -12px rgb(0 0 0 / 0.8), 0 0 0 1px hsl(145 100% 45% / 0.06);
+  --shadow-card-lift: 0 20px 40px -10px rgb(0 0 0 / 0.65), 0 0 0 1px hsl(142 100% 61% / 0.12);
 
   /* === MOTION === */
   --ease-performance: cubic-bezier(0.16, 1, 0.3, 1);
@@ -91,7 +99,35 @@
   --dur-700: 700ms;
 }
 
-
+.light {
+  --primary: 153 60% 42%;
+  --primary-glow: 148 83% 58%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --secondary: 0 0% 98%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 98%;
+  --muted-foreground: 0 0% 44%;
+  --accent: 153 60% 95%;
+  --accent-foreground: 153 60% 25%;
+  --destructive: 0 84% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 87%;
+  --input: 0 0% 92%;
+  --ring: 153 60% 53%;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 0 0% 20%;
+  --sidebar-primary: 153 60% 42%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 153 60% 95%;
+  --sidebar-accent-foreground: 153 60% 25%;
+  --sidebar-border: 0 0% 92%;
+  --sidebar-ring: 153 60% 53%;
+}
 
 @theme {
   --color-background: hsl(var(--background));
@@ -132,18 +168,23 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-montserrat), 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(351 40% 63% / 0.2), transparent 70%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(345 58% 17% / 0.1), transparent 70%);
+      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(145 100% 45% / 0.09), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(142 100% 61% / 0.05), transparent 70%);
     background-attachment: fixed;
   }
 
   .light body {
     background-image: none;
+    background-color: hsl(var(--background));
+  }
+
+  .light {
+    color-scheme: light;
   }
 
   h1 { @apply text-[2rem] font-bold leading-tight tracking-tight; }
@@ -155,13 +196,13 @@
 /* === PREMIUM COMPONENTS === */
 @layer components {
   .ocr-glass {
-    background: hsl(var(--card) / 0.7);
+    background: hsl(var(--card) / 0.5);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid hsl(var(--border) / 0.6);
     box-shadow:
       inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
-      0 8px 32px hsl(345 58% 17% / 0.1);
+      0 8px 32px hsl(0 0% 0% / 0.4);
   }
 
   .ocr-glass-strong {
@@ -389,7 +430,7 @@
   .ambient-bg::before {
     width: 500px;
     height: 500px;
-    background: hsl(345 58% 17% / 0.25);
+    background: hsl(145 100% 45% / 0.25);
     top: -150px;
     left: -100px;
     animation: float 12s ease-in-out infinite;
@@ -398,7 +439,7 @@
   .ambient-bg::after {
     width: 400px;
     height: 400px;
-    background: hsl(351 40% 63% / 0.18);
+    background: hsl(142 100% 61% / 0.18);
     bottom: -120px;
     right: -80px;
     animation: float 14s ease-in-out infinite reverse;
@@ -550,4 +591,45 @@
   from { transform: translateY(0); }
   to { transform: translateY(100%); }
 }
+
+/* === LIGHT MODE OVERRIDES ===
+   Unlayered CSS wins over Tailwind utilities — fixes hardcoded dark backgrounds. */
+.light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+.light textarea,
+.light select {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Hardcoded neutral card/surface backgrounds */
+.light .bg-neutral-950 { background-color: hsl(0 0% 97%) !important; }
+.light .bg-neutral-900 { background-color: hsl(0 0% 95%) !important; }
+.light .bg-neutral-800 { background-color: hsl(0 0% 90%) !important; }
+.light .bg-black { background-color: hsl(0 0% 98%) !important; }
+
+/* Semi-transparent dark overlays */
+.light .bg-neutral-900\/60,
+.light .bg-neutral-900\/50,
+.light .bg-neutral-900\/40,
+.light .bg-neutral-950\/30 {
+  background-color: hsl(0 0% 96% / 0.9) !important;
+}
+.light .bg-black\/40,
+.light .bg-black\/60,
+.light .bg-black\/80 {
+  background-color: hsl(0 0% 0% / 0.08) !important;
+}
+
+/* Muted text in light mode (ensure enough contrast) */
+.light .text-neutral-600 { color: hsl(0 0% 32%) !important; }
+
+/* Borders in light mode */
+.light .border-neutral-800 { border-color: hsl(0 0% 82%) !important; }
+.light .border-neutral-700 { border-color: hsl(0 0% 78%) !important; }
 

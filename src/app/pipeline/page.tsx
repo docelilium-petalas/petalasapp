@@ -10,14 +10,14 @@ import {
   MessageSquare, Paperclip, Clock,
   CheckSquare, Square, Search, Settings,
   ArrowRight, Archive, TrendingUp,
-  Phone, Info, Send, ChevronLeft, ChevronRight, Check
+  Phone, Info, Send, ChevronLeft, ChevronRight, Check, FileText
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
 
 import { MockDeal, MockContact, MockUser, MockActivity, MockPipeline, MockStage, MockDealStageHistory } from '@/lib/mockData'
 import { toast, Toaster } from 'sonner'
-import { DndContext, useDraggable, useDroppable, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, useDraggable, useDroppable, DragEndEvent, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { useCategories } from '@/lib/categories'
 
 const BRL = (v: number) =>
@@ -33,30 +33,30 @@ import * as crmActions from '@/app/actions/crm'
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; emoji: string }> = {
   BAIXA: {
     label: 'LEAD AP',
-    color: 'text-emerald-400',
+    color: 'text-emerald-600 dark:text-emerald-400',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
     emoji: '🟢'
   },
   MEDIA: {
     label: 'ZONA CINZA',
-    color: 'text-amber-400',
+    color: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/20',
     emoji: '🟠'
   },
   ALTA: {
     label: 'DESQUALIFICADA',
-    color: 'text-rose-400',
+    color: 'text-rose-600 dark:text-rose-400',
     bg: 'bg-rose-500/10',
     border: 'border-rose-500/20',
     emoji: '🔴'
   },
   NAO_RESPONDEU: {
     label: 'NÃO RESPONDEU',
-    color: 'text-neutral-400',
-    bg: 'bg-muted/55',
-    border: 'border-neutral-700/30',
+    color: 'text-muted-foreground',
+    bg: 'bg-muted',
+    border: 'border-border',
     emoji: '⚪'
   }
 }
@@ -74,7 +74,7 @@ const LOSS_REASONS = [
 
 // Owner badge color generator (deterministic HSL)
 function getOwnerColor(userId: string) {
-  if (!userId) return { bg: 'bg-muted', border: 'border-neutral-700', text: 'text-neutral-300' }
+  if (!userId) return { bg: 'bg-neutral-800', border: 'border-neutral-700', text: 'text-neutral-300' }
   let hash = 0
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash)
@@ -93,6 +93,7 @@ function DraggableDealCard({
   contact,
   owner,
   hasFutureActivity,
+  hasOverdueActivity,
   hasUnreadMessage,
   lastMessageTime,
   isRecentMessage,
@@ -109,12 +110,16 @@ function DraggableDealCard({
   history,
   stageSlaHours,
   pulsingDeals,
-  onActivateSelectionMode
+  onActivateSelectionMode,
+  stageName,
+  stageColor,
+  pendingTasksCount
 }: {
   deal: MockDeal
   contact: MockContact | undefined
   owner: MockUser | undefined
   hasFutureActivity: boolean
+  hasOverdueActivity: boolean
   hasUnreadMessage: boolean
   lastMessageTime: string
   isRecentMessage: boolean
@@ -132,6 +137,9 @@ function DraggableDealCard({
   stageSlaHours: number
   pulsingDeals: Set<string>
   onActivateSelectionMode?: () => void
+  stageName?: string
+  stageColor?: string
+  pendingTasksCount?: number
 }) {
   const isMobile = useIsMobile()
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -139,249 +147,53 @@ function DraggableDealCard({
     disabled: isMobile
   })
 
-  // Swipe gesture state for mobile quick actions
-  const [swipeOffset, setSwipeOffset] = useState(0)
-  const touchStartX = useRef(0)
-  const isSwiping = useRef(false)
-  const longPressTimeout = useRef<any>(null)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isMobile) return
-    touchStartX.current = e.targetTouches[0].clientX
-    isSwiping.current = true
-
-    longPressTimeout.current = setTimeout(() => {
-      if (onActivateSelectionMode) {
-        onActivateSelectionMode()
-      }
-      onSelect()
-      toast.success('Modo de seleção ativado!')
-    }, 700)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile || !isSwiping.current) return
-    const currentX = e.targetTouches[0].clientX
-    const diff = currentX - touchStartX.current
-    if (Math.abs(diff) > 10) {
-      if (longPressTimeout.current) {
-        clearTimeout(longPressTimeout.current)
-        longPressTimeout.current = null
-      }
-    }
-    if (diff < 0) {
-      setSwipeOffset(Math.max(diff, -180)) // max swipe left is -180px
-    } else {
-      setSwipeOffset(0)
-    }
-  }
-
-  const handleTouchEnd = () => {
-    if (longPressTimeout.current) {
-      clearTimeout(longPressTimeout.current)
-      longPressTimeout.current = null
-    }
-    if (!isMobile) return
-    isSwiping.current = false
-    if (swipeOffset < -60) {
-      setSwipeOffset(-180) // snap open to reveal 3 buttons (60px each)
-    } else {
-      setSwipeOffset(0) // snap back closed
-    }
-  }
-
-  const style = transform && !isMobile
+  const style = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         zIndex: 50
       }
     : undefined
 
-  // Compute time in stage using stage_history
-  const stageHistory = history.filter(h => h.dealId === deal.id && h.paraStageId === deal.stageId)
-  const lastEntry = stageHistory.length > 0 ? stageHistory[stageHistory.length - 1] : null
-  const entryTime = lastEntry ? new Date(lastEntry.mudouEm).getTime() : new Date(deal.createdAt).getTime()
-  const _diffMs = Date.now() - entryTime
-  const _diffHours = _diffMs / (1000 * 60 * 60)
-  const _days = Math.floor(_diffHours / 24)
-  const _hours = Math.floor(_diffHours % 24)
-  let timeInStageStr = `${_hours}h`
-  if (_days > 0) timeInStageStr = `${_days}d ${_hours}h`
-  else if (_hours === 0) {
-    const minutes = Math.floor(_diffMs / (1000 * 60))
-    timeInStageStr = `${minutes}m`
-  }
-  const slaRatio = stageSlaHours > 0 ? _diffHours / stageSlaHours : 0
-
-  let slaEmoji = '🟢'
-  let slaTooltip = 'Dentro do SLA'
-  if (stageSlaHours > 0) {
-    if (slaRatio >= 1.5) {
-      slaEmoji = '🔴'
-      slaTooltip = `SLA Crítico: ${timeInStageStr} decorridos vs ${stageSlaHours}h SLA`
-    } else if (slaRatio >= 1.0) {
-      slaEmoji = '🟠'
-      slaTooltip = `SLA Estourado: ${timeInStageStr} decorridos vs ${stageSlaHours}h SLA`
-    } else if (slaRatio >= 0.5) {
-      slaEmoji = '🟡'
-      slaTooltip = `SLA em Atenção: ${timeInStageStr} decorridos vs ${stageSlaHours}h SLA`
-    }
-  }
-
-  const ownerStyle = owner ? getOwnerColor(owner.id) : null
   const phoneClean = contact?.telefone ? contact.telefone.replace(/\D/g, '') : ''
-  const finalOrigem = deal.origem || (phoneClean ? 'whatsapp' : 'manual')
   const prio = PRIORITY_CONFIG[deal.prioridade] || PRIORITY_CONFIG.MEDIA
   const isPulsing = pulsingDeals.has(deal.id)
 
-  if (isMobile) {
-    return (
-      <div className="relative overflow-hidden rounded-xl bg-card border border-border/30 w-full shrink-0">
-        {/* Swipe Quick Actions Behind Card */}
-        <div className="absolute inset-y-0 right-0 z-0 flex items-center bg-card border-l border-border/20">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onMarkWon()
-              setSwipeOffset(0)
-            }}
-            className="h-full px-4 bg-emerald-500 text-black flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
-          >
-            <CheckCircle2 className="w-5 h-5 mb-1 text-black" />
-            <span>Ganho</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onMarkLost()
-              setSwipeOffset(0)
-            }}
-            className="h-full px-3.5 bg-rose-500 text-foreground flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
-          >
-            <X className="w-5 h-5 mb-1 text-foreground" />
-            <span>Perdido</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-              setSwipeOffset(0)
-            }}
-            className="h-full px-4 bg-muted text-rose-500 flex flex-col items-center justify-center font-bold text-[11px] active:opacity-80 shrink-0"
-          >
-            <Trash2 className="w-5 h-5 mb-1 text-rose-500" />
-            <span>Excluir</span>
-          </button>
-        </div>
+  const BRL = (v: number) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0
+    }).format(v)
 
-        {/* Card Main Body */}
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={(e) => {
-            if (swipeOffset < 0) {
-              e.stopPropagation()
-              setSwipeOffset(0)
-            } else {
-              if (isSelectionMode) {
-                e.stopPropagation()
-                onSelect()
-              } else {
-                onClick()
-              }
-            }
-          }}
-          style={{
-            transform: `translate3d(${swipeOffset}px, 0, 0)`,
-            transition: isSwiping.current ? 'none' : 'transform 250ms cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-          className={`relative z-10 p-4 bg-card border-none transition-colors duration-200 select-none active:bg-muted/80 ${
-            isSelected ? 'bg-primary/10 border border-primary/20' : ''
-          }`}
-        >
-          {/* Card Top Row: Priority Badge & Date/Unread Indicators */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border ${prio.bg} ${prio.color} ${prio.border}`}>
-                {prio.label}
-              </span>
-              {inActiveCadence && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/25">
-                  ⚡ Cadência
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              {isRecentMessage && (
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 relative" title="Mensagem recebida há menos de 1h">
-                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-                </span>
-              )}
-              <span className="text-[10px] font-mono text-neutral-500">
-                {new Date(deal.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-              </span>
-            </div>
-          </div>
-
-          {/* Deal Title */}
-          <h4 className="text-[17px] font-bold text-foreground line-clamp-1 leading-tight mb-1 pr-4">
-            {deal.titulo}
-          </h4>
-
-          {/* Contact and Value Row */}
-          <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border/10">
-            <div className="flex flex-col min-w-0">
-              <p className="text-[15px] font-semibold text-neutral-200 truncate">
-                {contact?.nome} {contact?.sobrenome || ''}
-              </p>
-              {deal.produtoInteresse && (
-                <span className="text-[11px] text-neutral-500 truncate mt-0.5">
-                  {deal.produtoInteresse} • {finalOrigem}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span className="text-[16px] font-black text-primary font-mono">{BRL(deal.valorEstimado)}</span>
-              
-              {/* Owner initials or User default avatar */}
-              {owner ? (
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0"
-                  style={{
-                    backgroundColor: ownerStyle?.bg,
-                    borderColor: ownerStyle?.border,
-                    color: ownerStyle?.text
-                  }}
-                >
-                  {owner.nome[0]}{owner.sobrenome ? owner.sobrenome[0] : ''}
-                </div>
-              ) : (
-                <div className="w-7 h-7 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-card shrink-0">
-                  <User className="w-4 h-4 text-neutral-600" />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  // Parse tags
+  let parsedTags: string[] = []
+  if (deal.tags) {
+    try {
+      parsedTags = JSON.parse(deal.tags)
+    } catch {
+      parsedTags = deal.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+    }
   }
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`relative group p-3.5 rounded-xl border transition-all duration-300 ${
+      style={{
+        ...style,
+        borderLeftWidth: '4px',
+        borderLeftColor: deal.prioridade === 'ALTA' ? '#f87171'
+                : deal.prioridade === 'NAO_RESPONDEU' ? '#9ca3af'
+                : deal.prioridade === 'MEDIA' ? 'transparent'
+                : '#34d399'
+      }}
+      className={`relative group flex flex-col p-2.5 rounded-lg border transition-all duration-300 ${
         isDragging ? 'opacity-40 cursor-grabbing' : 'cursor-grab active:cursor-grabbing'
       } ${
         isSelected
-          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/5'
-          : 'border-border/30 bg-card/60 hover:border-border/80 hover:bg-card/85'
-      } ${isPulsing ? 'animate-pulse border-primary/90 shadow-[0_0_12px_rgba(57,255,136,0.35)]' : ''}`}
+          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
+          : 'border-border/50 bg-card hover:bg-card/80 shadow-sm'
+      } ${isPulsing ? 'animate-pulse border-primary/90' : ''}`}
       onClick={(e) => {
-        // If selection mode, toggle selection on click too, else open drawer
         if (isSelectionMode) {
           e.stopPropagation()
           onSelect()
@@ -389,192 +201,193 @@ function DraggableDealCard({
           onClick()
         }
       }}
+      {...(!isMobile ? attributes : {})}
+      {...(!isMobile ? listeners : {})}
     >
-      {/* Checkbox for selection */}
-      {(isSelectionMode || isSelected) ? (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onSelect()
-          }}
-          className="absolute top-2.5 right-2.5 z-10 text-muted-foreground hover:text-primary transition-colors"
-        >
-          {isSelected ? (
-            <CheckSquare className="w-4 h-4 text-primary" />
-          ) : (
-            <Square className="w-4 h-4 text-muted-foreground" />
-          )}
-        </button>
-      ) : (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onSelect()
-          }}
-          className="absolute top-2.5 right-2.5 z-10 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
-        >
-          <Square className="w-4 h-4 text-muted-foreground" />
-        </button>
-      )}
+      {/* Row 1: Priority Indicator, Title, Context Menu */}
+      <div className="flex items-start justify-between gap-2 pointer-events-none">
+        <div className="flex items-start gap-2.5 flex-1 pt-0.5">
+          <h4 className="text-[13px] font-bold text-foreground line-clamp-2 leading-snug">
+            {deal.titulo}
+          </h4>
+        </div>
 
-      {/* Context menu (only shown when not in selection mode) */}
-      {!isSelectionMode && (
-        <div className="absolute top-2.5 right-2.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 pointer-events-auto z-10 shrink-0 -mt-1 -mr-1">
+          {/* Selection Checkbox (Always visible) */}
           <button
             onClick={(e) => {
               e.stopPropagation()
-              onOpenMenu()
+              onSelect()
             }}
-            className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+            className="p-2 text-muted-foreground hover:text-primary transition-colors"
           >
-            <MoreVertical className="w-3.5 h-3.5" />
+            {isSelected ? (
+              <CheckSquare className="w-4 h-4 text-primary" />
+            ) : (
+              <Square className="w-4 h-4 opacity-50 hover:opacity-100 transition-opacity" />
+            )}
           </button>
-          {isOpenMenu && (
-            <div
-              className="absolute right-0 top-7 z-20 w-44 rounded-xl border border-border bg-card shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+
+          {/* Context menu */}
+          {!isSelectionMode && (
+            <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenMenu()
+              }}
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
             >
-              <button
-                onClick={() => {
-                  onMarkWon()
-                }}
-                className="flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-primary/10 text-primary transition-colors"
+              <MoreVertical className="w-4 h-4" />
+            </button>
+            {isOpenMenu && (
+              <div
+                className="absolute right-0 top-8 w-44 rounded-xl border border-border bg-popover shadow-2xl overflow-hidden z-50"
+                onClick={(e) => e.stopPropagation()}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" /> Marcar Ganho
-              </button>
-              <button
-                onClick={() => {
-                  onMarkLost()
-                }}
-                className="flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-destructive/10 text-destructive transition-colors"
-              >
-                <X className="w-3.5 h-3.5" /> Marcar Perdido
-              </button>
-              <div className="h-px bg-border/50 my-1" />
-              <button
-                onClick={() => {
-                  onDelete()
-                }}
-                className="flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-destructive/10 text-destructive transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Excluir
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+                <button
+                  onClick={() => onMarkWon()}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm hover:bg-primary/10 text-primary transition-colors font-medium"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Marcar Ganho
+                </button>
+                <button
+                  onClick={() => onMarkLost()}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm hover:bg-destructive/10 text-destructive transition-colors font-medium"
+                >
+                  <X className="w-4 h-4" /> Marcar Perdido
+                </button>
+                <div className="h-px bg-border my-1" />
+                <button
+                  onClick={() => onDelete()}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm hover:bg-destructive/10 text-destructive transition-colors font-medium"
+                >
+                  <Trash2 className="w-4 h-4" /> Excluir
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      </div>
 
-      {/* Drag Handle Listener Area */}
-      <div {...attributes} {...listeners} className="absolute inset-0 right-8 bottom-8" />
-
-      {/* Card Content (Relative so it clicks correctly) */}
-      <div className="relative pointer-events-none">
-        {/* Deal Title */}
-        <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug pr-4">
-          {deal.titulo}
-        </h4>
-
-        {/* Priority Badge */}
-        <div className="mt-2 flex">
-          <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-md border ${prio.bg} ${prio.color} ${prio.border}`}>
-            {prio.label}
-          </span>
-        </div>
-
-        {/* Contact Info */}
-        <div className="mt-2 text-[11px] text-muted-foreground">
-          <p className="font-medium text-neutral-300">
+      {/* Main card details content */}
+      <div className="flex flex-col gap-1.5 mt-1.5 w-full pl-5">
+        {/* Row 2: Contact Name & Phone */}
+        <div className="flex flex-col gap-0.5 pointer-events-none">
+          <p className="text-[12px] font-semibold text-foreground/90 leading-tight">
             {contact?.nome} {contact?.sobrenome || ''}
           </p>
-          {phoneClean && (
+          {contact?.telefone && (
             <a
               href={`https://wa.me/${phoneClean}`}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="pointer-events-auto inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-0.5"
+              className="pointer-events-auto text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors w-fit"
             >
-              <Phone className="w-2.5 h-2.5" /> {contact?.telefone}
+              <Phone className="w-2.5 h-2.5" /> {contact.telefone}
             </a>
           )}
         </div>
 
-        {/* Value & Metadata */}
-        <div className="mt-3 flex items-center justify-between border-t border-border/10 pt-2">
-          <div className="flex flex-col">
-            <span className="text-[10px] text-muted-foreground">Estimado</span>
-            <span className="text-xs font-bold text-primary">{BRL(deal.valorEstimado)}</span>
-          </div>
+        {/* Row 3: Badges Grid (Priority, Product, Origin, etc.) */}
+        <div className="flex flex-wrap items-center gap-1 pointer-events-none">
+          {deal.prioridade !== 'MEDIA' && (
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border ${prio.color} ${prio.bg} ${prio.border}`}>
+              {prio.emoji} {prio.label}
+            </span>
+          )}
 
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            {/* SLA Emoji */}
-            {stageSlaHours > 0 && (
-              <span title={slaTooltip} className="cursor-help text-xs">
-                {slaEmoji}
-              </span>
-            )}
+          {deal.produtoInteresse && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50 truncate max-w-[100px]">
+              📦 {deal.produtoInteresse}
+            </span>
+          )}
 
-            {/* Owner Badge */}
-            {owner ? (
-              <div
-                title={`Responsável: ${owner.nome}`}
-                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border"
-                style={{
-                  backgroundColor: ownerStyle?.bg,
-                  borderColor: ownerStyle?.border,
-                  color: ownerStyle?.text
-                }}
-              >
-                {owner.nome[0]}
-                {owner.sobrenome ? owner.sobrenome[0] : ''}
-              </div>
-            ) : (
-              <div
-                title="Sem responsável"
-                className="w-5 h-5 rounded-full border border-dashed border-neutral-700 flex items-center justify-center bg-card"
-              >
-                <User className="w-3 h-3 text-neutral-600" />
-              </div>
-            )}
-          </div>
+          {deal.origem && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50">
+              🔗 {deal.origem}
+            </span>
+          )}
+
+          {deal.ramoEmpresa && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50 truncate max-w-[100px]">
+              🏢 {deal.ramoEmpresa}
+            </span>
+          )}
+
+          {deal.faturamentoMensal !== undefined && deal.faturamentoMensal > 0 && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50">
+              💰 Fat: {BRL(deal.faturamentoMensal)}
+            </span>
+          )}
+
+          {deal.aiScore > 0 && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 animate-pulse">
+              ✨ AI: {deal.aiScore}%
+            </span>
+          )}
+
+          {(pendingTasksCount ?? 0) > 0 && (
+            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold border ${hasOverdueActivity ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
+              <CheckSquare className="w-2.5 h-2.5" /> {pendingTasksCount}
+            </span>
+          )}
+
+          {inActiveCadence && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">
+              <Zap className="w-2.5 h-2.5" /> Cadência
+            </span>
+          )}
+
+          {parsedTags.includes('disparado') ? (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ✅ DISPARADO{(() => { const d = parsedTags.find(t => t.startsWith('disparos:')); return d ? ` ×${d.split(':')[1]}` : '' })()}
+            </span>
+          ) : parsedTags.includes('listado') && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-violet-500/10 text-violet-400 border border-violet-500/20">
+              📋 LISTADO{(() => { const d = parsedTags.find(t => t.startsWith('disparos:')); return d ? ` ×${d.split(':')[1]}` : '' })()}
+            </span>
+          )}
+
+          {parsedTags.filter(tag => tag !== 'listado' && tag !== 'disparado' && tag !== 'mensagem_enviada' && !tag.startsWith('disparos:')).map(tag => (
+            <span key={tag} className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-primary/5 text-primary border border-primary/20">
+              #{tag}
+            </span>
+          ))}
         </div>
 
-        {/* Extra Flags & Chips */}
-        <div className="mt-2.5 flex flex-wrap gap-1 items-center justify-between">
-          <div className="flex flex-wrap gap-1">
-            {deal.produtoInteresse && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-neutral-400">
-                {deal.produtoInteresse}
-              </span>
-            )}
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/5 text-primary border border-primary/10">
-              {finalOrigem}
+        {/* Row 4: Owner & Stage Info */}
+        <div className="flex flex-col gap-1 mt-0.5">
+          <div className="flex items-center gap-1.5 pointer-events-none">
+            <User className="w-3 h-3 text-muted-foreground shrink-0" />
+            <span className="text-[10px] text-muted-foreground">
+              {owner ? `${owner.nome} ${owner.sobrenome || ''}` : 'Sem vendedor'}
             </span>
-            {inActiveCadence && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                ⚡ cadência
-              </span>
-            )}
           </div>
 
-          <div className="flex flex-col gap-1 text-muted-foreground text-[10px] items-end">
-            <span className="text-[9px] font-mono flex items-center gap-1 text-neutral-500" title="Última atualização do negócio">
-              <Clock className="w-2.5 h-2.5" />
-              {new Date(deal.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-            </span>
-            {lastMessageTime ? (
-              <span className={`text-[9px] font-mono flex items-center gap-1 ${isRecentMessage ? 'text-emerald-400' : 'text-neutral-500'}`} title={isRecentMessage ? 'Mensagem recebida há menos de 1h' : 'Última mensagem'}>
-                <MessageSquare className="w-2.5 h-2.5" />
-                {isRecentMessage && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
-                {lastMessageTime}
+          {stageName && (
+            <div className="flex items-center gap-1.5 pointer-events-none">
+              <div
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{
+                  backgroundColor: stageColor || '#fbbf24',
+                  boxShadow: `0 0 4px ${stageColor || '#fbbf24'}`
+                }}
+              />
+              <span className="text-[10px] font-bold text-muted-foreground/80 uppercase tracking-wide">
+                {stageName}
               </span>
-            ) : (
-              <span className="text-[9px] font-mono flex items-center gap-1 text-neutral-700" title="Sem mensagens registradas">
-                <MessageSquare className="w-2.5 h-2.5" />
-                —
-              </span>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Row 5: Value + Action Trigger */}
+        <div className="flex items-center justify-between border-t border-border/10 pt-1.5 mt-1 pointer-events-none">
+          <span className="text-[14px] font-extrabold text-primary tracking-tight">
+            {BRL(deal.valorEstimado)}
+          </span>
         </div>
       </div>
     </div>
@@ -599,6 +412,7 @@ function DroppableColumn({
   onMarkWon,
   onMarkLost,
   onDeleteDeal,
+  onDeleteStage,
   pulsingDeals,
   lastMessageMap,
   activeCadenceSet
@@ -618,7 +432,8 @@ function DroppableColumn({
   setOpenMenuDealId: (id: string | null) => void
   onMarkWon: (deal: MockDeal) => void
   onMarkLost: (deal: MockDeal) => void
-  onDeleteDeal: (id: string) => void
+  onDeleteDeal: (id: string, forcePermanent?: boolean) => void
+  onDeleteStage: (stage: MockStage) => void
   pulsingDeals: Set<string>
   lastMessageMap: Record<string, { time: string; isRecent: boolean }>
   activeCadenceSet: Set<string>
@@ -636,12 +451,12 @@ function DroppableColumn({
       className={`flex flex-col w-72 shrink-0 rounded-2xl border transition-all duration-300 ${
         isOver
           ? 'border-primary/80 bg-primary/5 shadow-inner'
-          : 'border-border/30 bg-card/40'
+          : 'border-border/30 bg-neutral-950/40'
       }`}
     >
       {/* Stage Header */}
       <div
-        className="px-4 py-3.5 border-b border-border/20 flex flex-col gap-1.5"
+        className="group px-4 py-3.5 border-b border-border/20 flex flex-col gap-1.5"
         style={{ borderTop: `3px solid ${stage.cor}` }}
       >
         <div className="flex items-center justify-between">
@@ -661,11 +476,20 @@ function DroppableColumn({
             <span className="font-bold text-sm text-foreground truncate max-w-[130px]" title={stage.nome}>
               {stage.nome}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-neutral-400">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400">
               {deals.length}
             </span>
           </div>
-          <span className="text-xs font-bold text-primary">{BRL(stageTotal)}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-primary">{BRL(stageTotal)}</span>
+            <button
+              onClick={() => onDeleteStage(stage)}
+              className="text-muted-foreground hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
+              title="Excluir coluna"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         {stage.slaHours > 0 && (
           <p className="text-[10px] text-neutral-500 flex items-center gap-1">
@@ -675,14 +499,16 @@ function DroppableColumn({
       </div>
 
       {/* Cards Scrollable Area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-3.5 space-y-3 max-h-[calc(100vh-280px)] min-h-[150px]">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-2.5 space-y-2.5 max-h-[calc(100vh-280px)] min-h-[150px]">
         {deals.map((deal) => {
           const contact = contacts.find((c) => c.id === deal.contactId)
           const owner = users.find((u) => u.id === deal.ownerUserId)
           const isSelected = selectedDeals.has(deal.id)
+          const pendingTasksCount = activities.filter(a => a.dealId === deal.id && a.status === 'OPEN').length
           const dealActivities = activities.filter((a) => a.dealId === deal.id)
-          const hasFutureActivity = dealActivities.some(
-            (a) => a.status === 'OPEN' && !!a.dueAt && new Date(a.dueAt).getTime() > Date.now()
+          const hasOverdueActivity = dealActivities.some((a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() < Date.now())
+                    const hasFutureActivity = dealActivities.some(
+            (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
           )
           const contactPhone = (contact?.telefone || deal.telefone || '').replace(/\D/g, '')
           const msgData = lastMessageMap[contactPhone] || null
@@ -697,7 +523,7 @@ function DroppableColumn({
               deal={deal}
               contact={contact}
               owner={owner}
-              hasFutureActivity={hasFutureActivity}
+              hasFutureActivity={hasFutureActivity} hasOverdueActivity={hasOverdueActivity}
               hasUnreadMessage={hasUnreadMessage}
               lastMessageTime={lastMessageTime}
               isRecentMessage={isRecentMessage}
@@ -715,6 +541,7 @@ function DroppableColumn({
               stageSlaHours={stage.slaHours}
               pulsingDeals={pulsingDeals}
               onActivateSelectionMode={() => {}}
+              stageName={stage.nome}
             />
           )
         })}
@@ -755,6 +582,7 @@ function PipelineContent() {
   const [users, setUsers] = useState<any[]>([])
   const [activities, setActivities] = useState<MockActivity[]>([])
   const [history, setHistory] = useState<MockDealStageHistory[]>([])
+  const [currentUser, setCurrentUser] = useState<{ id: string; isAdmin: boolean } | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -776,6 +604,10 @@ function PipelineContent() {
   const [showLostReasonModal, setShowLostReasonModal] = useState<{ deal: MockDeal } | { bulk: true } | null>(null)
   const [lostReasonInput, setLostReasonInput] = useState('')
   const [customLostReason, setCustomLostReason] = useState('')
+  const [showNewStageModal, setShowNewStageModal] = useState(false)
+  const [newStageName, setNewStageName] = useState('')
+  const [stageToDelete, setStageToDelete] = useState<MockStage | null>(null)
+  const [migrateToStageId, setMigrateToStageId] = useState<string>('')
 
   // Bulk Selection Mode
   const [isSelectionMode, setIsSelectionMode] = useState(false)
@@ -784,9 +616,7 @@ function PipelineContent() {
   const [bulkOwnerTarget, setBulkOwnerTarget] = useState('')
   const [bulkPriorityTarget, setBulkPriorityTarget] = useState('')
   const [bulkTagTarget, setBulkTagTarget] = useState('')
-  const [selectedListaTarget, setSelectedListaTarget] = useState('')
   const [selectedCadenciaTarget, setSelectedCadenciaTarget] = useState('')
-  const [listasDisparo, setListasDisparo] = useState<any[]>([])
   const [cadencias, setCadencias] = useState<any[]>([])
 
   // Context Menu
@@ -805,6 +635,9 @@ function PipelineContent() {
     faturamentoMensal: '',
     ownerUserId: ''
   })
+  const [isNewContact, setIsNewContact] = useState(false)
+  const [newContactData, setNewContactData] = useState({ nome: '', telefone: '' })
+
 
   // Set mounted
   useEffect(() => {
@@ -866,8 +699,16 @@ function PipelineContent() {
   async function load() {
     setLoading(true)
     try {
-      const pipes = await crmActions.getPipelines()
+      const [pipes, currentUserData] = await Promise.all([
+        crmActions.getPipelines(),
+        crmActions.getCurrentUser()
+      ])
       setPipelines(pipes)
+      setCurrentUser(currentUserData)
+      if (!(window as any).__filterOwnerSet) {
+        setFilterOwner('all')
+        ;(window as any).__filterOwnerSet = true
+      }
 
       // Get initial selection from localStorage or defaults
       let activeId = localStorage.getItem('ocr_active_pipeline_id')
@@ -893,12 +734,11 @@ function PipelineContent() {
   }
 
   async function loadPipelineData(pipelineId: string) {
-    const [stgs, dls, allContacts, allActivities, allListas, allCadencias, teamUsers, allHistory, activeDealIds] = await Promise.all([
+    const [stgs, dls, allContacts, allActivities, allCadencias, teamUsers, allHistory, activeDealIds] = await Promise.all([
       crmActions.getStages(pipelineId),
       crmActions.getDeals(pipelineId),
       crmActions.getContacts(),
       crmActions.getActivities(),
-      crmActions.getListasDisparo(),
       crmActions.getCadencias(),
       crmActions.getTeamUsers(),
       crmActions.getAllHistory(),
@@ -911,7 +751,6 @@ function PipelineContent() {
     setDeals(dls)
     setContacts(allContacts)
     setActivities(allActivities)
-    setListasDisparo(allListas)
     setCadencias(allCadencias)
     setActiveCadenceSet(new Set(activeDealIds))
 
@@ -1000,25 +839,86 @@ function PipelineContent() {
   }
 
   // Create Deal handler
+  const handleCreateStage = async () => {
+    if (!newStageName.trim() || !selectedPipelineId) return
+    try {
+      await crmActions.createStage({
+        pipelineId: selectedPipelineId,
+        nome: newStageName.trim(),
+        cor: '#39FF88', // Default neon green
+        probabilidade: 0,
+        slaHours: 24
+      })
+      await loadPipelineData(selectedPipelineId)
+      setShowNewStageModal(false)
+      setNewStageName('')
+      toast.success('Coluna criada com sucesso!')
+    } catch {
+      toast.error('Erro ao criar coluna.')
+    }
+  }
+
+  const handleDeleteStage = async () => {
+    if (!stageToDelete) return
+    try {
+      // Migrate deals if selected
+      const stageDeals = deals.filter(d => d.stageId === stageToDelete.id && d.status === 'OPEN')
+      if (stageDeals.length > 0 && migrateToStageId) {
+        const promises = stageDeals.map(d => crmActions.moveDealStage(d.id, migrateToStageId, 'migration'))
+        await Promise.all(promises)
+      }
+
+      await crmActions.deleteStage(stageToDelete.id)
+      await loadPipelineData(selectedPipelineId)
+      setStageToDelete(null)
+      setMigrateToStageId('')
+      toast.success('Coluna excluída com sucesso!')
+    } catch {
+      toast.error('Erro ao excluir coluna.')
+    }
+  }
+
   const handleCreateDeal = async () => {
-    if (!newDeal.titulo || !newDeal.contactId) {
-      toast.error('Título e contato são obrigatórios.')
+    if (!newDeal.titulo) {
+      toast.error('Título é obrigatório.')
+      return
+    }
+
+    if (!isNewContact && !newDeal.contactId) {
+      toast.error('Selecione um contato.')
+      return
+    }
+
+    if (isNewContact && (!newContactData.nome || !newContactData.telefone)) {
+      toast.error('Nome e telefone do novo contato são obrigatórios.')
       return
     }
 
     try {
+      let finalContactId = newDeal.contactId
+
+      if (isNewContact) {
+        const createdContact = await crmActions.createContact({
+          nome: newContactData.nome,
+          telefone: newContactData.telefone.replace(/\D/g, '')
+        })
+        finalContactId = createdContact.id
+      }
+
       const created = await crmActions.createDeal({
         titulo: newDeal.titulo,
-        pipelineId: selectedPipelineId,
-        stageId: newDeal.stageId || stages[0]?.id || '',
-        contactId: newDeal.contactId,
         valorEstimado: parseFloat(newDeal.valorEstimado) || 0,
+        contactId: finalContactId as string,
+        stageId: newDeal.stageId || stages[0]?.id || '',
         produtoInteresse: newDeal.produtoInteresse || undefined,
         origem: newDeal.origem || undefined,
         prioridade: newDeal.prioridade as MockDeal['prioridade'],
+        status: 'OPEN' as MockDeal['status'],
         ramoEmpresa: newDeal.ramoEmpresa || undefined,
         faturamentoMensal: parseFloat(newDeal.faturamentoMensal) || 0,
-        ownerUserId: newDeal.ownerUserId || undefined,
+        ownerUserId: newDeal.ownerUserId || currentUser?.id || undefined,
+        aiScore: 0,
+        userId: ''
       })
 
       setDeals((prev) => [...prev, created])
@@ -1047,19 +947,24 @@ function PipelineContent() {
     }
   }
 
-  // Delete Deal
-  const handleDeleteDeal = async (id: string) => {
-    if (!confirm('Deseja realmente excluir este negócio? Todas as atividades e histórico serão perdidos.')) return
+  // Delete / Archive Deal
+  const handleDeleteDeal = async (id: string, forcePermanent = false) => {
+    if (!confirm(forcePermanent ? 'Excluir permanentemente?' : 'Deseja arquivar este negócio?')) return
     try {
-      await crmActions.deleteDeal(id)
-      setDeals((prev) => prev.filter((d) => d.id !== id))
+      await crmActions.deleteDeal(id, forcePermanent)
+      if (forcePermanent) {
+        setDeals((prev) => prev.filter((d) => d.id !== id))
+      } else {
+        // Soft delete: keep in deals state if needed or just remove from active
+        setDeals((prev) => prev.filter((d) => d.id !== id))
+      }
       setSelectedDeals((prev) => {
         const next = new Set(prev)
         next.delete(id)
         return next
       })
       if (selectedDeal?.id === id) setSelectedDeal(null)
-      toast.success('Negócio excluído com sucesso.')
+      toast.success(forcePermanent ? 'Negócio excluído permanentemente.' : 'Negócio arquivado com sucesso.')
     } catch {
       toast.error('Erro ao excluir.')
     }
@@ -1147,18 +1052,18 @@ function PipelineContent() {
     })
   }
 
-  const handleBulkAddToLista = async () => {
-    if (!selectedListaTarget) return
+  const handleGoToCaixaRapido = async () => {
+    const dealIds = Array.from(selectedDeals)
     try {
-      const dealIds = Array.from(selectedDeals)
-      const count = await crmActions.addLeadsToListaDisparo(selectedListaTarget, dealIds, 'deal')
-      toast.success(`${count} leads adicionados à lista de disparo com sucesso!`)
-      setSelectedDeals(new Set())
-      setIsSelectionMode(false)
-      setSelectedListaTarget('')
-    } catch (e: any) {
-      toast.error(e.message || 'Erro ao adicionar leads à lista de disparo')
+      await crmActions.tagDealsAsListado(dealIds)
+      await loadPipelineData(selectedPipelineId)
+    } catch {
+      // non-blocking — navigate anyway
     }
+    sessionStorage.setItem('pipeline_deals_to_action', JSON.stringify(dealIds))
+    setSelectedDeals(new Set())
+    setIsSelectionMode(false)
+    router.push('/caixa-rapido?tab=wizard')
   }
 
   const handleBulkAddToCadence = async () => {
@@ -1304,7 +1209,7 @@ function PipelineContent() {
   const handleBulkDelete = async () => {
     if (!confirm('Excluir TODOS os negócios selecionados permanentemente? Esta ação é irreversível.')) return
     try {
-      const promises = Array.from(selectedDeals).map((id) => crmActions.deleteDeal(id))
+      const promises = Array.from(selectedDeals).map((id) => crmActions.deleteDeal(id, false))
       await Promise.all(promises)
       await loadPipelineData(selectedPipelineId)
       setSelectedDeals(new Set())
@@ -1378,7 +1283,7 @@ function PipelineContent() {
   const forecastValue = openDeals.reduce((sum, d) => {
     const stage = stages.find((s) => s.id === d.stageId)
     const prob = stage ? stage.probabilidade : 0
-    return sum + d.valorEstimado * (prob / 100)
+return sum + d.valorEstimado * (prob / 100)
   }, 0)
 
   // Conversão histórica do pipeline selecionado
@@ -1388,40 +1293,22 @@ function PipelineContent() {
   const totalClosed = wonDealsCount + lostDealsCount
   const conversionRate = totalClosed > 0 ? (wonDealsCount / totalClosed) * 100 : 0
 
-  // Column swipe navigation handlers (mobile only)
+  // Combined Touch/Swipe/Pull-to-refresh logic for Mobile View
   const touchStartXColumn = useRef(0)
   const touchEndXColumn = useRef(0)
-
-  const handleTouchStartColumn = (e: React.TouchEvent) => {
-    if (!isMobile) return
-    touchStartXColumn.current = e.targetTouches[0].clientX
-    touchEndXColumn.current = e.targetTouches[0].clientX
-  }
-
-  const handleTouchMoveColumn = (e: React.TouchEvent) => {
-    if (!isMobile) return
-    touchEndXColumn.current = e.targetTouches[0].clientX
-  }
-
-  const handleTouchEndColumn = () => {
-    if (!isMobile) return
-    const diff = touchStartXColumn.current - touchEndXColumn.current
-    if (diff > 75) {
-      // Swiped Left -> next column
-      setActiveStageIndex(prev => Math.min(stages.length - 1, prev + 1))
-    } else if (diff < -75) {
-      // Swiped Right -> prev column
-      setActiveStageIndex(prev => Math.max(0, prev - 1))
-    }
-  }
-
-  // Pull-to-refresh logic
   const [pullDistance, setPullDistance] = useState(0)
   const [isPulling, setIsPulling] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const touchStartYPull = useRef(0)
 
-  const handleTouchStartPull = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchStartMobile = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isMobile) return
+    
+    // Swipe Column Tracking
+    touchStartXColumn.current = e.targetTouches[0].clientX
+    touchEndXColumn.current = e.targetTouches[0].clientX
+
+    // Pull-to-refresh Tracking
     const scrollTop = e.currentTarget.scrollTop
     if (scrollTop === 0) {
       touchStartYPull.current = e.targetTouches[0].clientY
@@ -1431,16 +1318,36 @@ function PipelineContent() {
     }
   }
 
-  const handleTouchMovePull = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!isPulling) return
-    const currentY = e.targetTouches[0].clientY
-    const diffY = currentY - touchStartYPull.current
-    if (diffY > 0) {
-      setPullDistance(Math.min(diffY * 0.4, 70)) // apply resistance
+  const handleTouchMoveMobile = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isMobile) return
+    
+    // Swipe Column tracking
+    touchEndXColumn.current = e.targetTouches[0].clientX
+
+    // Pull-to-refresh tracking
+    if (isPulling) {
+      const currentY = e.targetTouches[0].clientY
+      const diffY = currentY - touchStartYPull.current
+      if (diffY > 0) {
+        setPullDistance(Math.min(diffY * 0.4, 70))
+      }
     }
   }
 
-  const handleTouchEndPull = async () => {
+  const handleTouchEndMobile = async () => {
+    if (!isMobile) return
+
+    // Swipe Column evaluation
+    const diff = touchStartXColumn.current - touchEndXColumn.current
+    if (diff > 75) {
+      // Swiped Left -> next column
+      setActiveStageIndex(prev => Math.min(stages.length - 1, prev + 1))
+    } else if (diff < -75) {
+      // Swiped Right -> prev column
+      setActiveStageIndex(prev => Math.max(0, prev - 1))
+    }
+
+    // Pull-to-refresh evaluation
     setIsPulling(false)
     if (pullDistance > 45 && !isRefreshing) {
       setIsRefreshing(true)
@@ -1454,6 +1361,7 @@ function PipelineContent() {
     }
   }
 
+
   if (loading || !mounted) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
@@ -1466,12 +1374,12 @@ function PipelineContent() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-card/20 max-md:pb-16 select-none relative">
+    <div className="flex flex-col h-full bg-neutral-950/20 max-md:pb-16 select-none relative">
       
       {/* ─── DESKTOP HEADER & FILTERS ─── */}
       {!isMobile && (
         <>
-          <div className="flex flex-col gap-4 px-6 py-4 border-b border-border/20 bg-background/30 backdrop-blur-md shrink-0">
+          <div className="flex flex-col gap-4 px-6 py-4 border-b border-border/20 bg-black/30 backdrop-blur-md shrink-0">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3">
@@ -1482,7 +1390,7 @@ function PipelineContent() {
                       value={selectedPipelineId}
                       onChange={handlePipelineSwitch}
                       options={pipelines.map((p) => ({ value: p.id, label: `${p.nome} ${p.isDefault ? '⭐' : ''}` }))}
-                      className="bg-card/80 border border-border/40 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                      className="bg-neutral-900/80 border border-border/40 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                     />
                   )}
                 </div>
@@ -1497,7 +1405,7 @@ function PipelineContent() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     showKpis
                       ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'bg-card border-border/40 text-muted-foreground hover:text-foreground'
+                      : 'bg-neutral-900 border-border/40 text-muted-foreground hover:text-foreground'
                   }`}
                   title={showKpis ? 'Ocultar indicadores' : 'Mostrar indicadores'}
                 >
@@ -1510,7 +1418,7 @@ function PipelineContent() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     isSelectionMode
                       ? 'bg-primary text-black border-primary'
-                      : 'bg-card border-border/40 text-muted-foreground hover:text-foreground'
+                      : 'bg-neutral-900 border-border/40 text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
@@ -1519,7 +1427,7 @@ function PipelineContent() {
 
                 <button
                   onClick={() => setShowArchived(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/40 bg-card text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/40 bg-neutral-900 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-neutral-800/60 transition-all"
                 >
                   <Archive className="w-3.5 h-3.5" />
                   Ver Arquivados
@@ -1529,7 +1437,7 @@ function PipelineContent() {
                   onClick={() => {
                     router.push('/settings?tab=pipeline')
                   }}
-                  className="p-2 rounded-xl border border-border/40 bg-card text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                  className="p-2 rounded-xl border border-border/40 bg-neutral-900 text-muted-foreground hover:text-foreground hover:bg-neutral-800/60 transition-all"
                   title="Configurar Pipelines"
                 >
                   <Settings className="w-4 h-4" />
@@ -1554,7 +1462,7 @@ function PipelineContent() {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar por deal, contato..."
-                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-card/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-neutral-900/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                   {searchText && (
                     <button
@@ -1569,7 +1477,7 @@ function PipelineContent() {
                 <select
                   value={filterOwner}
                   onChange={(e) => setFilterOwner(e.target.value)}
-                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Vendedor: Todos</option>
                   <option value="unassigned">Sem responsável</option>
@@ -1583,7 +1491,7 @@ function PipelineContent() {
                 <select
                   value={filterPriority}
                   onChange={(e) => setFilterPriority(e.target.value)}
-                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Prioridade: Todas</option>
                   <option value="BAIXA">Lead AP</option>
@@ -1595,14 +1503,13 @@ function PipelineContent() {
                 <select
                   value={filterOrigin}
                   onChange={(e) => setFilterOrigin(e.target.value)}
-                  className="bg-card/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-neutral-950/65 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Origem: Todas</option>
-                  <option value="whatsapp">whatsapp</option>
-                  <option value="manual">manual</option>
-                  <option value="facebook">facebook</option>
-                  <option value="site">site</option>
-                  <option value="google">google</option>
+                  <option value="Meta Ads">Meta Ads</option>
+                  <option value="Indicação">Indicação</option>
+                  <option value="WhatsApp Orgânico">WhatsApp Orgânico</option>
+                  <option value="Google">Google</option>
                 </select>
               </div>
 
@@ -1613,11 +1520,61 @@ function PipelineContent() {
                   setFilterOrigin('all')
                   setSearchText('')
                 }}
-                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold px-2 py-1 rounded hover:bg-muted"
+                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold px-2 py-1 rounded hover:bg-neutral-800"
               >
                 Limpar Filtros
               </button>
             </div>
+
+            {/* ─── SELECTION BULK ACTIONS BAR (fixed near filters) ─── */}
+            {isSelectionMode && selectedDeals.size > 0 && (
+              <div className="flex flex-wrap items-center gap-3 px-1 py-2.5 rounded-xl border border-primary/30 bg-primary/5 animate-fade-in">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  <p className="text-xs font-bold text-primary">{selectedDeals.size} selecionados</p>
+                </div>
+                <div className="h-4 w-px bg-border/40 shrink-0" />
+                <div className="flex flex-wrap items-center gap-2 text-xs flex-1">
+                  <div className="flex items-center gap-1">
+                    <MobileActionSelect label="Mover etapa" value={bulkStageTarget} onChange={setBulkStageTarget}
+                      options={stages.map((s) => ({ value: s.id, label: s.nome }))} placeholder="Etapa..."
+                      className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs" />
+                    <button onClick={handleBulkMove} disabled={!bulkStageTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Mover</button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MobileActionSelect label="Atribuir vendedor" value={bulkOwnerTarget} onChange={setBulkOwnerTarget}
+                      options={users.map((u) => ({ value: u.id, label: u.nome }))} placeholder="Vendedor..."
+                      className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs" />
+                    <button onClick={handleBulkAssign} disabled={!bulkOwnerTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Atribuir</button>
+                  </div>
+                  <button onClick={handleGoToCaixaRapido}
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition-colors">
+                    <Zap className="w-3 h-3" /> Nova Ação
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <MobileActionSelect label="Cadência" value={selectedCadenciaTarget} onChange={setSelectedCadenciaTarget}
+                      options={cadencias.map((c) => ({ value: c.id, label: c.nome }))} placeholder="Cadência..."
+                      className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground" />
+                    <button onClick={handleBulkAddToCadence} disabled={!selectedCadenciaTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Cadência</button>
+                  </div>
+                  <button onClick={handleBulkCloseWon}
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs">Ganho</button>
+                  <button onClick={handleBulkCloseLost}
+                    className="px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs">Perdido</button>
+                  <button onClick={handleBulkDelete}
+                    className="p-1.5 rounded-xl hover:bg-rose-950 hover:text-rose-400 text-muted-foreground transition-all">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => { setSelectedDeals(new Set()); setIsSelectionMode(false) }}
+                    className="ml-auto text-muted-foreground hover:text-foreground font-bold text-[11px] flex items-center gap-1">
+                    <X className="w-3 h-3" /> Limpar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* DESKTOP KPIS WIDGET — collapsible */}
@@ -1630,7 +1587,7 @@ function PipelineContent() {
                 { label: 'Ticket Médio', value: BRL(ticketMedio), sub: 'Por negócio', color: 'text-foreground' },
                 { label: 'Conversão', value: `${conversionRate.toFixed(1)}%`, sub: 'Ganho/Perdido', color: 'text-primary' }
               ].map((kpi, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl border border-border/20 bg-card/35 flex flex-col gap-0.5">
+                <div key={idx} className="p-2.5 rounded-xl border border-border/20 bg-neutral-900/35 flex flex-col gap-0.5">
                   <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wide">{kpi.label}</p>
                   <h3 className={`text-sm font-extrabold tracking-tight ${kpi.color}`}>{kpi.value}</h3>
                   <p className="text-[9px] text-muted-foreground">{kpi.sub}</p>
@@ -1641,163 +1598,175 @@ function PipelineContent() {
         </>
       )}
 
-      {/* ─── MOBILE VIEW: STAGE SLIDER SELECTOR ─── */}
-      {isMobile && stages.length > 0 && (
-        <div className="flex flex-col bg-background backdrop-blur-md px-4 py-3 border-b border-border/20 shrink-0 select-none">
-          
-          {/* Funnel Selector & Total Value Row */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="max-w-[65%] shrink-0">
-              {pipelines.length > 0 && (
-                <MobileActionSelect
-                  label="Selecionar Funil"
-                  value={selectedPipelineId}
-                  onChange={handlePipelineSwitch}
-                  options={pipelines.map((p) => ({ value: p.id, label: p.nome }))}
-                  className="bg-card/60 border border-border/30 text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none text-foreground w-full"
-                />
-              )}
-            </div>
-            
-            <div className="text-right flex flex-col items-end shrink-0">
-              <span className="text-[12px] font-black text-primary font-mono">
-                {BRL(visibleDeals.filter(d => d.stageId === stages[activeStageIndex]?.id && d.status === 'OPEN').reduce((sum, d) => sum + d.valorEstimado, 0))}
-              </span>
-              <span className="text-[9px] text-muted-foreground font-semibold -mt-0.5">Etapa Total</span>
-            </div>
-          </div>
-
-          {/* Swipe Left/Right Stage Header Control */}
-          <div className="flex items-center justify-between gap-2 py-1">
-            <button
-              type="button"
-              onClick={() => setActiveStageIndex((prev) => Math.max(0, prev - 1))}
-              disabled={activeStageIndex === 0}
-              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-muted shrink-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            
-            <div className="flex-1 text-center min-w-0">
-              <h2 className="text-[15px] font-extrabold text-foreground truncate">
-                {stages[activeStageIndex]?.nome}
-              </h2>
-              <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 uppercase tracking-wide">
-                Etapa {activeStageIndex + 1} de {stages.length} • {visibleDeals.filter(d => d.stageId === stages[activeStageIndex]?.id && d.status === 'OPEN').length} negócios
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setActiveStageIndex((prev) => Math.min(stages.length - 1, prev + 1))}
-              disabled={activeStageIndex === stages.length - 1}
-              className="p-1.5 rounded-lg border border-border/40 text-muted-foreground disabled:opacity-30 active:bg-muted shrink-0"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Bullets/Dots selector indicator */}
-          <div className="flex items-center justify-center gap-1.5 mt-2.5">
-            {stages.map((stg, idx) => (
-              <button
-                key={stg.id}
-                onClick={() => setActiveStageIndex(idx)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === activeStageIndex ? 'w-5 bg-primary' : 'w-1.5 bg-muted'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ─── KANBAN BOARD SECTION ─── */}
+      {/* ─── MOBILE VIEW: STAGE SELECTOR + KANBAN ─── */}
       {isMobile ? (
-        /* Mobile stage board rendering with swipe and pull-to-refresh */
-        <div
-          onTouchStart={handleTouchStartColumn}
-          onTouchMove={handleTouchMoveColumn}
-          onTouchEnd={handleTouchEndColumn}
-          onScroll={handleTouchStartPull}
-          onTouchMoveCapture={handleTouchMovePull}
-          onTouchEndCapture={handleTouchEndPull}
-          className="flex-1 overflow-y-auto px-4 py-4 relative scrollbar-thin"
-        >
-          {/* Pull to refresh indicator */}
-          {pullDistance > 0 && (
-            <div
-              style={{ height: `${pullDistance}px`, opacity: pullDistance / 45 }}
-              className="flex items-center justify-center overflow-hidden transition-all duration-150 select-none text-xs text-muted-foreground gap-2 font-semibold shrink-0"
-            >
-              <div className={`w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full ${isRefreshing || pullDistance > 45 ? 'animate-spin' : ''}`} />
-              <span>{pullDistance > 45 ? 'Solte para atualizar...' : 'Puxe para atualizar...'}</span>
-            </div>
-          )}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Stage selector header */}
+          <div className="shrink-0 bg-background border-b border-border/30">
+            {/* Pipeline selector (only when multiple pipelines) */}
+            {pipelines.length > 1 && (
+              <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Funil:</span>
+                <select
+                  value={selectedPipelineId}
+                  onChange={e => handlePipelineSwitch(e.target.value)}
+                  className="flex-1 bg-muted border border-border/40 text-xs font-semibold rounded-xl px-2 py-1.5 focus:outline-none text-foreground"
+                >
+                  {pipelines.map(p => (
+                    <option key={p.id} value={p.id}>{p.nome}{p.isDefault ? ' ★' : ''}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-          {stages[activeStageIndex] ? (() => {
-            const stage = stages[activeStageIndex]
-            const stageDealsList = visibleDeals.filter(
-              (d) => d.stageId === stage.id && d.status === 'OPEN'
-            )
-            return (
-              <div className="flex flex-col space-y-3.5 h-full min-h-[400px]">
-                {stageDealsList.map((deal) => {
-                  const contact = contacts.find((c) => c.id === deal.contactId)
-                  const owner = users.find((u) => u.id === deal.ownerUserId)
-                  const isSelected = selectedDeals.has(deal.id)
-                  const dealActivities = activities.filter((a) => a.dealId === deal.id)
-                  const hasFutureActivity = dealActivities.some(
-                    (a) => a.status === 'OPEN' && !!a.dueAt && new Date(a.dueAt).getTime() > Date.now()
-                  )
-                  const contactPhone = (contact?.telefone || deal.telefone || '').replace(/\D/g, '')
-                  const msgData = lastMessageMap[contactPhone] || null
-                  const hasUnreadMessage = msgData?.isRecent ?? false
-                  const lastMessageTime = msgData?.time ?? ''
-                  const isRecentMessage = msgData?.isRecent ?? false
-                  const inActiveCadence = activeCadenceSet.has(deal.id)
-
+            {/* Stage pills — horizontal scroll */}
+            <div className="overflow-x-auto flex-1 touch-pan-x hide-scrollbar scroll-smooth">
+              <div className="flex gap-2 px-4 py-3 w-max">
+                {stages.map((stage, idx) => {
+                  const stageCount = visibleDeals.filter(d => d.stageId === stage.id && d.status === 'OPEN').length
+                  const isActive = idx === activeStageIndex
                   return (
-                    <DraggableDealCard
-                      key={deal.id}
-                      deal={deal}
-                      contact={contact}
-                      owner={owner}
-                      hasFutureActivity={hasFutureActivity}
-                      hasUnreadMessage={hasUnreadMessage}
-                      lastMessageTime={lastMessageTime}
-                      isRecentMessage={isRecentMessage}
-                      inActiveCadence={inActiveCadence}
-                      isSelected={isSelected}
-                      isSelectionMode={isSelectionMode}
-                      onSelect={() => handleSelectDeal(deal.id)}
-                      onClick={() => setSelectedDeal(deal)}
-                      onOpenMenu={() => setOpenMenuDealId(openMenuDealId === deal.id ? null : deal.id)}
-                      isOpenMenu={openMenuDealId === deal.id}
-                      onMarkWon={() => handleMarkWon(deal)}
-                      onMarkLost={() => triggerMarkLost(deal)}
-                      onDelete={() => handleDeleteDeal(deal.id)}
-                      history={history}
-                      stageSlaHours={stage.slaHours}
-                      pulsingDeals={pulsingDeals}
-                      onActivateSelectionMode={() => setIsSelectionMode(true)}
-                    />
+                    <button
+                      key={stage.id}
+                      onClick={() => setActiveStageIndex(idx)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 ${
+                        isActive
+                          ? 'border-transparent text-black shadow-md'
+                          : 'border-border/40 bg-muted/60 text-muted-foreground'
+                      }`}
+                      style={isActive ? { backgroundColor: stage.cor } : {}}
+                    >
+                      {stage.nome}
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-black/20 text-white' : 'bg-background text-muted-foreground'}`}>
+                        {stageCount}
+                      </span>
+                    </button>
                   )
                 })}
-
-                {stageDealsList.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 border border-dashed border-border/10 rounded-2xl">
-                    <div className="w-10 h-10 rounded-full border border-dashed border-neutral-600 mb-3 flex items-center justify-center">
-                      <Plus className="w-5 h-5 text-neutral-600" />
-                    </div>
-                    <p className="text-sm font-semibold text-muted-foreground">Sem negócios nesta etapa</p>
-                  </div>
-                )}
               </div>
-            )
-          })() : (
-            <div className="text-center py-20 text-muted-foreground">Nenhuma etapa configurada</div>
-          )}
+            </div>
+
+            {/* Active stage info bar */}
+            {stages[activeStageIndex] && (() => {
+              const st = stages[activeStageIndex]
+              const stageDls = visibleDeals.filter(d => d.stageId === st.id && d.status === 'OPEN')
+              const stageTotal = stageDls.reduce((s, d) => s + d.valorEstimado, 0)
+              return (
+                <div className="flex items-center justify-between px-4 py-2 border-t border-border/10">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: st.cor }} />
+                    <span className="text-xs font-bold text-foreground">{st.nome}</span>
+                    {st.slaHours > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-extrabold uppercase tracking-wider">
+                        SLA {st.slaHours}h
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setIsSelectionMode(!isSelectionMode)}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${
+                        isSelectionMode ? 'bg-primary text-black' : 'bg-neutral-800 text-muted-foreground hover:bg-neutral-700'
+                      }`}
+                    >
+                      {isSelectionMode ? 'Sair da Seleção' : 'Selecionar'}
+                    </button>
+                    <span className="text-[11px] text-muted-foreground">{stageDls.length} deals</span>
+                    <span className="text-[11px] font-bold text-primary">{BRL(stageTotal)}</span>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* Card list — scrollable */}
+          <div
+            onTouchStart={handleTouchStartMobile}
+            onTouchMove={handleTouchMoveMobile}
+            onTouchEnd={handleTouchEndMobile}
+            className="flex-1 overflow-y-auto px-4 py-4 relative scrollbar-thin"
+          >
+            {/* Pull to refresh indicator */}
+            {pullDistance > 0 && (
+              <div
+                style={{ height: `${pullDistance}px`, opacity: pullDistance / 45 }}
+                className="flex items-center justify-center overflow-hidden transition-all duration-150 select-none text-xs text-muted-foreground gap-2 font-semibold shrink-0"
+              >
+                <div className={`w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full ${isRefreshing || pullDistance > 45 ? 'animate-spin' : ''}`} />
+                <span>{pullDistance > 45 ? 'Solte para atualizar...' : 'Puxe para atualizar...'}</span>
+              </div>
+            )}
+
+            {stages[activeStageIndex] ? (() => {
+              const stage = stages[activeStageIndex]
+              const stageDealsList = visibleDeals.filter(
+                (d) => d.stageId === stage.id && d.status === 'OPEN'
+              )
+              return (
+                <div className="flex flex-col space-y-3.5 pb-24">
+                  {stageDealsList.map((deal) => {
+                    const contact = contacts.find((c) => c.id === deal.contactId)
+                    const owner = users.find((u) => u.id === deal.ownerUserId)
+                    const isSelected = selectedDeals.has(deal.id)
+                    const pendingTasksCount = activities.filter(a => a.dealId === deal.id && a.status === 'OPEN').length
+                    const dealActivities = activities.filter((a) => a.dealId === deal.id)
+                    const hasOverdueActivity = dealActivities.some((a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() < Date.now())
+                    const hasFutureActivity = dealActivities.some(
+                      (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
+                    )
+                    const contactPhone = (contact?.telefone || deal.telefone || '').replace(/\D/g, '')
+                    const msgData = lastMessageMap[contactPhone] || null
+                    const hasUnreadMessage = msgData?.isRecent ?? false
+                    const lastMessageTime = msgData?.time ?? ''
+                    const isRecentMessage = msgData?.isRecent ?? false
+                    const inActiveCadence = activeCadenceSet.has(deal.id)
+
+                    return (
+                      <DraggableDealCard
+                        key={deal.id}
+                        deal={deal}
+                        contact={contact}
+                        owner={owner}
+                        hasFutureActivity={hasFutureActivity} hasOverdueActivity={hasOverdueActivity}
+                        hasUnreadMessage={hasUnreadMessage}
+                        lastMessageTime={lastMessageTime}
+                        isRecentMessage={isRecentMessage}
+                        inActiveCadence={inActiveCadence}
+                        isSelected={isSelected}
+                        isSelectionMode={isSelectionMode}
+                        onSelect={() => handleSelectDeal(deal.id)}
+                        onClick={() => setSelectedDeal(deal)}
+                        onOpenMenu={() => setOpenMenuDealId(openMenuDealId === deal.id ? null : deal.id)}
+                        isOpenMenu={openMenuDealId === deal.id}
+                        onMarkWon={() => handleMarkWon(deal)}
+                        onMarkLost={() => triggerMarkLost(deal)}
+                        onDelete={() => handleDeleteDeal(deal.id)}
+                        history={history}
+                        stageSlaHours={stage.slaHours}
+                        pulsingDeals={pulsingDeals}
+                        onActivateSelectionMode={() => setIsSelectionMode(true)}
+                        stageName={stage.nome}
+                        stageColor={stage.cor}
+                        pendingTasksCount={pendingTasksCount}
+                      />
+                    )
+                  })}
+
+                  {stageDealsList.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-40 border border-dashed border-border/20 rounded-2xl">
+                      <div className="w-10 h-10 rounded-full border border-dashed border-border mb-3 flex items-center justify-center">
+                        <Plus className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm font-semibold text-muted-foreground">Sem negócios nesta etapa</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">Toque em + para adicionar</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })() : (
+              <div className="text-center py-20 text-muted-foreground text-sm">Nenhuma etapa configurada</div>
+            )}
+          </div>
         </div>
       ) : (
         /* Desktop Kanban board rendering with drag and drop kit */
@@ -1835,12 +1804,23 @@ function PipelineContent() {
                     onMarkWon={handleMarkWon}
                     onMarkLost={triggerMarkLost}
                     onDeleteDeal={handleDeleteDeal}
+                    onDeleteStage={setStageToDelete}
                     pulsingDeals={pulsingDeals}
                     lastMessageMap={lastMessageMap}
                     activeCadenceSet={activeCadenceSet}
                   />
                 )
               })}
+
+              <button
+                onClick={() => setShowNewStageModal(true)}
+                className="w-72 shrink-0 rounded-2xl border border-dashed border-border/30 hover:border-primary/50 bg-neutral-950/20 hover:bg-primary/5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-all group min-h-[150px]"
+              >
+                <div className="w-10 h-10 rounded-full bg-neutral-900 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-sm">Adicionar Coluna</span>
+              </button>
             </div>
             
             <DragOverlay dropAnimation={null}>
@@ -1848,7 +1828,7 @@ function PipelineContent() {
                 const d = deals.find(x => x.id === activeDragDealId)
                 if (!d) return null
                 return (
-                  <div className="w-72 p-3.5 rounded-xl border border-primary/60 bg-card/95 shadow-2xl shadow-primary/20 opacity-90 cursor-grabbing">
+                  <div className="w-72 p-3.5 rounded-xl border border-primary/60 bg-neutral-900/95 shadow-2xl shadow-primary/20 opacity-90 cursor-grabbing">
                     <p className="text-xs font-bold text-foreground line-clamp-2">{d.titulo}</p>
                     <p className="text-[10px] text-primary mt-1">{BRL(d.valorEstimado)}</p>
                   </div>
@@ -1873,16 +1853,16 @@ function PipelineContent() {
       {/* ─── MOBILE VIEW: FILTERS BOTTOM SHEET ─── */}
       {isMobile && showMobileFilters && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-background/90 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowMobileFilters(false)}
         >
           <div
-            className="w-full max-h-[85vh] bg-card border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
+            className="w-full max-h-[85vh] bg-neutral-950 border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag Handle */}
             <div className="flex justify-center shrink-0 -mt-2">
-              <div className="w-12 h-1.5 rounded-full bg-muted" />
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-border/20 shrink-0">
@@ -1907,7 +1887,7 @@ function PipelineContent() {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar deal, contato ou telefone..."
-                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
+                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   {searchText && (
                     <button
@@ -1964,11 +1944,10 @@ function PipelineContent() {
                   onChange={setFilterOrigin}
                   options={[
                     { value: 'all', label: 'Todas as origens' },
-                    { value: 'whatsapp', label: 'whatsapp' },
-                    { value: 'manual', label: 'manual' },
-                    { value: 'facebook', label: 'facebook' },
-                    { value: 'site', label: 'site' },
-                    { value: 'google', label: 'google' }
+                    { value: 'Meta Ads', label: 'Meta Ads' },
+                    { value: 'Indicação', label: 'Indicação' },
+                    { value: 'WhatsApp Orgânico', label: 'WhatsApp Orgânico' },
+                    { value: 'Google', label: 'Google' }
                   ]}
                   className="w-full"
                 />
@@ -1986,7 +1965,7 @@ function PipelineContent() {
                   setSearchText('')
                   setShowMobileFilters(false)
                 }}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-bold text-muted-foreground active:bg-card"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-bold text-muted-foreground active:bg-neutral-900"
               >
                 Limpar Filtros
               </button>
@@ -2002,137 +1981,41 @@ function PipelineContent() {
         </div>
       )}
 
-      {/* ─── BULK ACTIONS FOOTER BAR ─── */}
-      {isSelectionMode && selectedDeals.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-card/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
-            <p className="text-xs font-bold text-foreground">
-              {selectedDeals.size} selecionados
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Mover etapa"
-                value={bulkStageTarget}
-                onChange={setBulkStageTarget}
-                options={stages.map((s) => ({ value: s.id, label: s.nome }))}
-                placeholder="Etapa..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs"
-              />
-              <button
-                onClick={handleBulkMove}
-                disabled={!bulkStageTarget}
-                className="p-2 rounded-xl bg-primary text-black font-semibold disabled:opacity-40"
-              >
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Atribuir vendedor"
-                value={bulkOwnerTarget}
-                onChange={setBulkOwnerTarget}
-                options={users.map((u) => ({ value: u.id, label: u.nome }))}
-                placeholder="Vendedor..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs"
-              />
-              <button
-                onClick={handleBulkAssign}
-                disabled={!bulkOwnerTarget}
-                className="p-1.5 rounded-xl bg-primary text-black font-semibold text-xs disabled:opacity-40"
-              >
-                Atribuir
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Lista de Disparo"
-                value={selectedListaTarget}
-                onChange={setSelectedListaTarget}
-                options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
-                placeholder="Disparo..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
-              />
-              <button
-                onClick={handleBulkAddToLista}
-                disabled={!selectedListaTarget}
-                className="p-1.5 rounded-xl bg-emerald-500 text-black font-semibold text-xs disabled:opacity-40"
-              >
-                Disparo
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Cadência"
-                value={selectedCadenciaTarget}
-                onChange={setSelectedCadenciaTarget}
-                options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
-                placeholder="Cadência..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
-              />
-              <button
-                onClick={handleBulkAddToCadence}
-                disabled={!selectedCadenciaTarget}
-                className="p-1.5 rounded-xl bg-primary text-black font-semibold text-xs disabled:opacity-40"
-              >
-                Cadência
-              </button>
-            </div>
-
-            <button
-              onClick={handleBulkCloseWon}
-              className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-semibold text-xs active:opacity-85"
-            >
-              Ganho
-            </button>
-            <button
-              onClick={handleBulkCloseLost}
-              className="px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-foreground font-semibold text-xs active:opacity-85"
-            >
-              Perdido
-            </button>
-            <button
-              onClick={handleBulkDelete}
-              className="p-1.5 rounded-xl hover:bg-rose-950 hover:text-rose-400 text-muted-foreground transition-all shrink-0"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setSelectedDeals(new Set())}
-              className="text-neutral-500 hover:text-foreground font-bold pl-1 text-[11px]"
-            >
-              Limpar
-            </button>
-          </div>
+      {/* Mobile bulk actions bar */}
+      {isMobile && isSelectionMode && selectedDeals.size > 0 && (
+        <div className="fixed bottom-20 left-2 right-2 z-40 bg-neutral-950/95 border border-primary/30 rounded-2xl p-3 shadow-2xl flex flex-wrap items-center gap-2 animate-scale-in">
+          <span className="text-xs font-bold text-primary">{selectedDeals.size} sel.</span>
+          <button onClick={handleGoToCaixaRapido}
+            className="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-black font-bold text-xs flex items-center gap-1.5">
+            <Zap className="w-3 h-3" /> Nova Ação
+          </button>
+          <button onClick={handleBulkCloseWon} className="px-2 py-1.5 rounded-xl bg-emerald-500 text-black font-bold text-xs">Ganho</button>
+          <button onClick={handleBulkCloseLost} className="px-2 py-1.5 rounded-xl bg-rose-500 text-white font-bold text-xs">Perdido</button>
+          <button onClick={() => { setSelectedDeals(new Set()); setIsSelectionMode(false) }}
+            className="p-1.5 text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
         </div>
       )}
 
       {/* ─── NEW DEAL MODAL ─── */}
       {showNewDeal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-md max-md:items-end max-md:p-0"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md max-md:items-end max-md:p-0"
           onClick={() => setShowNewDeal(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
+            className="relative w-full max-w-lg bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
-              <div className="w-12 h-1.5 rounded-full bg-muted" />
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
             </div>
 
             <div className="flex items-center justify-between shrink-0">
               <h3 className="text-base font-extrabold tracking-tight">Nova Oportunidade</h3>
               <button
                 onClick={() => setShowNewDeal(false)}
-                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2147,19 +2030,47 @@ function PipelineContent() {
                   onChange={(e) => setNewDeal((p) => ({ ...p, titulo: e.target.value }))}
                   onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                   placeholder="Ex: Contrato de Tráfego Semestral"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
               </div>
 
               <div>
-                <label className="ocr-label mb-1 block">Vincular Contato *</label>
-                <MobileActionSelect
-                  label="Vincular Contato"
-                  value={newDeal.contactId}
-                  onChange={(val) => setNewDeal((p) => ({ ...p, contactId: val }))}
-                  options={contacts.map((c) => ({ value: c.id, label: `${c.nome} ${c.sobrenome || ''} (${c.telefone})` }))}
-                  placeholder="Selecione um contato da base..."
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="ocr-label block">Contato *</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsNewContact(!isNewContact)}
+                    className="text-[10px] text-primary hover:underline font-bold"
+                  >
+                    {isNewContact ? 'Vincular existente' : '+ Novo Contato'}
+                  </button>
+                </div>
+                {isNewContact ? (
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <input
+                      type="text"
+                      value={newContactData.nome}
+                      onChange={(e) => setNewContactData(p => ({ ...p, nome: e.target.value }))}
+                      placeholder="Nome do Contato"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    />
+                    <input
+                      type="text"
+                      value={newContactData.telefone}
+                      onChange={(e) => setNewContactData(p => ({ ...p, telefone: e.target.value }))}
+                      placeholder="Telefone (WhatsApp)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    />
+                  </div>
+                ) : (
+                  <MobileActionSelect
+                    label="Vincular Contato"
+                    value={newDeal.contactId}
+                    onChange={(val) => setNewDeal((p) => ({ ...p, contactId: val }))}
+                    options={contacts.map((c) => ({ value: c.id, label: `${c.nome} ${c.sobrenome || ''} (${c.telefone})` }))}
+                    placeholder="Selecione um contato da base..."
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3.5 max-md:grid-cols-1">
@@ -2171,7 +2082,7 @@ function PipelineContent() {
                     onChange={(e) => setNewDeal((p) => ({ ...p, valorEstimado: e.target.value }))}
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Ex: 5000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
 
@@ -2179,10 +2090,15 @@ function PipelineContent() {
                   <label className="ocr-label mb-1 block">Vendedor Responsável</label>
                   <MobileActionSelect
                     label="Vendedor Responsável"
-                    value={newDeal.ownerUserId}
+                    value={newDeal.ownerUserId || currentUser?.id || ''}
                     onChange={(val) => setNewDeal((p) => ({ ...p, ownerUserId: val }))}
-                    options={users.map((u) => ({ value: u.id, label: `${u.nome} ${u.sobrenome || ''}` }))}
-                    placeholder="Sem responsável"
+                    options={
+                      currentUser?.isAdmin 
+                        ? users.map((u) => ({ value: u.id, label: `${u.nome} ${u.sobrenome || ''}` }))
+                        : users.filter(u => u.id === currentUser?.id).map((u) => ({ value: u.id, label: `${u.nome} ${u.sobrenome || ''}` }))
+                    }
+                    placeholder={currentUser?.isAdmin ? "Sem responsável" : `${users.find(u => u.id === currentUser?.id)?.nome ?? ''} (Você)`}
+                    disabled={!currentUser?.isAdmin}
                   />
                 </div>
               </div>
@@ -2243,7 +2159,7 @@ function PipelineContent() {
               <button
                 type="button"
                 onClick={() => setShowNewDeal(false)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-card active:bg-muted transition-colors"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900 active:bg-neutral-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -2259,26 +2175,152 @@ function PipelineContent() {
         </div>
       )}
 
+      {/* ─── NEW STAGE MODAL ─── */}
+      {showNewStageModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md max-md:items-end max-md:p-0"
+          onClick={() => setShowNewStageModal(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+            </div>
+
+            <div className="flex items-center justify-between shrink-0">
+              <h3 className="text-base font-extrabold tracking-tight">Nova Coluna</h3>
+              <button
+                onClick={() => setShowNewStageModal(false)}
+                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="ocr-label mb-1 block">Nome da Coluna</label>
+                <input
+                  type="text"
+                  value={newStageName}
+                  onChange={(e) => setNewStageName(e.target.value)}
+                  placeholder="Ex: Em Negociação"
+                  className="w-full px-3 py-2 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4 shrink-0 border-t border-border/10 max-md:pb-4">
+              <button
+                onClick={() => setShowNewStageModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateStage}
+                disabled={!newStageName.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 disabled:opacity-50"
+              >
+                Criar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── DELETE STAGE MIGRATION MODAL ─── */}
+      {stageToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md max-md:items-end max-md:p-0"
+          onClick={() => { setStageToDelete(null); setMigrateToStageId('') }}
+        >
+          <div
+            className="w-full max-w-md bg-neutral-950 border border-rose-500/30 shadow-[0_0_24px_rgba(244,63,94,0.15)] rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+            </div>
+
+            <div className="flex items-center justify-between shrink-0">
+              <h3 className="text-base font-extrabold tracking-tight text-rose-400">Excluir Coluna</h3>
+              <button
+                onClick={() => { setStageToDelete(null); setMigrateToStageId('') }}
+                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Você está prestes a excluir a coluna <strong className="text-foreground">{stageToDelete.nome}</strong>.
+              </p>
+              
+              {deals.filter(d => d.stageId === stageToDelete.id && d.status === 'OPEN').length > 0 ? (
+                <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 space-y-3">
+                  <p className="text-xs font-semibold text-amber-400">
+                    Atenção: Existem negócios nesta coluna!
+                  </p>
+                  <div>
+                    <label className="ocr-label text-amber-400/80 mb-1 block">Mover negócios para a coluna:</label>
+                    <MobileActionSelect
+                      label="Mover negócios"
+                      value={migrateToStageId}
+                      onChange={setMigrateToStageId}
+                      options={stages.filter(s => s.id !== stageToDelete.id).map(s => ({ value: s.id, label: s.nome }))}
+                      placeholder="Selecione uma etapa..."
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-neutral-400">Nenhum negócio ativo nesta coluna. A exclusão será feita imediatamente.</p>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4 shrink-0 border-t border-border/10 max-md:pb-4">
+              <button
+                onClick={() => { setStageToDelete(null); setMigrateToStageId('') }}
+                className="flex-1 py-2.5 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteStage}
+                disabled={deals.filter(d => d.stageId === stageToDelete.id && d.status === 'OPEN').length > 0 && !migrateToStageId}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 disabled:opacity-50"
+              >
+                Confirmar e Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── LOST REASON MODAL ─── */}
       {showLostReasonModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-md max-md:items-end max-md:p-0"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md max-md:items-end max-md:p-0"
           onClick={() => setShowLostReasonModal(null)}
         >
           <div
-            className="w-full max-w-md bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            className="w-full max-w-md bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
-              <div className="w-12 h-1.5 rounded-full bg-muted" />
+              <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
             </div>
 
             <div className="flex items-center justify-between shrink-0">
               <h3 className="text-base font-extrabold tracking-tight">Motivo de Perda</h3>
               <button
                 onClick={() => setShowLostReasonModal(null)}
-                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2308,7 +2350,7 @@ function PipelineContent() {
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Descreva brevemente o motivo..."
                     rows={3}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
               )}
@@ -2318,14 +2360,14 @@ function PipelineContent() {
               <button
                 type="button"
                 onClick={() => setShowLostReasonModal(null)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-card transition-colors"
+                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-neutral-900 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmLost}
-                className="flex-1 py-3 rounded-xl bg-rose-500 text-foreground font-semibold text-xs hover:bg-rose-600 transition-colors"
+                className="flex-1 py-3 rounded-xl bg-rose-500 text-white font-semibold text-xs hover:bg-rose-600 transition-colors"
               >
                 Confirmar Perda
               </button>
@@ -2356,6 +2398,7 @@ function PipelineContent() {
           stages={stages}
           activities={activities}
           historyLogs={history}
+          currentUser={currentUser}
           onClose={() => setSelectedDeal(null)}
           onUpdateDeal={async (id, data) => {
             try {
@@ -2402,6 +2445,15 @@ function PipelineContent() {
               toast.error('Erro ao excluir atividade.')
             }
           }}
+          onUpdateActivity={async (activityId, data) => {
+            try {
+              const updated = await crmActions.updateActivity(activityId, data)
+              setActivities((prev) => prev.map((a) => (a.id === activityId ? updated : a)))
+              toast.success('Atividade atualizada!')
+            } catch {
+              toast.error('Erro ao atualizar atividade.')
+            }
+          }}
         />
       )}
     </div>
@@ -2425,7 +2477,7 @@ function ArchivedDealsView({
   stages: MockStage[]
   onClose: () => void
   onReopenDeal: (id: string) => void
-  onDeleteDeal: (id: string) => void
+  onDeleteDeal: (id: string, forcePermanent?: boolean) => void
 }) {
   const [filterType, setFilterType] = useState<'ALL' | 'WON' | 'LOST'>('ALL')
   const [filterOwner, setFilterOwner] = useState('all')
@@ -2454,13 +2506,18 @@ function ArchivedDealsView({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md max-md:items-end max-md:p-0 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh]"
+        className="w-full max-w-4xl bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh] max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Sheet Handle */}
+        <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
+          <div className="w-12 h-1.5 rounded-full bg-neutral-800" />
+        </div>
+
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-extrabold tracking-tight">Oportunidades Arquivadas</h3>
@@ -2468,7 +2525,7 @@ function ArchivedDealsView({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -2476,21 +2533,21 @@ function ArchivedDealsView({
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-48">
+          <div className="relative w-48 max-md:w-full">
             <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar título, contato..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-card/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-neutral-900/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as 'ALL' | 'WON' | 'LOST')}
-            className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-neutral-900 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="ALL">Status: Todos</option>
             <option value="WON">Ganhos (Won)</option>
@@ -2500,7 +2557,7 @@ function ArchivedDealsView({
           <select
             value={filterOwner}
             onChange={(e) => setFilterOwner(e.target.value)}
-            className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-neutral-900 border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="all">Vendedor: Todos</option>
             {users.map((u) => (
@@ -2511,11 +2568,11 @@ function ArchivedDealsView({
           </select>
         </div>
 
-        {/* Table list */}
+        {/* Table list / Cards List */}
         <div className="flex-1 overflow-y-auto scrollbar-thin border border-border/20 rounded-xl">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="hidden md:table w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-card border-b border-border/20 text-muted-foreground font-semibold">
+              <tr className="bg-neutral-900 border-b border-border/20 text-muted-foreground font-semibold">
                 <th className="px-4 py-3">Título</th>
                 <th className="px-4 py-3">Contato</th>
                 <th className="px-4 py-3">Valor</th>
@@ -2531,7 +2588,7 @@ function ArchivedDealsView({
                 const _stage = stages.find((s) => s.id === d.stageId)
 
                 return (
-                  <tr key={d.id} className="hover:bg-muted/40">
+                  <tr key={d.id} className="hover:bg-neutral-900/40">
                     <td className="px-4 py-3 font-semibold text-foreground">{d.titulo}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {contact?.nome} {contact?.sobrenome || ''}
@@ -2567,12 +2624,12 @@ function ArchivedDealsView({
                       </button>
                       <button
                         onClick={() => {
-                          onDeleteDeal(d.id)
+                          onDeleteDeal(d.id, true)
                           setArchived((prev) => prev.filter((item) => item.id !== d.id))
                         }}
-                        className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-foreground font-semibold transition-all"
+                        className="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white font-semibold transition-all"
                       >
-                        Excluir
+                        Excluir Permanente
                       </button>
                     </td>
                   </tr>
@@ -2602,6 +2659,7 @@ function DealDetailDrawer({
   stages,
   activities,
   historyLogs,
+  currentUser,
   onClose,
   onUpdateDeal,
   onMarkWon,
@@ -2610,7 +2668,8 @@ function DealDetailDrawer({
   onDeleteDeal,
   onAddActivity,
   onToggleActivity,
-  onDeleteActivity
+  onDeleteActivity,
+  onUpdateActivity
 }: {
   deal: any
   contacts: any[]
@@ -2618,6 +2677,7 @@ function DealDetailDrawer({
   stages: any[]
   activities: any[]
   historyLogs: any[]
+  currentUser: { id: string; isAdmin: boolean } | null
   onClose: () => void
   onUpdateDeal: (id: string, data: Partial<any>) => Promise<void>
   onMarkWon: (deal: any) => void
@@ -2627,10 +2687,42 @@ function DealDetailDrawer({
   onAddActivity: (data: any) => Promise<void>
   onToggleActivity: (id: string, done: boolean) => Promise<void>
   onDeleteActivity: (id: string) => Promise<void>
+  onUpdateActivity: (id: string, data: Partial<any>) => Promise<void>
 }) {
   const [activeTab, setActiveTab] = useState<'resumo' | 'contato' | 'anotacoes' | 'atividades' | 'historico' | 'utm' | 'mensagens'>('resumo')
   const router = useRouter()
   const categoriesStore = useCategories()
+
+  // Dragging logic
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Only drag if clicking the header background, not buttons or inputs inside it
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('select')) {
+      return
+    }
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      })
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      setIsDragging(false)
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+  }
 
   const dealContact = contacts.find((c) => c.id === deal.contactId)
   const dealOwner = users.find((u) => u.id === deal.ownerUserId)
@@ -2715,6 +2807,7 @@ function DealDetailDrawer({
   }, [activeTab, deal.id, dealContact?.telefone])
 
   // Activity Form state
+  const [editingActId, setEditingActId] = useState<string | null>(null)
   const [actTitle, setActTitle] = useState('')
   const [actTipo, setActTipo] = useState('tarefa')
   const [actDesc, setActDesc] = useState('')
@@ -2797,40 +2890,79 @@ function DealDetailDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-background/90 backdrop-blur-sm animate-fade-in max-md:items-end max-md:justify-center"
-      onClick={onClose}
+      className="fixed inset-0 z-50 pointer-events-none"
     >
       <div
-        className="relative w-full max-w-2xl bg-card border-l border-border/40 h-full flex flex-col shadow-2xl animate-slide-up max-md:h-[85vh] max-md:rounded-t-3xl max-md:border-t max-md:border-l-0"
+        className="absolute right-4 top-[7.5vh] w-full max-w-2xl bg-neutral-950 border border-border/40 h-[85vh] flex flex-col shadow-2xl rounded-2xl pointer-events-auto max-md:right-0 max-md:w-full max-md:h-[85vh] max-md:bottom-0 max-md:top-auto max-md:rounded-t-3xl max-md:rounded-b-none"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle for mobile bottom sheet */}
-        <div className="hidden max-md:flex justify-center shrink-0 pt-3 pb-1">
-          <div className="w-12 h-1.5 rounded-full bg-muted" />
+        <div
+          className="hidden max-md:flex justify-center shrink-0 pt-3 pb-1 relative cursor-grab active:cursor-grabbing"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
+          <div className="w-16 h-1.5 rounded-full bg-neutral-600 hover:bg-primary/60 transition-colors" />
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-2 p-1.5 rounded-full bg-neutral-900 text-muted-foreground hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
         {/* Header */}
-        <div className="p-6 border-b border-border/20 flex flex-col gap-4">
+        <div 
+          className="p-6 border-b border-border/20 flex flex-col gap-4 cursor-grab active:cursor-grabbing max-md:cursor-default"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
           <div className="flex items-center justify-between">
-            <span
-              className={`flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-full border ${
-                deal.status === 'WON'
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : deal.status === 'LOST'
-                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-              }`}
-            >
+            <div className="flex items-center gap-3 flex-wrap">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
+                className={`flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-full border ${
                   deal.status === 'WON'
-                    ? 'bg-emerald-400'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : deal.status === 'LOST'
-                    ? 'bg-rose-400'
-                    : 'bg-amber-400'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                 }`}
-              />
-              {deal.status === 'WON' ? 'GANHO' : deal.status === 'LOST' ? `PERDIDO (${deal.motivoPerda})` : 'ABERTO'}
-            </span>
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    deal.status === 'WON'
+                      ? 'bg-emerald-400'
+                      : deal.status === 'LOST'
+                      ? 'bg-rose-400'
+                      : 'bg-amber-400'
+                  }`}
+                />
+                {deal.status === 'WON' ? 'GANHO' : deal.status === 'LOST' ? `PERDIDO (${deal.motivoPerda})` : 'ABERTO'}
+              </span>
+
+              {deal.status === 'OPEN' && (
+                <select
+                  value={stageInput}
+                  onChange={async (e) => {
+                    const newStage = e.target.value
+                    setStageInput(newStage)
+                    await onUpdateDeal(deal.id, { stageId: newStage })
+                  }}
+                  className="text-[10px] font-bold bg-neutral-900/50 hover:bg-neutral-900 border border-border/40 rounded-full px-3 py-1.5 text-neutral-300 focus:outline-none transition-colors cursor-pointer"
+                >
+                  {stages.map(s => (
+                    <option key={s.id} value={s.id}>{s.nome}</option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               {deal.status === 'OPEN' ? (
@@ -2865,14 +2997,14 @@ function DealDetailDrawer({
               )}
               <button
                 onClick={() => onDeleteDeal(deal.id)}
-                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-rose-400 transition-colors"
+                className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-colors"
                 title="Excluir negócio"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ml-1"
+                className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors ml-1 hidden md:flex"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -2886,7 +3018,7 @@ function DealDetailDrawer({
                   type="text"
                   value={titleInput}
                   onChange={(e) => setTitleInput(e.target.value)}
-                  className="bg-card border border-border text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
+                  className="bg-neutral-900 border border-border text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
                 />
                 <button
                   onClick={handleSaveTitle}
@@ -2917,12 +3049,12 @@ function DealDetailDrawer({
 
           {/* SLA Progression Bar */}
           {slaHours > 0 && deal.status === 'OPEN' && (
-            <div className="p-3.5 rounded-xl border border-border/20 bg-card/35 space-y-1.5">
+            <div className="p-3.5 rounded-xl border border-border/20 bg-neutral-900/35 space-y-1.5">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="font-semibold text-muted-foreground">Progresso do SLA da Etapa</span>
                 <span className="font-bold text-foreground">{slaProgressText}</span>
               </div>
-              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-neutral-800 rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     slaProgressRatio >= 1.0
@@ -2940,14 +3072,14 @@ function DealDetailDrawer({
 
         {/* Pipeline Stages Timeline */}
         <div className="px-6 pb-4">
-          <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex items-center justify-start md:justify-between gap-2 overflow-x-auto pb-2 scrollbar-thin">
             {stages.map((stage, idx) => {
               const isCurrent = stage.id === deal.stageId;
               const isPast = stages.findIndex(s => s.id === stage.id) < stages.findIndex(s => s.id === deal.stageId);
               return (
-                <div key={stage.id} className="flex-1 flex flex-col items-center gap-1.5 min-w-[80px]">
-                  <div className={`h-1.5 w-full rounded-full transition-all ${isCurrent ? 'bg-primary shadow-[0_0_5px_rgba(255,255,255,0.3)]' : isPast ? 'bg-primary/40' : 'bg-muted'}`} />
-                  <span className={`text-[9px] text-center font-bold px-1 line-clamp-1 ${isCurrent ? 'text-primary' : isPast ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                <div key={stage.id} className="shrink-0 w-[100px] md:w-auto md:flex-1 flex flex-col items-center gap-1.5">
+                  <div className={`h-1.5 w-full rounded-full transition-all ${isCurrent ? 'bg-primary shadow-[0_0_5px_rgba(255,255,255,0.3)]' : isPast ? 'bg-primary/40' : 'bg-neutral-800'}`} />
+                  <span className={`text-[9px] text-center font-bold px-1 whitespace-nowrap overflow-hidden text-ellipsis w-full ${isCurrent ? 'text-primary' : isPast ? 'text-neutral-400' : 'text-neutral-600'}`} title={stage.nome}>
                     {stage.nome}
                   </span>
                 </div>
@@ -2957,7 +3089,7 @@ function DealDetailDrawer({
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-border/20 bg-muted/30 overflow-x-auto select-none shrink-0">
+        <div className="flex border-b border-border/20 bg-neutral-900/30 overflow-x-auto select-none shrink-0">
           {[
             { id: 'resumo', label: 'Resumo' },
             { id: 'contato', label: 'Contato' },
@@ -2999,15 +3131,21 @@ function DealDetailDrawer({
 
                 <div>
                   <label className="ocr-label mb-1 block">Vendedor Responsável</label>
-                  <MobileActionSelect
-                    label="Vendedor Responsável"
-                    value={ownerInput}
-                    onChange={setOwnerInput}
-                    options={[
-                      { value: '', label: 'Sem responsável' },
-                      ...users.map((u) => ({ value: u.id, label: `${u.nome} ${u.sobrenome || ''}` }))
-                    ]}
-                  />
+                  {currentUser?.isAdmin ? (
+                    <MobileActionSelect
+                      label="Vendedor Responsável"
+                      value={ownerInput}
+                      onChange={setOwnerInput}
+                      options={[
+                        { value: '', label: 'Sem responsável' },
+                        ...users.map((u) => ({ value: u.id, label: `${u.nome} ${u.sobrenome || ''}` }))
+                      ]}
+                    />
+                  ) : (
+                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900/50 text-sm text-foreground/70 cursor-not-allowed">
+                      {ownerInput ? users.find(u => u.id === ownerInput)?.nome || 'Sem responsável' : 'Sem responsável'}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -3018,7 +3156,7 @@ function DealDetailDrawer({
                     type="number"
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border/30 bg-card text-xs focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none"
                   />
                 </div>
 
@@ -3058,7 +3196,7 @@ function DealDetailDrawer({
                   <MobileActionSelect
                     label="Origem do Negócio"
                     value={origemInput}
-                    onChange={setOrigemInput}
+                    onChange={(val) => { setOrigemInput(val); onUpdateDeal(deal.id, { origem: val || null }) }}
                     options={[
                       { value: '', label: 'Selecione...' },
                       ...categoriesStore.categories.origins.map(o => ({ value: o, label: o }))
@@ -3073,11 +3211,11 @@ function DealDetailDrawer({
                   Snapshot do Contato (Read-only)
                 </h4>
                 <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
-                  <div className="p-3 rounded-xl bg-card/50 border border-border/20">
+                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20">
                     <p className="ocr-label mb-0.5">Telefone</p>
                     <p className="text-xs font-semibold">{dealContact?.telefone || '-'}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-card/50 border border-border/20 relative">
+                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Faturamento Mensal</p>
                       {showFaturamentoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3098,7 +3236,7 @@ function DealDetailDrawer({
                       className="w-full bg-transparent border-none p-0 text-xs font-semibold focus:outline-none focus:ring-0 text-foreground"
                     />
                   </div>
-                  <div className="p-3 rounded-xl bg-card/50 border border-border/20 col-span-2 max-md:col-span-1 relative">
+                  <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20 col-span-2 max-md:col-span-1 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Ramo da Empresa</p>
                       {showRamoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3167,7 +3305,7 @@ function DealDetailDrawer({
 
                   <div className="text-xs">
                     <p className="ocr-label mb-1">Último UTM Identificado</p>
-                    <p className="font-semibold bg-card/60 p-2 rounded-xl border border-border/20 inline-block">
+                    <p className="font-semibold bg-neutral-900/60 p-2 rounded-xl border border-border/20 inline-block">
                       Source: {dealContact.lastUtmSource || 'Orgânico'} • Campaign: {dealContact.lastUtmCampaign || '-'}
                     </p>
                   </div>
@@ -3176,13 +3314,13 @@ function DealDetailDrawer({
                     onClick={() => {
                       router.push(`/contacts?id=${dealContact.id}`)
                     }}
-                    className="w-full py-2.5 rounded-xl border border-border text-xs font-semibold hover:bg-card text-foreground transition-colors"
+                    className="w-full py-2.5 rounded-xl border border-border text-xs font-semibold hover:bg-neutral-900 text-foreground transition-colors"
                   >
                     Ver Perfil Completo de Contatos
                   </button>
                 </div>
               ) : (
-                <div className="p-6 text-center text-muted-foreground bg-muted/30 rounded-2xl border border-dashed border-border/20">
+                <div className="p-6 text-center text-muted-foreground bg-neutral-900/30 rounded-2xl border border-dashed border-border/20">
                   Nenhum contato vinculado encontrado.
                 </div>
               )}
@@ -3209,7 +3347,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Escreva detalhes gerais do negócio, perfis dos decisores, etc..."
                   rows={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
 
@@ -3223,7 +3361,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Descreva especificamente o que foi acordado em call/visita..."
                   rows={4}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
             </div>
@@ -3233,7 +3371,7 @@ function DealDetailDrawer({
           {activeTab === 'atividades' && (
             <div className="space-y-5">
               {/* Form to add */}
-              <div className="p-4 rounded-xl border border-border/30 bg-muted/30 space-y-3">
+              <div className="p-4 rounded-xl border border-border/30 bg-neutral-900/30 space-y-3">
                 <h4 className="text-xs font-bold text-foreground">Nova Atividade</h4>
                 <div className="grid grid-cols-2 gap-2.5">
                   <input
@@ -3241,12 +3379,12 @@ function DealDetailDrawer({
                     value={actTitle}
                     onChange={(e) => setActTitle(e.target.value)}
                     placeholder="Título da tarefa..."
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-card text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-neutral-900 text-xs focus:outline-none"
                   />
                   <select
                     value={actTipo}
                     onChange={(e) => setActTipo(e.target.value)}
-                    className="bg-card border border-border/30 rounded-lg px-2.5 py-1.5 text-xs"
+                    className="bg-neutral-900 border border-border/30 rounded-lg px-2.5 py-1.5 text-xs"
                   >
                     <option value="tarefa">Tarefa</option>
                     <option value="ligacao">Ligação</option>
@@ -3259,37 +3397,62 @@ function DealDetailDrawer({
                     type="datetime-local"
                     value={actDate}
                     onChange={(e) => setActDate(e.target.value)}
-                    className="bg-card border border-border/30 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
+                    className="bg-neutral-900 border border-border/30 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
                   />
                   <textarea
                     value={actDesc}
                     onChange={(e) => setActDesc(e.target.value)}
                     placeholder="Descrição..."
                     rows={2}
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-card text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-neutral-900 text-xs focus:outline-none"
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!actTitle) return
-                    await onAddActivity({
-                      dealId: deal.id,
-                      contactId: deal.contactId,
-                      tipo: actTipo,
-                      titulo: actTitle,
-                      descricao: actDesc || undefined,
-                      dueAt: actDate ? new Date(actDate).toISOString() : new Date().toISOString(),
-                      status: 'OPEN'
-                    })
-                    setActTitle('')
-                    setActDesc('')
-                    setActDate('')
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold text-[10px]"
-                >
-                  Agendar Atividade
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!actTitle) return
+                      const payload = {
+                        tipo: actTipo,
+                        titulo: actTitle,
+                        descricao: actDesc || undefined,
+                        dueAt: actDate ? new Date(actDate).toISOString() : new Date().toISOString()
+                      }
+                      
+                      if (editingActId) {
+                        await onUpdateActivity(editingActId, payload)
+                      } else {
+                        await onAddActivity({
+                          dealId: deal.id,
+                          contactId: deal.contactId,
+                          status: 'OPEN',
+                          ...payload
+                        })
+                      }
+                      setActTitle('')
+                      setActDesc('')
+                      setActDate('')
+                      setEditingActId(null)
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold text-[10px]"
+                  >
+                    {editingActId ? 'Salvar Edição' : 'Agendar Atividade'}
+                  </button>
+                  {editingActId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingActId(null)
+                        setActTitle('')
+                        setActDesc('')
+                        setActDate('')
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-border/40 text-muted-foreground text-[10px]"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Activities list */}
@@ -3302,8 +3465,8 @@ function DealDetailDrawer({
                         key={act.id}
                         className={`p-3 rounded-xl border flex items-start justify-between gap-3 text-xs ${
                           act.status === 'DONE'
-                            ? 'bg-card/35 border-border/10 opacity-60'
-                            : 'bg-card/60 border-border/30'
+                            ? 'bg-neutral-900/35 border-border/10 opacity-60'
+                            : 'bg-neutral-900/60 border-border/30'
                         }`}
                       >
                         <div className="flex gap-2 items-start">
@@ -3323,12 +3486,28 @@ function DealDetailDrawer({
                             </p>
                           </div>
                         </div>
-                        <button
-                          onClick={() => onDeleteActivity(act.id)}
-                          className="text-neutral-500 hover:text-rose-400 p-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          {!act.status || act.status === 'OPEN' ? (
+                            <button
+                              onClick={() => {
+                                setEditingActId(act.id)
+                                setActTitle(act.titulo)
+                                setActTipo(act.tipo)
+                                setActDesc(act.descricao || '')
+                                setActDate(act.dueAt ? new Date(act.dueAt).toISOString().slice(0, 16) : '')
+                              }}
+                              className="text-neutral-500 hover:text-primary p-1"
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            </button>
+                          ) : null}
+                          <button
+                            onClick={() => onDeleteActivity(act.id)}
+                            className="text-neutral-500 hover:text-rose-400 p-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3385,7 +3564,7 @@ function DealDetailDrawer({
           {/* 6. UTM / ATRIBUIÇÃO */}
           {activeTab === 'utm' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-border/30 bg-card/35 space-y-3 text-xs">
+              <div className="p-4 rounded-xl border border-border/30 bg-neutral-900/35 space-y-3 text-xs">
                 <div className="flex items-center gap-1.5 text-primary font-bold">
                   <Info className="w-3.5 h-3.5" />
                   <span>UTMs Congeladas na Criação</span>
@@ -3407,7 +3586,7 @@ function DealDetailDrawer({
                     { label: 'Landing Page', value: deal.utmLandingPage || '/' },
                     { label: 'Referrer URL', value: deal.utmReferrer || '-' }
                   ].map((utmField, idx) => (
-                    <div key={idx} className="p-2 rounded bg-card border border-border/10">
+                    <div key={idx} className="p-2 rounded bg-neutral-900 border border-border/10">
                       <span className="ocr-label block text-[9px]">{utmField.label}</span>
                       <span className="font-semibold truncate block mt-0.5 text-foreground" title={utmField.value}>
                         {utmField.value}
@@ -3421,7 +3600,7 @@ function DealDetailDrawer({
 
           {/* 7. MENSAGENS REAL/MOCK */}
           {activeTab === 'mensagens' && (
-            <div className="flex flex-col h-[400px] border border-border/30 rounded-xl overflow-hidden bg-card/25">
+            <div className="flex flex-col h-[400px] border border-border/30 rounded-xl overflow-hidden bg-neutral-900/25">
               {loadingMessages ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -3435,35 +3614,51 @@ function DealDetailDrawer({
                       <span className="text-xs text-muted-foreground">Nenhuma mensagem encontrada</span>
                     </div>
                   ) : (
-                    messages.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`flex flex-col max-w-[80%] ${
-                          m.sender === 'lead'
-                            ? 'mr-auto items-start'
-                            : 'ml-auto items-end'
-                        }`}
-                      >
-                        <div
-                          className={`p-3 rounded-2xl text-xs leading-relaxed ${
-                            m.sender === 'lead'
-                              ? 'bg-muted text-foreground rounded-tl-none'
-                              : m.sender === 'ai'
-                              ? 'bg-primary/10 border border-primary/20 text-primary rounded-tr-none'
-                              : 'bg-primary text-black font-semibold rounded-tr-none'
-                          }`}
-                        >
-                          {m.text}
+                    Object.entries(
+                      messages.reduce((acc, m) => {
+                        const d = m.date || new Date().toLocaleDateString('pt-BR');
+                        if (!acc[d]) acc[d] = [];
+                        acc[d].push(m);
+                        return acc;
+                      }, {} as Record<string, any[]>)
+                    ).map(([dateLabel, msgs]) => (
+                      <React.Fragment key={dateLabel}>
+                        <div className="flex justify-center my-4">
+                          <span className="text-[10px] bg-neutral-800/80 text-neutral-400 px-3 py-1 rounded-full font-semibold border border-neutral-700/50">
+                            {dateLabel}
+                          </span>
                         </div>
-                        {m.time && <span className="text-[9px] text-neutral-500 mt-1 px-1">{m.time}</span>}
-                      </div>
+                        {(msgs as any[]).map((m) => (
+                          <div
+                            key={m.id}
+                            className={`flex flex-col max-w-[80%] ${
+                              m.sender === 'lead'
+                                ? 'mr-auto items-start'
+                                : 'ml-auto items-end'
+                            }`}
+                          >
+                            <div
+                              className={`p-3 rounded-2xl text-xs leading-relaxed ${
+                                m.sender === 'lead'
+                                  ? 'bg-neutral-800 text-foreground rounded-tl-none'
+                                  : m.sender === 'ai'
+                                  ? 'bg-primary/10 border border-primary/20 text-primary rounded-tr-none'
+                                  : 'bg-primary text-black font-semibold rounded-tr-none'
+                              }`}
+                            >
+                              {m.text}
+                            </div>
+                            {m.time && <span className="text-[9px] text-neutral-500 mt-1 px-1">{m.time}</span>}
+                          </div>
+                        ))}
+                      </React.Fragment>
                     ))
                   )}
                 </div>
               )}
 
               {/* Chat Input */}
-              <div className="p-3 border-t border-border/20 bg-card flex gap-2">
+              <div className="p-3 border-t border-border/20 bg-neutral-950 flex gap-2">
                 <input
                   type="text"
                   value={newMsg}
@@ -3478,7 +3673,7 @@ function DealDetailDrawer({
                     }
                   }}
                   placeholder="Simular resposta WhatsApp..."
-                  className="flex-1 bg-card border border-border/40 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="flex-1 bg-neutral-900 border border-border/40 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
                 <button
                   onClick={() => {

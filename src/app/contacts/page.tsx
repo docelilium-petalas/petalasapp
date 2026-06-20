@@ -49,6 +49,18 @@ const contactSchema = z.object({
 })
 
 export default function ContactsPage() {
+  const cleanVal = (val: any) => {
+    if (val === undefined || val === null || val === 'undefined' || val === 'null' || String(val).trim() === '') {
+      return ''
+    }
+    return String(val)
+  }
+
+  const cleanDisplayVal = (val: any, fallback = '-') => {
+    const cleaned = cleanVal(val)
+    return cleaned === '' ? fallback : cleaned
+  }
+
   const categoriesStore = useCategories()
   const { contacts, loading, mutate } = useContacts()
   const [deals, setDeals] = useState<{ id: string; contactId?: string; status: string; titulo: string; valorEstimado: number; prioridade?: string; produtoInteresse?: string; createdAt: string; updatedAt: string; fechadoEm?: string }[]>([])
@@ -192,6 +204,13 @@ export default function ContactsPage() {
 
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'leads' | 'recuperar' | 'perdidos'>('all')
 
+  const [page, setPage] = useState(1)
+  const ITEMS_PER_PAGE = 50
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, categoryFilter, selectedTags, selectedOrigens])
+
   // KPIs calculations
   const totalContatos = contacts.length
   
@@ -235,7 +254,7 @@ export default function ContactsPage() {
       if (categoryFilter === 'recuperar' && (leadsIds.has(c.id) || wonIds.has(c.id))) return false
       if (categoryFilter === 'perdidos' && (!lostIds.has(c.id) || leadsIds.has(c.id) || wonIds.has(c.id))) return false
 
-      const nameMatch = `${c.nome} ${c.sobrenome || ''}`.toLowerCase().includes(searchQuery.toLowerCase())
+      const nameMatch = `${cleanVal(c.nome)} ${cleanVal(c.sobrenome)}`.toLowerCase().includes(searchQuery.toLowerCase())
       const telMatch = (c.telefone || '').includes(searchQuery)
       const emailMatch = (c.email || '').toLowerCase().includes(searchQuery.toLowerCase())
       
@@ -251,18 +270,28 @@ export default function ContactsPage() {
     })
   }, [contacts, searchQuery, selectedTags, selectedOrigens, categoryFilter, leadsIds, wonIds, lostIds])
 
+  const paginatedContacts = useMemo(() => {
+    const startIndex = (page - 1) * ITEMS_PER_PAGE
+    return filteredContacts.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredContacts, page])
+
+  const totalPages = Math.ceil(filteredContacts.length / ITEMS_PER_PAGE)
+
   // Checkbox state for current page visible items
   const isAllChecked = useMemo(() => {
-    if (filteredContacts.length === 0) return false
-    return filteredContacts.every(c => checkedIds[c.id])
-  }, [filteredContacts, checkedIds])
+    if (paginatedContacts.length === 0) return false
+    return paginatedContacts.every(c => checkedIds[c.id])
+  }, [paginatedContacts, checkedIds])
 
   const toggleAllChecked = () => {
     if (isAllChecked) {
-      setCheckedIds({})
+      // Uncheck only current page items
+      const nextChecked = { ...checkedIds }
+      paginatedContacts.forEach(c => delete nextChecked[c.id])
+      setCheckedIds(nextChecked)
     } else {
-      const nextChecked: Record<string, boolean> = {}
-      filteredContacts.forEach(c => {
+      const nextChecked: Record<string, boolean> = { ...checkedIds }
+      paginatedContacts.forEach(c => {
         nextChecked[c.id] = true
       })
       setCheckedIds(nextChecked)
@@ -546,7 +575,11 @@ export default function ContactsPage() {
   }
 
   // UI helper colors
-  const initials = (c: { nome: string; sobrenome?: string }) => `${c.nome[0]}${c.sobrenome?.[0] || ''}`.toUpperCase()
+  const initials = (c: { nome: string; sobrenome?: string | null }) => {
+    const n = cleanVal(c.nome)
+    const s = cleanVal(c.sobrenome)
+    return `${n[0] || ''}${s[0] || ''}`.toUpperCase()
+  }
   const avatarColor = (id: string) => {
     const colors = ['bg-emerald-700', 'bg-blue-700', 'bg-purple-700', 'bg-orange-700', 'bg-rose-700']
     return colors[id.charCodeAt(id.length - 1) % colors.length]
@@ -575,22 +608,22 @@ export default function ContactsPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex h-full flex-col lg:flex-row bg-background text-foreground">
+      <div className="flex h-full flex-col bg-black text-foreground relative">
         
-        {/* LEFT COLUMN: LIST AND FILTERS */}
-        <div className={`flex flex-col border-r border-border/20 bg-card/10 shrink-0 select-none ${selectedId ? 'hidden lg:flex lg:w-[400px]' : 'flex-1'}`}>
+        {/* MAIN COLUMN: LIST AND FILTERS */}
+        <div className="flex flex-col flex-1 bg-neutral-900/10 shrink-0 select-none overflow-hidden">
           
           {/* List Header & KPIs */}
           <div className="p-5 border-b border-border/20 space-y-4">
             {/* KPIs */}
-            <div className="grid grid-cols-4 gap-2 mb-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
               <button
                 type="button"
                 onClick={() => setCategoryFilter('all')}
                 className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
                   categoryFilter === 'all'
-                    ? 'bg-muted border-neutral-600 border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
-                    : 'bg-muted/40 border border-border/20 hover:bg-neutral-850/50 hover:border-neutral-700'
+                    ? 'bg-neutral-800 border-neutral-600 border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
+                    : 'bg-neutral-900/40 border border-border/20 hover:bg-neutral-850/50 hover:border-neutral-700'
                 }`}
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total</span>
@@ -635,8 +668,8 @@ export default function ContactsPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-neutral-400 font-medium">{filteredContacts.length}</span>
+                <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 font-medium">{filteredContacts.length}</span>
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Base unificada de leads NetLife</p>
               </div>
@@ -646,7 +679,7 @@ export default function ContactsPage() {
                   className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
                     isSelectionMode 
                       ? 'bg-primary/20 border-primary text-primary hover:bg-primary/30' 
-                      : 'border-border/60 hover:bg-muted text-muted-foreground'
+                      : 'border-border/60 hover:bg-neutral-800 text-muted-foreground'
                   }`}
                   title="Seleção em Lote"
                 >
@@ -662,7 +695,7 @@ export default function ContactsPage() {
             </div>
 
             {/* Search Box */}
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-background/80 shadow-inner focus-within:border-primary/50 transition-colors">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-black/40 shadow-inner focus-within:border-primary/50 transition-colors">
               <Search className="w-4 h-4 text-neutral-400 shrink-0" />
               <input
                 value={searchQuery}
@@ -671,7 +704,7 @@ export default function ContactsPage() {
                 className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-500 text-foreground"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-muted">
+                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-neutral-800">
                   <X className="w-3.5 h-3.5 text-neutral-400" />
                 </button>
               )}
@@ -692,7 +725,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-card border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
                       }`}
                     >
                       {tag}
@@ -713,7 +746,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-card border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
                       }`}
                     >
                       {orig}
@@ -725,9 +758,9 @@ export default function ContactsPage() {
 
             {/* Selection Toolbar */}
             {isSelectionMode && (
-              <div className="flex items-center justify-between p-3.5 bg-card border border-primary/25 rounded-2xl animate-scale-in">
+              <div className="flex items-center justify-between p-3.5 bg-neutral-950 border border-primary/25 rounded-2xl animate-scale-in">
                 <div className="flex items-center gap-2">
-                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-foreground">
+                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-white">
                     {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                   </button>
                   <span className="text-xs text-neutral-300 font-semibold">{checkedCount} selecionados</span>
@@ -735,7 +768,7 @@ export default function ContactsPage() {
                 {checkedCount > 0 && (
                   <button
                     onClick={handleBulkDelete}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-foreground transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-white transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
                   </button>
@@ -744,119 +777,188 @@ export default function ContactsPage() {
             )}
           </div>
 
-          {/* Contact List Scroll Area */}
-          <div className="flex-1 overflow-y-auto divide-y divide-border/10 scrollbar-thin">
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs text-muted-foreground">Carregando contatos...</span>
-              </div>
-            )}
-            
-            {!loading && filteredContacts.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground p-6">
-                <Info className="w-10 h-10 stroke-[1.5] opacity-25 mb-2" />
-                <p className="text-sm font-semibold">Nenhum contato encontrado</p>
-                <p className="text-xs mt-0.5 opacity-70">Ajuste os filtros de busca ou crie um novo contato.</p>
-              </div>
-            )}
-
-            {filteredContacts.map(c => {
-              const isSelected = selectedId === c.id
-              const isChecked = !!checkedIds[c.id]
-              
-              // Conditional badges
-              const isHmi = c.productGroup === 'HMI'
-              
-              return (
-                <div
-                  key={c.id}
-                  onClick={() => isSelectionMode ? toggleChecked(c.id) : setSelectedId(c.id)}
-                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all cursor-pointer border-l-2 ${
-                    isSelected 
-                      ? 'bg-primary/5 border-l-primary' 
-                      : 'hover:bg-muted/30 border-l-transparent'
-                  } ${isSelectionMode && isChecked ? 'bg-primary/5' : ''}`}
-                >
-                  {/* Checkbox if selection mode */}
+          {/* Contact List Scroll Area - Table Style */}
+          <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-thin px-5 pb-5">
+            <div className="min-w-[800px] flex flex-col h-full">
+              {/* Table Header */}
+              <div className="grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 px-5 py-3 border-b border-border/20 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-neutral-950/80 backdrop-blur-md z-10 rounded-t-xl mt-2">
+                <div className="w-5 flex items-center justify-center">
                   {isSelectionMode && (
-                    <button 
-                      onClick={(e) => toggleChecked(c.id, e)} 
-                      className="shrink-0 p-0.5 rounded text-neutral-400 hover:text-foreground"
-                    >
-                      {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-white">
+                      {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   )}
-
-                  {/* Avatar */}
-                  <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-foreground shrink-0 shadow-md`}>
-                    {initials(c)}
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                      <p className="text-sm font-semibold text-neutral-200 truncate">{c.nome} {c.sobrenome || ''}</p>
-                      {/* Classification Badge */}
-                      <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                        isHmi 
-                          ? 'bg-gradient-to-r from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/30' 
-                          : 'border border-blue-500/25 text-blue-400 bg-blue-500/5'
-                      }`}>
-                        {isHmi ? 'HMI · Meta Ads' : 'Sistema'}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] text-neutral-400 truncate mt-0.5 flex items-center gap-1">
-                      <Phone className="w-2.5 h-2.5 opacity-60" /> {c.telefone}
-                    </p>
-                    
-                    {c.email && (
-                      <p className="text-[10px] text-neutral-500 truncate mt-0.5 flex items-center gap-1">
-                        <Mail className="w-2.5 h-2.5 opacity-60" /> {c.email}
-                      </p>
-                    )}
-
-                    {/* Bottom Metadata Badges */}
-                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                      {c.derivedOrigem && (
-                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-card border border-border/20 text-neutral-400">
-                          {c.derivedOrigem}
-                        </span>
-                      )}
-                      {c.dealsCount > 0 && (
-                        <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-muted text-neutral-300">
-                          {c.dealsCount} Negócio{c.dealsCount > 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <ChevronRight className="w-4 h-4 text-neutral-600 shrink-0" />
                 </div>
-              )
-            })}
+                <div>Identidade</div>
+                <div>Status</div>
+                <div>Canal</div>
+                <div>Logs</div>
+                <div className="text-right">Ações</div>
+              </div>
+
+              {/* Table Body */}
+              <div className="flex flex-col gap-2 mt-3 pb-6">
+                {loading && (
+                  <div className="flex flex-col items-center justify-center py-20 gap-3">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-muted-foreground">Carregando contatos...</span>
+                  </div>
+                )}
+                
+                {!loading && filteredContacts.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground p-6">
+                    <Info className="w-10 h-10 stroke-[1.5] opacity-25 mb-2" />
+                    <p className="text-sm font-semibold">Nenhum contato encontrado</p>
+                    <p className="text-xs mt-0.5 opacity-70">Ajuste os filtros de busca ou crie um novo contato.</p>
+                  </div>
+                )}
+
+                {paginatedContacts.map(c => {
+                  const isSelected = selectedId === c.id
+                  const isChecked = !!checkedIds[c.id]
+                  const isHmi = c.productGroup === 'HMI'
+                  const isLead = leadsIds.has(c.id)
+                  
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => isSelectionMode ? toggleChecked(c.id) : setSelectedId(c.id)}
+                      className={`grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 items-center px-5 py-3 rounded-xl border transition-all cursor-pointer ${
+                        isSelected 
+                          ? 'bg-primary/5 border-primary/30' 
+                          : 'bg-neutral-950/60 border-border/10 hover:border-border/30 hover:bg-neutral-900/60'
+                      } ${isSelectionMode && isChecked ? 'bg-primary/5 border-primary/50' : ''}`}
+                    >
+                      {/* Checkbox */}
+                      <div className="w-5 flex items-center justify-center">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); toggleChecked(c.id, e); }} 
+                          className="shrink-0 p-0.5 rounded text-neutral-500 hover:text-white"
+                        >
+                          {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                        </button>
+                      </div>
+
+                      {/* Identidade */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md`}>
+                          {initials(c)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-neutral-200 truncate">{cleanVal(c.nome)} {cleanVal(c.sobrenome)}</p>
+                          <p className="text-[10px] text-neutral-500 truncate mt-0.5">{c.telefone || cleanVal(c.email) || 'Sem contato'}</p>
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div>
+                        {isLead ? (
+                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 tracking-wider">
+                            LEAD
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-500 border border-neutral-700 tracking-wider">
+                            CONTATO
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Canal */}
+                      <div className="flex items-center gap-1.5">
+                        {c.derivedOrigem?.toLowerCase().includes('google') ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
+                            <span className="text-[10px] font-black text-blue-400">G</span>
+                            <span className="text-[9px] font-bold text-neutral-300 uppercase">Google</span>
+                          </div>
+                        ) : isHmi ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
+                            <span className="text-[10px] font-black text-purple-400">M</span>
+                            <span className="text-[9px] font-bold text-neutral-300 uppercase">Meta Ads</span>
+                          </div>
+                        ) : c.derivedOrigem ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
+                            <span className="text-[10px] font-black text-neutral-400">{c.derivedOrigem.charAt(0)}</span>
+                            <span className="text-[9px] font-bold text-neutral-300 uppercase truncate max-w-[100px]">{c.derivedOrigem}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-neutral-600">-</span>
+                        )}
+                      </div>
+
+                      {/* Logs */}
+                      <div>
+                        <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
+                          Atualizado em: {new Date((c as any).updatedAt || c.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+
+                      {/* Ações */}
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); }}
+                          className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors"
+                          title="Ver Detalhes"
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openEditModal(c); }}
+                          className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-border/20 flex items-center justify-between bg-neutral-900/50">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-800 disabled:opacity-50 hover:bg-neutral-700"
+              >
+                Anterior
+              </button>
+              <span className="text-xs text-neutral-400">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-800 disabled:opacity-50 hover:bg-neutral-700"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: DETAILS PANE */}
-        <div className={`flex-1 flex flex-col min-w-0 ${!selectedId ? 'hidden lg:flex' : 'flex'}`}>
-          {selectedContact ? (
-            <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-[#090d16] to-[#030712] overflow-y-auto scrollbar-thin">
+        {/* MODAL: DETAILS PANE */}
+        {selectedId && selectedContact && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedId(null)}>
+            <div className="w-full max-w-5xl h-[95vh] bg-neutral-950 border border-border/40 rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
               
-              {/* Desktop Header / Mobile Navigation */}
-              <div className="flex items-center justify-between px-6 py-5 border-b border-border/20 bg-background/80 backdrop-blur-md sticky top-0 z-20">
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setSelectedId(null)} className="lg:hidden p-2 rounded-xl border border-border/50 text-neutral-400 hover:bg-muted">
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-foreground shadow-lg`}>
+              {/* Modal Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 border-b border-border/20 bg-black/40 backdrop-blur-md sticky top-0 z-20">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <button onClick={() => setSelectedId(null)} className="p-2 rounded-xl border border-border/50 text-neutral-400 hover:bg-neutral-800 shrink-0 mr-1" title="Fechar">
+                      <X className="w-4 h-4" />
+                    </button>
+                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-white shadow-lg shrink-0`}>
                       {initials(selectedContact)}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-foreground leading-none">{selectedContact.nome} {selectedContact.sobrenome || ''}</h2>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-xl font-bold text-white leading-tight truncate">
+                        {cleanVal(selectedContact.nome)} {cleanVal(selectedContact.sobrenome)}
+                      </h2>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                           selectedContact.productGroup === 'HMI'
                             ? 'bg-gradient-to-r from-amber-500/25 to-purple-500/25 text-amber-300 border border-amber-500/30' 
@@ -876,26 +978,25 @@ export default function ContactsPage() {
                       </div>
                     </div>
                   </div>
-                </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <button
                     onClick={() => setShowMergeModal(true)}
-                    className="p-2.5 rounded-xl border border-border hover:bg-muted text-neutral-400 hover:text-foreground transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
                     title="Mesclar Contato"
                   >
                     <Merge className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditModal(selectedContact)}
-                    className="p-2.5 rounded-xl border border-border hover:bg-muted text-neutral-400 hover:text-foreground transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
                     title="Editar Contato"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleSingleDelete(selectedContact.id)}
-                    className="p-2.5 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-foreground transition-all"
+                    className="p-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-white transition-all"
                     title="Excluir Contato"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -907,28 +1008,28 @@ export default function ContactsPage() {
               <div className="p-6 space-y-6 max-w-4xl mx-auto w-full">
                 
                 {/* QUICK ACTIONS BAR */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-card/40 p-3 rounded-2xl border border-border/10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-950/40 p-3 rounded-2xl border border-border/10">
                   <button
                     onClick={() => handleWhatsApp(selectedContact.telefone)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
                   >
                     <Phone className="w-4 h-4 text-emerald-400" /> Abrir WhatsApp
                   </button>
                   <a
                     href={`/activities?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
                   >
                     <Calendar className="w-4 h-4 text-indigo-400" /> Agendar Atividade
                   </a>
                   <a
                     href={`/pipeline?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
                   >
                     <Zap className="w-4 h-4 text-primary" /> Criar Negócio
                   </a>
                   <button
                     onClick={() => handleTestWebhook(selectedContact.telefone, selectedContact.nome)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-muted/40 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
                     title="Simula a chegada de um lead via Webhook Elementor"
                   >
                     <Globe className="w-4 h-4 text-amber-400" /> Disparar Webhook
@@ -963,12 +1064,12 @@ export default function ContactsPage() {
                       icon: () => <FileText className="w-5 h-5 text-amber-400" />
                     }
                   ].map((stat, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-muted/30 backdrop-blur-sm relative overflow-hidden shadow-md">
+                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-neutral-900/30 backdrop-blur-sm relative overflow-hidden shadow-md">
                       <div className="absolute top-0 right-0 p-3 opacity-20">
                         {stat.icon()}
                       </div>
                       <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">{stat.label}</p>
-                      <p className="text-xl font-bold text-foreground mt-1">{stat.value}</p>
+                      <p className="text-xl font-bold text-white mt-1">{stat.value}</p>
                       <p className="text-[10px] text-neutral-400 mt-0.5">{stat.desc}</p>
                     </div>
                   ))}
@@ -988,7 +1089,7 @@ export default function ContactsPage() {
                       className={`pb-3 font-semibold text-xs transition-all shrink-0 tracking-wider uppercase relative ${
                         detailTab === tab.id 
                           ? 'text-primary' 
-                          : 'text-neutral-400 hover:text-foreground'
+                          : 'text-neutral-400 hover:text-white'
                       }`}
                     >
                       {tab.label}
@@ -1005,42 +1106,42 @@ export default function ContactsPage() {
                     
                     {/* Informações Pessoais & Endereço */}
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <UserCheck className="w-3.5 h-3.5 text-primary" /> Informações Pessoais
                         </h4>
                         <div className="space-y-3 text-sm">
                           {[
-                            { label: 'Nome Completo', value: `${selectedContact.nome} ${selectedContact.sobrenome || ''}` },
-                            { label: 'E-mail', value: selectedContact.email || '-', copyable: !!selectedContact.email },
-                            { label: 'Telefone', value: selectedContact.telefone, copyable: true },
-                            { label: 'Documento (CPF/CNPJ)', value: selectedContact.documento || '-' },
-                            { label: 'Data de Nascimento', value: selectedContact.dataNascimento ? new Date(selectedContact.dataNascimento).toLocaleDateString('pt-BR') : '-' }
+                            { label: 'Nome Completo', value: `${cleanVal(selectedContact.nome)} ${cleanVal(selectedContact.sobrenome)}`.trim() || '-' },
+                            { label: 'E-mail', value: cleanDisplayVal(selectedContact.email), copyable: !!cleanVal(selectedContact.email) },
+                            { label: 'Telefone', value: cleanDisplayVal(selectedContact.telefone), copyable: !!cleanVal(selectedContact.telefone) },
+                            { label: 'Documento (CPF/CNPJ)', value: cleanDisplayVal(selectedContact.documento) },
+                            { label: 'Data de Nascimento', value: cleanVal(selectedContact.dataNascimento) ? new Date(selectedContact.dataNascimento as string).toLocaleDateString('pt-BR') : '-' }
                           ].map(item => (
-                            <div key={item.label} className="flex justify-between py-1.5 border-b border-border/5">
-                              <span className="text-neutral-500 text-xs">{item.label}</span>
-                              <span className="font-semibold text-neutral-200">{item.value}</span>
+                            <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border/5 gap-1">
+                              <span className="text-neutral-500 text-xs shrink-0">{item.label}</span>
+                              <span className="font-semibold text-neutral-200 text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-primary" /> Endereço Completo
                         </h4>
                         <div className="space-y-3 text-sm">
                           {[
-                            { label: 'CEP', value: selectedContact.enderecoCompleto?.cep || '-' },
-                            { label: 'Logradouro', value: selectedContact.enderecoCompleto?.rua || '-' },
-                            { label: 'Número', value: selectedContact.enderecoCompleto?.numero || '-' },
-                            { label: 'Complemento', value: selectedContact.enderecoCompleto?.complemento || '-' },
-                            { label: 'Bairro', value: selectedContact.enderecoCompleto?.bairro || '-' },
-                            { label: 'Cidade / Estado', value: selectedContact.enderecoCompleto?.cidade ? `${selectedContact.enderecoCompleto.cidade} - ${selectedContact.enderecoCompleto.estado || ''}` : '-' }
+                            { label: 'CEP', value: cleanDisplayVal(selectedContact.enderecoCompleto?.cep) },
+                            { label: 'Logradouro', value: cleanDisplayVal(selectedContact.enderecoCompleto?.rua) },
+                            { label: 'Número', value: cleanDisplayVal(selectedContact.enderecoCompleto?.numero) },
+                            { label: 'Complemento', value: cleanDisplayVal(selectedContact.enderecoCompleto?.complemento) },
+                            { label: 'Bairro', value: cleanDisplayVal(selectedContact.enderecoCompleto?.bairro) },
+                            { label: 'Cidade / Estado', value: cleanVal(selectedContact.enderecoCompleto?.cidade) ? `${selectedContact.enderecoCompleto?.cidade} - ${cleanDisplayVal(selectedContact.enderecoCompleto?.estado, '')}`.replace(/\s-\s$/, '') : '-' }
                           ].map(item => (
-                            <div key={item.label} className="flex justify-between py-1.5 border-b border-border/5">
-                              <span className="text-neutral-500 text-xs">{item.label}</span>
-                              <span className="font-semibold text-neutral-200">{item.value}</span>
+                            <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border/5 gap-1">
+                              <span className="text-neutral-500 text-xs shrink-0">{item.label}</span>
+                              <span className="font-semibold text-neutral-200 text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1048,7 +1149,7 @@ export default function ContactsPage() {
                     </div>
 
                     {/* Marketing & UTM info */}
-                    <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                    <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                       <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-primary" /> Atribuição de Marketing (UTMs)
                       </h4>
@@ -1058,11 +1159,11 @@ export default function ContactsPage() {
                         <div className="space-y-2 border-r border-border/10 pr-2">
                           <h5 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Primeiro Toque (Congelado)</h5>
                           <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between"><span className="text-neutral-500">Origem (Source)</span><span className="font-semibold text-neutral-200">{selectedContact.firstUtmSource || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Mídia (Medium)</span><span className="font-semibold text-neutral-200">{selectedContact.firstUtmMedium || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Campanha (Campaign)</span><span className="font-semibold text-neutral-200">{selectedContact.firstUtmCampaign || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200">{selectedContact.firstUtmTerm || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Capturado em</span><span className="font-semibold text-neutral-300">{selectedContact.firstUtmAt ? new Date(selectedContact.firstUtmAt).toLocaleString('pt-BR') : '-'}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmSource)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmMedium)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmCampaign)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmTerm)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Capturado em</span><span className="font-semibold text-neutral-300 text-xs sm:text-right break-all">{cleanVal(selectedContact.firstUtmAt) ? new Date(selectedContact.firstUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
                           </div>
                         </div>
 
@@ -1070,11 +1171,11 @@ export default function ContactsPage() {
                         <div className="space-y-2">
                           <h5 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Último Toque (Mais Recente)</h5>
                           <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between"><span className="text-neutral-500">Origem (Source)</span><span className="font-semibold text-neutral-200">{selectedContact.lastUtmSource || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Mídia (Medium)</span><span className="font-semibold text-neutral-200">{selectedContact.lastUtmMedium || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Campanha (Campaign)</span><span className="font-semibold text-neutral-200">{selectedContact.lastUtmCampaign || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200">{selectedContact.lastUtmTerm || '-'}</span></div>
-                            <div className="flex justify-between"><span className="text-neutral-500">Atualizado em</span><span className="font-semibold text-neutral-300">{selectedContact.lastUtmAt ? new Date(selectedContact.lastUtmAt).toLocaleString('pt-BR') : '-'}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmSource)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmMedium)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmCampaign)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmTerm)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Atualizado em</span><span className="font-semibold text-neutral-300 text-xs sm:text-right break-all">{cleanVal(selectedContact.lastUtmAt) ? new Date(selectedContact.lastUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
                           </div>
                         </div>
                       </div>
@@ -1083,7 +1184,7 @@ export default function ContactsPage() {
                     {/* Tags e Campos Customizados */}
                     <div className="grid md:grid-cols-2 gap-6">
                       
-                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5 text-primary" /> Tags Comerciais
                         </h4>
@@ -1099,7 +1200,7 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Settings className="w-3.5 h-3.5 text-primary" /> Campos Customizados
                         </h4>
@@ -1108,9 +1209,9 @@ export default function ContactsPage() {
                             <span className="text-neutral-500">Nenhum campo customizado inserido.</span>
                           ) : (
                             Object.entries(selectedContact.camposCustomizados || {}).map(([key, val]) => (
-                              <div key={key} className="flex justify-between py-1 border-b border-border/5">
+                              <div key={key} className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5">
                                 <span className="text-neutral-400 capitalize">{key.replace(/_/g, ' ')}</span>
-                                <span className="font-semibold text-neutral-200">{String(val)}</span>
+                                <span className="font-semibold text-neutral-200 break-all text-left sm:text-right">{String(val)}</span>
                               </div>
                             ))
                           )}
@@ -1121,11 +1222,11 @@ export default function ContactsPage() {
 
                     {/* Webhook Meta fbMetadata */}
                     {selectedContact.fbMetadata && Object.keys(selectedContact.fbMetadata).length > 0 && (
-                      <div className="p-5 rounded-2xl border border-border/10 bg-card/40 space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Globe className="w-3.5 h-3.5 text-primary" /> Metadata Lead Ads (Facebook Ads Integration)
                         </h4>
-                        <pre className="p-4 rounded-xl bg-background border border-border/25 text-neutral-300 font-mono text-[11px] overflow-x-auto">
+                        <pre className="p-4 rounded-xl bg-black border border-border/25 text-neutral-300 font-mono text-[11px] overflow-x-auto">
                           {JSON.stringify(selectedContact.fbMetadata, null, 2)}
                         </pre>
                       </div>
@@ -1143,13 +1244,13 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactDeals.filter(d => d.status === 'WON').map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 flex items-center justify-between">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                               <ShoppingBag className="w-4 h-4 text-emerald-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
+                              <p className="text-sm font-bold text-white">{deal.titulo}</p>
                               <p className="text-[10px] text-neutral-400 mt-0.5">
                                 Fechado em: {deal.fechadoEm ? new Date(deal.fechadoEm).toLocaleDateString('pt-BR') : new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
                               </p>
@@ -1159,7 +1260,7 @@ export default function ContactsPage() {
                             <p className="text-sm font-extrabold text-emerald-400">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}
                             </p>
-                            <span className="text-[9px] px-1.5 py-0.5 bg-card text-neutral-400 rounded-md border border-neutral-800">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-neutral-900 text-neutral-400 rounded-md border border-neutral-800">
                               WON Deal
                             </span>
                           </div>
@@ -1178,9 +1279,9 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactDeals.map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 space-y-3">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
+                            <p className="text-sm font-bold text-white">{deal.titulo}</p>
                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                               deal.status === 'WON' 
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
@@ -1213,17 +1314,17 @@ export default function ContactsPage() {
                       </div>
                     ) : (
                       selectedContactActivities.map(act => (
-                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-card/40 flex items-center justify-between">
+                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                               act.status === 'DONE' 
-                                ? 'bg-muted border border-neutral-700 text-neutral-500' 
+                                ? 'bg-neutral-800 border border-neutral-700 text-neutral-500' 
                                 : 'bg-primary/10 border border-primary/20 text-primary'
                             }`}>
                               <Calendar className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-neutral-500' : 'text-foreground'}`}>
+                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-neutral-500' : 'text-white'}`}>
                                 {act.titulo}
                               </p>
                               {act.descricao && (
@@ -1237,7 +1338,7 @@ export default function ContactsPage() {
                           
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             act.status === 'DONE' 
-                              ? 'bg-muted text-neutral-400' 
+                              ? 'bg-neutral-800 text-neutral-400' 
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
                             {act.status}
@@ -1250,30 +1351,22 @@ export default function ContactsPage() {
 
               </div>
             </div>
-          ) : (
-            <div className="hidden lg:flex flex-1 flex-col items-center justify-center text-center text-muted-foreground p-12 bg-gradient-to-b from-[#090d16] to-[#030712]">
-              <div className="p-6 rounded-3xl border border-border/10 bg-card/20 backdrop-blur-md max-w-sm shadow-2xl">
-                <UserCheck className="w-12 h-12 text-primary/45 mx-auto mb-4 stroke-[1.5]" />
-                <h3 className="text-base font-bold text-foreground">Selecione um contato</h3>
-                <p className="text-xs mt-1 text-neutral-400">Escolha um contato da listagem lateral para ver suas informações detalhadas, UTMs e métricas de vendas.</p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
       </div>
 
       {/* CREATE & EDIT CONTACT DIALOG (TABBED FORM) */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFormModal(false)}>
-          <div className="absolute inset-0 bg-background backdrop-blur-md" />
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
           <div 
             className="relative w-full max-w-lg bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-5 animate-scale-in shadow-2xl overflow-y-auto max-h-[90vh]" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
-              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-neutral-400 hover:text-foreground transition-colors">
+              <h3 className="text-lg font-bold text-white">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
+              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1290,7 +1383,7 @@ export default function ContactsPage() {
                   type="button"
                   onClick={() => setFormTab(tab.id as 'dados' | 'endereco' | 'marketing')}
                   className={`pb-2 text-xs font-bold uppercase tracking-wider relative transition-colors ${
-                    formTab === tab.id ? 'text-primary' : 'text-neutral-400 hover:text-foreground'
+                    formTab === tab.id ? 'text-primary' : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -1308,7 +1401,7 @@ export default function ContactsPage() {
                     value={formData.nome}
                     onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
                     placeholder="João"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1317,7 +1410,7 @@ export default function ContactsPage() {
                     value={formData.sobrenome}
                     onChange={e => setFormData(p => ({ ...p, sobrenome: e.target.value }))}
                     placeholder="Silva"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1326,7 +1419,7 @@ export default function ContactsPage() {
                     value={formData.telefone}
                     onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
                     placeholder="5562999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1335,7 +1428,7 @@ export default function ContactsPage() {
                     value={formData.email}
                     onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                     placeholder="joao@empresa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1344,7 +1437,7 @@ export default function ContactsPage() {
                     value={formData.documento}
                     onChange={e => setFormData(p => ({ ...p, documento: e.target.value }))}
                     placeholder="123.456.789-00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1353,7 +1446,7 @@ export default function ContactsPage() {
                     value={formData.dataNascimento}
                     onChange={e => setFormData(p => ({ ...p, dataNascimento: e.target.value }))}
                     type="date"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 flex items-center gap-2 pt-2">
@@ -1362,7 +1455,7 @@ export default function ContactsPage() {
                     type="checkbox"
                     checked={formData.consentimentoLgpd}
                     onChange={e => setFormData(p => ({ ...p, consentimentoLgpd: e.target.checked }))}
-                    className="rounded border-neutral-700 bg-card text-primary focus:ring-0 focus:ring-offset-0"
+                    className="rounded border-neutral-700 bg-neutral-950 text-primary focus:ring-0 focus:ring-offset-0"
                   />
                   <label htmlFor="consentimento" className="text-xs text-neutral-400 cursor-pointer">Aceita os termos de consentimento LGPD</label>
                 </div>
@@ -1378,7 +1471,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cep}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cep: e.target.value } }))}
                     placeholder="74000-000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1387,7 +1480,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.rua}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, rua: e.target.value } }))}
                     placeholder="Av. Anhanguera"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1396,7 +1489,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.numero}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, numero: e.target.value } }))}
                     placeholder="100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1405,7 +1498,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.complemento}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, complemento: e.target.value } }))}
                     placeholder="Quadra 12"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1414,7 +1507,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.bairro}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, bairro: e.target.value } }))}
                     placeholder="Setor Central"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1423,7 +1516,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cidade}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cidade: e.target.value }, cidade: e.target.value }))}
                     placeholder="Goiânia"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1432,7 +1525,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.estado}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, estado: e.target.value }, estado: e.target.value }))}
                     placeholder="GO"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
               </div>
@@ -1447,7 +1540,7 @@ export default function ContactsPage() {
                     value={formData.origem}
                     onChange={e => setFormData(p => ({ ...p, origem: e.target.value }))}
                     placeholder="Meta Ads"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                   />
                 </div>
 
@@ -1460,7 +1553,7 @@ export default function ContactsPage() {
                       onChange={e => setNewTagInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
                       placeholder="Nova tag"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
                     />
                     <button
                       type="button"
@@ -1474,7 +1567,7 @@ export default function ContactsPage() {
                     {formData.tags.map(tag => (
                       <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
                         {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-foreground font-bold ml-0.5">×</button>
+                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-white font-bold ml-0.5">×</button>
                       </span>
                     ))}
                   </div>
@@ -1488,28 +1581,28 @@ export default function ContactsPage() {
                       value={customFieldKey}
                       onChange={e => setCustomFieldKey(e.target.value)}
                       placeholder="Nome do campo (ex: Ramo)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-foreground focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
                     />
                     <input
                       value={customFieldValue}
                       onChange={e => setCustomFieldValue(e.target.value)}
                       placeholder="Valor"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-foreground focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={addCustomField}
-                      className="px-3 rounded-xl bg-muted hover:bg-neutral-700 text-foreground font-semibold text-xs"
+                      className="px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs"
                     >
                       Adicionar
                     </button>
                   </div>
                   <div className="space-y-1.5 max-h-[120px] overflow-y-auto scrollbar-thin">
                     {Object.entries(formData.camposCustomizados).map(([key, val]) => (
-                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-card border border-border/10 text-xs">
+                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-neutral-950 border border-border/10 text-xs">
                         <span className="text-neutral-400 capitalize">{key.replace(/_/g, ' ')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-foreground font-semibold">{val}</span>
+                          <span className="text-white font-semibold">{val}</span>
                           <button type="button" onClick={() => removeCustomField(key)} className="text-rose-400 hover:text-rose-600 font-bold">×</button>
                         </div>
                       </div>
@@ -1524,7 +1617,7 @@ export default function ContactsPage() {
               <button 
                 type="button"
                 onClick={() => setShowFormModal(false)} 
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-muted transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -1543,16 +1636,16 @@ export default function ContactsPage() {
       {/* MERGE CONTACTS DIALOG */}
       {showMergeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowMergeModal(false)}>
-          <div className="absolute inset-0 bg-background/85 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
           <div 
             className="relative w-full max-w-md bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-4 animate-scale-in shadow-2xl" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Merge className="w-5 h-5 text-primary" /> Mesclar Contatos
               </h3>
-              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-neutral-400 hover:text-foreground transition-colors">
+              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1561,24 +1654,24 @@ export default function ContactsPage() {
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <div>
                 <span className="font-extrabold block">Instrução importante:</span>
-                O contato principal será mantido: <span className="font-extrabold text-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
+                O contato principal será mantido: <span className="font-extrabold text-white">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
               </div>
             </div>
 
             <div>
               <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Buscar Contato Secundário</label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-card focus-within:border-primary/50 transition-colors">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 focus-within:border-primary/50 transition-colors">
                 <Search className="w-4 h-4 text-neutral-500 shrink-0" />
                 <input
                   value={mergeQuery}
                   onChange={e => setMergeQuery(e.target.value)}
                   placeholder="Buscar contato secundário..."
-                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none"
+                  className="flex-1 bg-transparent text-sm text-white focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-card/30">
+            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-neutral-950/30">
               {mergeEligibleContacts.length === 0 && (
                 <div className="p-4 text-center text-xs text-neutral-500">Nenhum outro contato elegível encontrado.</div>
               )}
@@ -1589,7 +1682,7 @@ export default function ContactsPage() {
                   className={`w-full flex items-center justify-between p-3 text-left text-xs transition-colors ${
                     mergeTargetId === c.id 
                       ? 'bg-primary/10 text-primary' 
-                      : 'text-neutral-300 hover:bg-muted/40'
+                      : 'text-neutral-300 hover:bg-neutral-900/40'
                   }`}
                 >
                   <div>
@@ -1604,7 +1697,7 @@ export default function ContactsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowMergeModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-muted transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -1622,7 +1715,7 @@ export default function ContactsPage() {
 
       {/* Floating Bulk Actions Bar */}
       {isSelectionMode && checkedCount > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-card/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-neutral-950/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
             <p className="text-xs font-bold text-foreground">
@@ -1638,7 +1731,7 @@ export default function ContactsPage() {
                 onChange={setSelectedListaTarget}
                 options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
                 placeholder="Disparo..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToLista}
@@ -1656,7 +1749,7 @@ export default function ContactsPage() {
                 onChange={setSelectedCadenciaTarget}
                 options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
                 placeholder="Cadência..."
-                className="bg-card border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToCadence}
@@ -1669,7 +1762,7 @@ export default function ContactsPage() {
 
             <button
               onClick={handleBulkDelete}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-foreground transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-white transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
             </button>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react'
 import { AppLayout } from '@/components/AppLayout'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   User, Sliders, Zap, Key, ChevronRight,
   Plus, Trash2, Edit3, AlertTriangle,
@@ -57,16 +58,9 @@ interface DisparoLog {
   mensagem?: string
 }
 
-const DEFAULT_CHANNELS: DisparoChannel[] = [
-  { id: 'chan-1', nome: 'Disparo Leads Quentes n8n', tipo: 'webhook', urlWebhook: 'https://n8n.netlife.com/webhook/disparo-crm', pipelineId: 'pipe-1', ativo: true, createdAt: new Date().toISOString() },
-  { id: 'chan-2', nome: 'Integração Inbound Evolution API', tipo: 'webhook', urlWebhook: 'https://evo.netlife.com/webhook/status', pipelineId: 'pipe-1', ativo: false, createdAt: new Date().toISOString() },
-]
+const DEFAULT_CHANNELS: DisparoChannel[] = []
 
-const DEFAULT_LOGS: DisparoLog[] = [
-  { id: 'log-1', channelId: 'chan-1', channelNome: 'Disparo Leads Quentes n8n', timestamp: new Date(Date.now() - 3600000).toISOString(), leadsCount: 15, status: 'SUCESSO' },
-  { id: 'log-2', channelId: 'chan-1', channelNome: 'Disparo Leads Quentes n8n', timestamp: new Date(Date.now() - 7200000).toISOString(), leadsCount: 8, status: 'SUCESSO' },
-  { id: 'log-3', channelId: 'chan-2', channelNome: 'Integração Inbound Evolution API', timestamp: new Date(Date.now() - 86400000).toISOString(), leadsCount: 4, status: 'FALHA', mensagem: 'Error: Timeout 10000ms exceeded' },
-]
+const DEFAULT_LOGS: DisparoLog[] = []
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
   { id: 'perfil', label: 'Perfil', icon: User },
@@ -120,8 +114,8 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-muted/40 hover:border-border/60 transition-all gap-3 ${
-        isDragging ? 'shadow-lg border-primary/45 bg-card' : ''
+      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-neutral-900/40 hover:border-border/60 transition-all gap-3 ${
+        isDragging ? 'shadow-lg border-primary/45 bg-neutral-900' : ''
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -129,7 +123,7 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground shrink-0"
         >
           <GripVertical className="w-4.5 h-4.5" />
         </button>
@@ -152,14 +146,14 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => onEdit(stage)}
-          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
           title="Editar etapa"
         >
           <Edit3 className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onDelete(stage)}
-          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
+          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
           title="Excluir etapa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -170,6 +164,8 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
 }
 
 function SettingsContent() {
+  const isMobile = useIsMobile()
+  const [mobileTabActive, setMobileTabActive] = useState(false)
   const [tab, setTab] = useState<Tab>('perfil')
   const [currentUser, setCurrentUser] = useState<MockUser | null>(null)
   
@@ -239,6 +235,10 @@ function SettingsContent() {
     disparo_status_webhook_url: '',
     disparo_cancelar_webhook_url: ''
   })
+
+  // Google Maps N8N webhook
+  const [googleMapsWebhook, setGoogleMapsWebhook] = useState('')
+  const [testingGoogleMaps, setTestingGoogleMaps] = useState(false)
 
   // Disparo channels & logs states
   const [channels, setChannels] = useState<DisparoChannel[]>([])
@@ -487,6 +487,26 @@ function SettingsContent() {
     password: ''
   })
   const [passwordEdit, setPasswordEdit] = useState<Record<string, string>>({})
+  const [userEdits, setUserEdits] = useState<Record<string, { nome: string; sobrenome: string; email: string }>>({})
+
+  const handleSaveUserEdit = async (userId: string) => {
+    const editData = userEdits[userId]
+    if (!editData) return
+    try {
+      await crmActions.updateUser(userId, { 
+        nome: editData.nome,
+        sobrenome: editData.sobrenome,
+        email: editData.email
+      })
+      
+      const list = await crmService.getUsers()
+      setUsers(list)
+      setUserEdits(p => { const copy = { ...p }; delete copy[userId]; return copy })
+      toast.success('Usuário atualizado com sucesso!')
+    } catch (err) {
+      toast.error('Erro ao atualizar usuário')
+    }
+  }
 
   // Admin: Teams CRUD
   const [teams, setTeams] = useState<MockTeam[]>([])
@@ -521,7 +541,7 @@ function SettingsContent() {
           avatarUrl: user.avatarUrl || ''
         })
         setWebhookUrls({
-          disparo_webhook_url: user.disparo_webhook_url || '',
+          disparo_webhook_url: user.disparo_webhook_url || 'https://auto.devnetlife.com/webhook/disparo-ocr',
           disparo_status_webhook_url: user.disparo_status_webhook_url || '',
           disparo_cancelar_webhook_url: user.disparo_cancelar_webhook_url || ''
         })
@@ -529,7 +549,7 @@ function SettingsContent() {
           ? [crmService.getUsers(), crmService.getTeams()]
           : [Promise.resolve([]) as Promise<MockUser[]>, Promise.resolve([]) as Promise<MockTeam[]>]
         return Promise.all([
-          crmService.getPipelines(),
+          crmActions.getPipelines(),
           crmService.getIntegrations(),
           crmService.getAIAgentConfig(),
           adminLoaders[0],
@@ -551,6 +571,14 @@ function SettingsContent() {
           }
         })
       }).catch(err => console.error('Erro ao carregar dados', err))
+
+      // Load N8N Settings
+      fetch('/api/settings/n8n')
+        .then(res => res.json())
+        .then(data => {
+          if (data.googleMapsWebhook) setGoogleMapsWebhook(data.googleMapsWebhook)
+        })
+        .catch(err => console.error('Erro ao carregar N8N settings:', err))
     }
 
     loadData()
@@ -612,13 +640,55 @@ function SettingsContent() {
   useEffect(() => {
     if (!selectedPipelineId) return
     Promise.all([
-      crmService.getStages(selectedPipelineId),
-      crmService.getDeals(selectedPipelineId)
+      crmActions.getStages(selectedPipelineId),
+      crmActions.getDeals(selectedPipelineId)
     ]).then(([loadedStages, loadedDeals]) => {
-      setStages(loadedStages)
-      setDeals(loadedDeals)
+      setStages(loadedStages as any)
+      setDeals(loadedDeals as any)
     }).catch(err => console.error('Erro ao carregar etapas', err))
   }, [selectedPipelineId])
+
+  // ─── N8N SETTINGS SAVE ───────────────────────────────────────────────────────
+  const handleSaveGoogleMapsWebhook = async () => {
+    try {
+      const res = await fetch('/api/settings/n8n', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleMapsWebhook })
+      })
+      if (!res.ok) throw new Error('Erro ao salvar')
+      toast.success('Webhook do Google Maps salvo com sucesso!')
+    } catch (err: unknown) {
+      toast.error('Erro ao salvar webhook do Google Maps')
+    }
+  }
+
+  const handleTestGoogleMapsWebhook = async () => {
+    if (!googleMapsWebhook || !googleMapsWebhook.startsWith('http')) {
+      toast.error('URL inválida')
+      return
+    }
+    setTestingGoogleMaps(true)
+    try {
+      const res = await fetch(googleMapsWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'connection_test',
+          source: 'operacao-caixa-rapido'
+        })
+      })
+      if (res.ok) {
+        toast.success('Conexão testada com sucesso!')
+      } else {
+        toast.error(`Falha no teste: HTTP ${res.status}`)
+      }
+    } catch (err: unknown) {
+      toast.error('Erro ao testar a conexão (verifique se a URL está correta ou bloqueada por CORS)')
+    } finally {
+      setTestingGoogleMaps(false)
+    }
+  }
 
   // ─── USER PROFILE SAVE ───────────────────────────────────────────────────────
   const handleSaveProfile = async () => {
@@ -637,10 +707,10 @@ function SettingsContent() {
   // ─── PIPELINE & STAGES ACTIONS ───────────────────────────────────────────────
   const handleSetDefaultPipeline = async (pipeId: string) => {
     try {
-      await crmService.setDefaultPipeline(pipeId)
-      const list = await crmService.getPipelines()
-      setPipelines(list)
-      toast.success('Funil padrão atualizado!')
+      await crmActions.setDefaultPipeline(pipeId)
+      const list = await crmActions.getPipelines()
+      setPipelines(list as any)
+      toast.success('Funil padrão updated!')
     } catch (err: unknown) {
       toast.error('Erro ao definir funil padrão: ' + (err instanceof Error ? err.message : String(err)))
     }
@@ -652,10 +722,10 @@ function SettingsContent() {
       return
     }
     try {
-      const newPipe = await crmService.createPipeline(newPipelineName.trim())
+      const newPipe = await crmActions.createPipeline(newPipelineName.trim())
       
       // Auto-create initial stage
-      await crmService.createStage({
+      await crmActions.createStage({
         pipelineId: newPipe.id,
         nome: 'Novo Lead',
         cor: '#00E676',
@@ -664,8 +734,8 @@ function SettingsContent() {
         ordem: 1
       })
 
-      const list = await crmService.getPipelines()
-      setPipelines(list)
+      const list = await crmActions.getPipelines()
+      setPipelines(list as any)
       setSelectedPipelineId(newPipe.id)
       setNewPipelineName('')
       setIsAddingPipeline(false)
@@ -678,9 +748,9 @@ function SettingsContent() {
   const handleRenamePipeline = async () => {
     if (!editingPipelineName.trim() || !editingPipelineId) return
     try {
-      await crmService.updatePipeline(editingPipelineId, { nome: editingPipelineName.trim() })
-      const list = await crmService.getPipelines()
-      setPipelines(list)
+      await crmActions.updatePipeline(editingPipelineId, { nome: editingPipelineName.trim() })
+      const list = await crmActions.getPipelines()
+      setPipelines(list as any)
       setEditingPipelineId(null)
       toast.success('Funil renomeado com sucesso!')
     } catch (err: unknown) {
@@ -700,9 +770,9 @@ function SettingsContent() {
     if (!confirm) return
 
     try {
-      await crmService.deletePipeline(pipeId)
-      const list = await crmService.getPipelines()
-      setPipelines(list)
+      await crmActions.deletePipeline(pipeId)
+      const list = await crmActions.getPipelines()
+      setPipelines(list as any)
       const nextDef = list.find(p => p.isDefault) || list[0]
       setSelectedPipelineId(nextDef.id)
       toast.success('Funil excluído permanentemente!')
@@ -723,7 +793,7 @@ function SettingsContent() {
     setStages(updated)
 
     try {
-      await crmService.reorderStages(selectedPipelineId, updated)
+      await crmActions.reorderStages(selectedPipelineId, updated)
       toast.success('Ordem das etapas atualizada!')
     } catch (err: unknown) {
       toast.error('Erro ao atualizar ordenação: ' + (err instanceof Error ? err.message : String(err)))
@@ -760,10 +830,10 @@ function SettingsContent() {
 
     try {
       if (editingStageId) {
-        await crmService.updateStage(editingStageId, stageForm)
+        await crmActions.updateStage(editingStageId, stageForm)
         toast.success('Etapa atualizada com sucesso!')
       } else {
-        await crmService.createStage({
+        await crmActions.createStage({
           ...stageForm,
           pipelineId: selectedPipelineId,
           ordem: stages.length + 1
@@ -773,8 +843,8 @@ function SettingsContent() {
       
       setIsAddingStage(false)
       setEditingStageId(null)
-      const loadedStages = await crmService.getStages(selectedPipelineId)
-      setStages(loadedStages)
+      const loadedStages = await crmActions.getStages(selectedPipelineId)
+      setStages(loadedStages as any)
     } catch (err: unknown) {
       toast.error('Erro ao salvar etapa: ' + (err instanceof Error ? err.message : String(err)))
     }
@@ -801,15 +871,15 @@ function SettingsContent() {
 
   const executeDeleteStage = async (stageId: string, migrationId?: string) => {
     try {
-      await crmService.deleteStage(stageId, migrationId)
+      await crmActions.deleteStage(stageId, migrationId)
       toast.success('Etapa excluída com sucesso!')
       setDeletingStage(null)
       setMigrationStageId('')
       
-      const loadedStages = await crmService.getStages(selectedPipelineId)
-      setStages(loadedStages)
-      const loadedDeals = await crmService.getDeals(selectedPipelineId)
-      setDeals(loadedDeals)
+      const loadedStages = await crmActions.getStages(selectedPipelineId)
+      setStages(loadedStages as any)
+      const loadedDeals = await crmActions.getDeals(selectedPipelineId)
+      setDeals(loadedDeals as any)
     } catch (err: unknown) {
       toast.error('Erro ao excluir etapa: ' + (err instanceof Error ? err.message : String(err)))
     }
@@ -977,37 +1047,25 @@ function SettingsContent() {
       [field]: { status: 'loading', message: 'Enviando disparo de teste...' }
     }))
 
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
-
     try {
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          test: true,
-          event: 'webhook_test',
-          timestamp: new Date().toISOString(),
-          details: 'Disparo de teste simulado pela interface'
-        }),
-        signal: controller.signal
-      })
+      const res = await crmActions.testWebhook(url)
 
-      clearTimeout(timeoutId)
-      setTestStates(prev => ({
-        ...prev,
-        [field]: { status: 'success', message: 'Webhook respondendo com sucesso!' }
-      }))
+      if (res.success) {
+        setTestStates(prev => ({
+          ...prev,
+          [field]: { status: 'success', message: 'Webhook respondendo com sucesso!' }
+        }))
+      } else {
+        setTestStates(prev => ({
+          ...prev,
+          [field]: { status: 'error', message: `Erro: ${res.error || 'Falha na resposta'}` }
+        }))
+      }
     } catch (err: unknown) {
-      clearTimeout(timeoutId)
-      const isAbort = err instanceof Error && err.name === 'AbortError'
+      const msg = err instanceof Error ? err.message : 'Erro de requisição'
       setTestStates(prev => ({
         ...prev,
-        [field]: {
-          status: 'error',
-          message: isAbort ? 'Erro: Tempo limite de 10s excedido.' : 'Erro de requisição. Verifique a URL.'
-        }
+        [field]: { status: 'error', message: msg }
       }))
     }
 
@@ -1163,24 +1221,28 @@ function SettingsContent() {
   }, [teams, selectedTeamId])
 
   return (
-    <div className="flex h-full bg-[#0a0a0c] text-foreground select-none">
+    <div className="flex h-full bg-[#0a0a0c] text-foreground select-none flex-col md:flex-row">
       
       {/* Sidebar navigation */}
-      <div className="w-60 shrink-0 border-r border-border/30 p-5 space-y-1 bg-background/20 flex flex-col justify-between">
-        <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-3 mb-4">Configurações</p>
-          <div className="space-y-1">
-            {visibleTabs.map(t => {
-              const Icon = t.icon
-              const isSel = tab === t.id
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
+      {(!isMobile || !mobileTabActive) && (
+        <div className={`${isMobile ? 'w-full flex-1' : 'w-60 shrink-0 border-r'} border-border/30 p-5 space-y-1 bg-black/20 flex flex-col justify-between`}>
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-3 mb-4">Configurações</p>
+            <div className="space-y-1">
+              {visibleTabs.map(t => {
+                const Icon = t.icon
+                const isSel = tab === t.id
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setTab(t.id)
+                      if (isMobile) setMobileTabActive(true)
+                    }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isSel
                       ? 'bg-primary/10 text-primary border border-primary/20 shadow-md shadow-primary/[0.02]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 border border-transparent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-neutral-900/40 border border-transparent'
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -1194,17 +1256,27 @@ function SettingsContent() {
 
         {/* Developer details footer */}
         {currentUser && (
-          <div className="p-3.5 rounded-2xl bg-card/35 border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
+          <div className="p-3.5 rounded-2xl bg-neutral-900/35 border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
             <span className="font-bold text-neutral-300">Identidade do Operador</span>
             <span className="truncate">ID: {currentUser.id}</span>
             <span className="capitalize">Role: {currentUser.role}</span>
           </div>
         )}
       </div>
+      )}
 
       {/* Workspace panel */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      {(!isMobile || mobileTabActive) && (
+        <div className="flex-1 overflow-y-auto scrollbar-thin p-4 md:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {isMobile && mobileTabActive && (
+              <button
+                onClick={() => setMobileTabActive(false)}
+                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 border border-border/40 hover:bg-neutral-800 text-xs font-bold text-neutral-200 transition-all active:scale-95 w-full justify-center md:w-auto"
+              >
+                ← Voltar para Configurações
+              </button>
+            )}
 
           {/* 1. PERFIL TAB */}
           {tab === 'perfil' && currentUser && (
@@ -1248,7 +1320,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.nome}
                       onChange={e => setPerfilForm(p => ({ ...p, nome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div>
@@ -1257,7 +1329,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.sobrenome}
                       onChange={e => setPerfilForm(p => ({ ...p, sobrenome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1266,7 +1338,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.telefone}
                       onChange={e => setPerfilForm(p => ({ ...p, telefone: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="Ex: 5562999999999"
                     />
                   </div>
@@ -1276,7 +1348,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.avatarUrl}
                       onChange={e => setPerfilForm(p => ({ ...p, avatarUrl: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="https://exemplo.com/avatar.png"
                     />
                   </div>
@@ -1329,7 +1401,7 @@ function SettingsContent() {
                         placeholder="Ex: Pós-Vendas / Retenção"
                         value={newPipelineName}
                         onChange={e => setNewPipelineName(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                       />
                       <div className="flex justify-end gap-2 text-[10px]">
                         <button
@@ -1337,7 +1409,7 @@ function SettingsContent() {
                             setIsAddingPipeline(false)
                             setNewPipelineName('')
                           }}
-                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                         >
                           Cancelar
                         </button>
@@ -1362,7 +1434,7 @@ function SettingsContent() {
                           className={`group relative p-3 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
                             isSel
                               ? 'border-primary/30 bg-primary/5 shadow-inner'
-                              : 'border-border/20 hover:border-border/50 bg-card/10'
+                              : 'border-border/20 hover:border-border/50 bg-neutral-900/10'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -1372,7 +1444,7 @@ function SettingsContent() {
                                   type="text"
                                   value={editingPipelineName}
                                   onChange={e => setEditingPipelineName(e.target.value)}
-                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-card text-[11px] text-foreground focus:outline-none"
+                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-neutral-950 text-[11px] text-foreground focus:outline-none"
                                 />
                                 <button
                                   onClick={handleRenamePipeline}
@@ -1382,7 +1454,7 @@ function SettingsContent() {
                                 </button>
                                 <button
                                   onClick={() => setEditingPipelineId(null)}
-                                  className="p-1 rounded-md border border-border hover:bg-muted text-muted-foreground"
+                                  className="p-1 rounded-md border border-border hover:bg-neutral-800 text-muted-foreground"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1402,7 +1474,7 @@ function SettingsContent() {
                                   {!p.isDefault && (
                                     <button
                                       onClick={() => handleSetDefaultPipeline(p.id)}
-                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary"
+                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-primary"
                                       title="Tornar funil padrão"
                                     >
                                       <Star className="w-3 h-3" />
@@ -1413,7 +1485,7 @@ function SettingsContent() {
                                       setEditingPipelineId(p.id)
                                       setEditingPipelineName(p.nome)
                                     }}
-                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                                    className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
                                     title="Renomear"
                                   >
                                     <Edit3 className="w-3 h-3" />
@@ -1421,7 +1493,7 @@ function SettingsContent() {
                                   {pipelines.length > 1 && (
                                     <button
                                       onClick={() => handleDeletePipeline(p.id)}
-                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
                                       title="Excluir funil"
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1475,7 +1547,7 @@ function SettingsContent() {
                         <select
                           value={migrationStageId}
                           onChange={e => setMigrationStageId(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                          className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
                         >
                           <option value="">-- Selecione uma etapa --</option>
                           {stages.filter(s => s.id !== deletingStage.id).map(s => (
@@ -1490,14 +1562,14 @@ function SettingsContent() {
                             setDeletingStage(null)
                             setMigrationStageId('')
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-card text-muted-foreground"
+                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-neutral-900 text-muted-foreground"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={() => executeDeleteStage(deletingStage.id, migrationStageId)}
                           disabled={!migrationStageId}
-                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-foreground font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Migrar e Confirmar Exclusão
                         </button>
@@ -1520,7 +1592,7 @@ function SettingsContent() {
                             placeholder="Ex: Demonstração Agendada"
                             value={stageForm.nome}
                             onChange={e => setStageForm(p => ({ ...p, nome: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1531,7 +1603,7 @@ function SettingsContent() {
                             max="100"
                             value={stageForm.probabilidade}
                             onChange={e => setStageForm(p => ({ ...p, probabilidade: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1541,7 +1613,7 @@ function SettingsContent() {
                             min="1"
                             value={stageForm.slaHours}
                             onChange={e => setStageForm(p => ({ ...p, slaHours: Math.max(1, parseInt(e.target.value) || 0) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                           />
                         </div>
                       </div>
@@ -1576,7 +1648,7 @@ function SettingsContent() {
                             setIsAddingStage(false)
                             setEditingStageId(null)
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                         >
                           Cancelar
                         </button>
@@ -1636,6 +1708,42 @@ function SettingsContent() {
                 )}
               </div>
 
+              {/* Google Maps (N8N) Webhook Settings */}
+              <div className="p-6 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Google Maps (N8N)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Webhook responsável por iniciar a automação de mineração de leads do Google Maps.</p>
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                  <div className="flex-1 w-full">
+                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Mineração</label>
+                    <input
+                      type="text"
+                      placeholder="https://auto.devnetlife.com/webhook/buscar-google-ocr"
+                      value={googleMapsWebhook}
+                      onChange={e => setGoogleMapsWebhook(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                    />
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <button
+                      onClick={handleTestGoogleMapsWebhook}
+                      disabled={testingGoogleMaps}
+                      className="px-4 py-2.5 rounded-xl border border-border text-muted-foreground font-bold hover:bg-neutral-900 transition-colors text-xs disabled:opacity-50 flex-1 md:flex-none"
+                    >
+                      {testingGoogleMaps ? 'Testando...' : 'Testar conexão'}
+                    </button>
+                    <button
+                      onClick={handleSaveGoogleMapsWebhook}
+                      className="px-4 py-2.5 rounded-xl bg-primary text-black font-extrabold hover:opacity-90 active:scale-95 transition-all text-xs flex-1 md:flex-none"
+                    >
+                      Salvar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Add Integration Form */}
               {showAddIntegration && (
                 <div className="p-5 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 animate-scale-in max-w-xl mx-auto">
@@ -1648,7 +1756,7 @@ function SettingsContent() {
                         placeholder="Ex: Elementor Lead Forms"
                         value={integrationForm.nome}
                         onChange={e => setIntegrationForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -1656,7 +1764,7 @@ function SettingsContent() {
                       <select
                         value={integrationForm.tipo}
                         onChange={e => setIntegrationForm(p => ({ ...p, tipo: e.target.value as IntegrationTipo }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="inbound_webhook">Inbound Webhook (Recebe leads externos)</option>
                         <option value="outbound_api">Outbound API (Envia dados / Webhooks externos)</option>
@@ -1670,7 +1778,7 @@ function SettingsContent() {
                           placeholder="https://n8n.exemplo.com/webhook/disparos"
                           value={integrationForm.baseUrl}
                           onChange={e => setIntegrationForm(p => ({ ...p, baseUrl: e.target.value }))}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
                         />
                       </div>
                     )}
@@ -1679,7 +1787,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-2">
                     <button
                       onClick={() => setShowAddIntegration(false)}
-                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-card"
+                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900"
                     >
                       Cancelar
                     </button>
@@ -1721,17 +1829,17 @@ function SettingsContent() {
                           <span className="text-[10px] text-muted-foreground">{int.ativo ? 'Ativo' : 'Inativo'}</span>
                           <button
                             onClick={() => handleToggleIntegration(int.id, int.ativo)}
-                            className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                              int.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
+                            className={`w-9 h-5 rounded-full p-0.5 transition-all flex items-center ${
+                              int.ativo ? 'bg-primary justify-end' : 'bg-neutral-800 justify-start'
                             }`}
                           >
-                            <span className="w-4 h-4 rounded-full bg-card block shadow" />
+                            <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
                           </button>
                         </div>
 
                         <button
                           onClick={() => handleDeleteIntegration(int.id)}
-                          className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 transition-colors"
+                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
                           title="Excluir integração"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1741,7 +1849,7 @@ function SettingsContent() {
 
                     {/* Integration details */}
                     {int.tipo === 'outbound_api' && (
-                      <div className="p-3.5 rounded-2xl bg-card/40 border border-border/20 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
                         <span className="ocr-label">Base URL Configurada:</span>
                         <code className="text-primary block font-mono mt-1 text-[11px] select-all break-all">{int.baseUrl}</code>
                       </div>
@@ -1777,7 +1885,7 @@ function SettingsContent() {
                                   placeholder="carlos-leads"
                                   value={endpointForm.path}
                                   onChange={e => setEndpointForm(p => ({ ...p, path: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1787,7 +1895,7 @@ function SettingsContent() {
                                   placeholder="sec-xyz..."
                                   value={endpointForm.secretToken}
                                   onChange={e => setEndpointForm(p => ({ ...p, secretToken: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1795,7 +1903,7 @@ function SettingsContent() {
                                 <select
                                   value={endpointForm.sourceSystem}
                                   onChange={e => setEndpointForm(p => ({ ...p, sourceSystem: e.target.value as EndpointSourceSystem }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
                                 >
                                   <option value="elementor">Elementor Forms</option>
                                   <option value="facebook_leads">Meta Lead Ads</option>
@@ -1808,7 +1916,7 @@ function SettingsContent() {
                             <div className="flex justify-end gap-2 text-[10px]">
                               <button
                                 onClick={() => setShowAddEndpoint(null)}
-                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                               >
                                 Cancelar
                               </button>
@@ -1832,7 +1940,7 @@ function SettingsContent() {
                             return (
                               <div
                                 key={ep.id}
-                                className="p-3.5 rounded-2xl border border-border/20 bg-card/20 space-y-3"
+                                className="p-3.5 rounded-2xl border border-border/20 bg-neutral-950/20 space-y-3"
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
@@ -1845,7 +1953,7 @@ function SettingsContent() {
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={() => handleToggleAccordionLog(ep.id)}
-                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-muted text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
+                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-neutral-800 text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
                                     >
                                       <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
                                       {isAccordionOpen ? 'Fechar Logs' : 'Ver Logs'}
@@ -1856,7 +1964,7 @@ function SettingsContent() {
                                         navigator.clipboard.writeText(absoluteUrl)
                                         toast.success('URL copiada!')
                                       }}
-                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
                                       title="Copiar URL"
                                     >
                                       <Copy className="w-3.5 h-3.5" />
@@ -1864,7 +1972,7 @@ function SettingsContent() {
 
                                     <button
                                       onClick={() => handleDeleteEndpoint(ep.id)}
-                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
                                       title="Remover endpoint"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1886,7 +1994,7 @@ function SettingsContent() {
                                         {logs.map(log => (
                                           <div
                                             key={log.id}
-                                            className="p-3 rounded-xl border border-border/20 bg-card/60 flex flex-col gap-2"
+                                            className="p-3 rounded-xl border border-border/20 bg-neutral-900/60 flex flex-col gap-2"
                                           >
                                             <div className="flex items-center justify-between text-[9px]">
                                               <span className={`font-bold px-1.5 py-0.5 rounded ${
@@ -1898,7 +2006,7 @@ function SettingsContent() {
                                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                                               </span>
                                             </div>
-                                            <pre className="text-[10px] text-neutral-300 font-mono bg-card p-2.5 rounded-lg overflow-x-auto whitespace-pre">
+                                            <pre className="text-[10px] text-neutral-300 font-mono bg-neutral-950 p-2.5 rounded-lg overflow-x-auto whitespace-pre">
                                               {log.payload}
                                             </pre>
                                           </div>
@@ -1907,9 +2015,9 @@ function SettingsContent() {
                                     )}
 
                                     {/* Snippet Example */}
-                                    <div className="p-3.5 rounded-xl border border-border/15 bg-card/60 space-y-2">
+                                    <div className="p-3.5 rounded-xl border border-border/15 bg-neutral-950/60 space-y-2">
                                       <span className="text-[10px] font-bold text-neutral-300 block">Payload Esperado (Inbound Lead JSON)</span>
-                                      <pre className="text-[9px] text-neutral-400 font-mono bg-card p-2 rounded-lg select-all">
+                                      <pre className="text-[9px] text-neutral-400 font-mono bg-neutral-950 p-2 rounded-lg select-all">
 {`{
   "nome": "Ricardo",
   "sobrenome": "Almeida",
@@ -1956,9 +2064,9 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Produtos de Interesse</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.products.map(p => (
-                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
+                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
                         <span className="text-xs text-neutral-300 font-medium">{p}</span>
-                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1967,7 +2075,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Novo produto..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addProduct(e.currentTarget.value)
@@ -1984,9 +2092,9 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Origens dos Leads</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.origins.map(o => (
-                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
+                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
                         <span className="text-xs text-neutral-300 font-medium">{o}</span>
-                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1995,7 +2103,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova origem..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addOrigin(e.currentTarget.value)
@@ -2012,12 +2120,12 @@ function SettingsContent() {
                   <h3 className="text-sm font-bold text-foreground mb-4">Tags</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.tags.map(t => (
-                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-muted/40">
+                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
                           <span className="text-xs text-neutral-300 font-medium">{t.label}</span>
                         </div>
-                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2026,7 +2134,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova tag..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             const val = e.currentTarget.value.trim()
@@ -2048,7 +2156,48 @@ function SettingsContent() {
           {/* 6. DISPARO TAB */}
           {tab === 'disparo' && (
             <div className="space-y-6 animate-fade-in">
-              <div className="flex justify-between items-center">
+              {/* Webhooks Globais Card */}
+              <div className="p-6 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Configuração Global de Webhooks (Caixa Rápido)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">URLs de webhooks gerais do sistema para disparo, status e cancelamento.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Disparo (OCR)</label>
+                    <input
+                      type="text"
+                      placeholder="https://auto.devnetlife.com/webhook/disparo-ocr"
+                      value={webhookUrls.disparo_webhook_url}
+                      onChange={e => handleUpdateWebhookUrl('disparo_webhook_url', e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Status</label>
+                    <input
+                      type="text"
+                      placeholder="https://..."
+                      value={webhookUrls.disparo_status_webhook_url}
+                      onChange={e => handleUpdateWebhookUrl('disparo_status_webhook_url', e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Cancelamento</label>
+                    <input
+                      type="text"
+                      placeholder="https://..."
+                      value={webhookUrls.disparo_cancelar_webhook_url}
+                      onChange={e => handleUpdateWebhookUrl('disparo_cancelar_webhook_url', e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-border/10">
                 <div>
                   <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary animate-pulse" />
@@ -2086,7 +2235,7 @@ function SettingsContent() {
                         placeholder="Ex: Disparo Leads Quentes n8n"
                         value={channelForm.nome}
                         onChange={e => setChannelForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       />
                     </div>
                     
@@ -2097,7 +2246,7 @@ function SettingsContent() {
                         placeholder="https://n8n.netlife.com/webhook/..."
                         value={channelForm.urlWebhook}
                         onChange={e => setChannelForm(p => ({ ...p, urlWebhook: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                       />
                     </div>
 
@@ -2106,7 +2255,7 @@ function SettingsContent() {
                       <select
                         value={channelForm.pipelineId}
                         onChange={e => setChannelForm(p => ({ ...p, pipelineId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="" disabled>-- Selecione um funil --</option>
                         {pipelines.map(p => (
@@ -2121,10 +2270,10 @@ function SettingsContent() {
                       <button
                         onClick={() => setChannelForm(p => ({ ...p, ativo: !p.ativo }))}
                         className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
+                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
                         }`}
                       >
-                        <span className="w-4 h-4 rounded-full bg-card block shadow" />
+                        <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
                       </button>
                       <span className="text-xs text-muted-foreground">Status do Canal: <strong className={channelForm.ativo ? 'text-primary' : 'text-neutral-400'}>{channelForm.ativo ? 'Ativo' : 'Inativo'}</strong></span>
                     </div>
@@ -2136,7 +2285,7 @@ function SettingsContent() {
                         setShowAddChannel(false)
                         setEditingChannelId(null)
                       }}
-                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-card transition-colors"
+                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900 transition-colors"
                     >
                       Cancelar
                     </button>
@@ -2154,7 +2303,7 @@ function SettingsContent() {
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Canais Ativos</h3>
                 {channels.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-card/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
                     Nenhum canal de disparo configurado. Crie um canal acima.
                   </div>
                 ) : (
@@ -2184,16 +2333,16 @@ function SettingsContent() {
                                 <button
                                   onClick={() => handleToggleChannel(chan.id)}
                                   className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
+                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
                                   }`}
                                 >
-                                  <span className="w-4 h-4 rounded-full bg-card block shadow" />
+                                  <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
                                 </button>
                               </div>
 
                               <button
                                 onClick={() => handleEditChannel(chan)}
-                                className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-foreground transition-colors"
                                 title="Editar canal"
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -2201,7 +2350,7 @@ function SettingsContent() {
 
                               <button
                                 onClick={() => handleDeleteChannel(chan.id)}
-                                className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 transition-colors"
+                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
                                 title="Excluir canal"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2209,7 +2358,7 @@ function SettingsContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-card/40 border border-border/20 text-xs">
+                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
                             <div className="min-w-0 flex-1">
                               <span className="ocr-label text-[10px] font-bold text-neutral-400">Webhook URL:</span>
                               <code className="text-primary block font-mono mt-1 text-[11px] select-all truncate">{chan.urlWebhook}</code>
@@ -2246,13 +2395,13 @@ function SettingsContent() {
                 <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Histórico de Disparos (Logs)</h3>
                 
                 {disparoLogs.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-card/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
                     Nenhum log de disparo registrado.
                   </div>
                 ) : (
                   <div className="p-4 rounded-3xl border border-border/20 bg-[#0d0d11]/80 overflow-hidden">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-[11px]">
+                      <table className="hidden md:table w-full text-left border-collapse text-[11px]">
                         <thead>
                           <tr className="border-b border-border/20 text-muted-foreground font-bold">
                             <th className="pb-3 pr-4">Data/Hora</th>
@@ -2264,7 +2413,7 @@ function SettingsContent() {
                         </thead>
                         <tbody className="divide-y divide-border/10">
                           {disparoLogs.map(log => (
-                            <tr key={log.id} className="hover:bg-card/35 transition-colors">
+                            <tr key={log.id} className="hover:bg-neutral-900/35 transition-colors">
                               <td className="py-3 pr-4 text-neutral-300 whitespace-nowrap">
                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                               </td>
@@ -2290,6 +2439,33 @@ function SettingsContent() {
                           ))}
                         </tbody>
                       </table>
+
+                      {/* Mobile Cards View */}
+                      <div className="flex flex-col gap-3 md:hidden">
+                        {disparoLogs.map(log => (
+                          <div key={log.id} className="p-3.5 rounded-2xl border border-border/40 bg-neutral-950/20 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-neutral-200 text-xs">{log.channelNome}</span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[9px] border ${
+                                log.status === 'SUCESSO'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                              }`}>
+                                {log.status}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                              <span>{new Date(log.timestamp).toLocaleString('pt-BR')}</span>
+                              <span>Leads: <strong className="text-primary">{log.leadsCount}</strong></span>
+                            </div>
+                            {log.mensagem && (
+                              <div className="p-2 rounded bg-neutral-950/65 font-mono text-[9px] text-rose-400 break-all border border-rose-500/10">
+                                {log.mensagem}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2331,7 +2507,7 @@ function SettingsContent() {
                         placeholder="Ex: Aline Ferreira"
                         value={userForm.nome}
                         onChange={e => setUserForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div>
@@ -2341,7 +2517,7 @@ function SettingsContent() {
                         placeholder="aline@caixarapido.com"
                         value={userForm.email}
                         onChange={e => setUserForm(p => ({ ...p, email: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2351,7 +2527,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={userForm.password}
                         onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2359,7 +2535,7 @@ function SettingsContent() {
                       <select
                         value={userForm.role}
                         onChange={e => setUserForm(p => ({ ...p, role: e.target.value as UserRole }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="USER">User (Vendedor)</option>
                         <option value="MODERATOR">Moderator (Gerente)</option>
@@ -2371,7 +2547,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddUser(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                     >
                       Cancelar
                     </button>
@@ -2397,17 +2573,58 @@ function SettingsContent() {
                         <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary">
                           {u.nome ? u.nome[0] : 'U'}
                         </div>
-                        <div>
-                          <span className="font-bold text-sm text-neutral-200 block">{u.nome} {u.sobrenome || ''}</span>
-                          <span className="text-[11px] text-muted-foreground">{u.email}</span>
-                        </div>
+                        {userEdits[u.id] ? (
+                          <div className="flex flex-col gap-1.5 min-w-[200px]">
+                            <div className="flex gap-1.5">
+                              <input
+                                type="text"
+                                placeholder="Nome"
+                                value={userEdits[u.id].nome}
+                                onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], nome: e.target.value } }))}
+                                className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Sobrenome"
+                                value={userEdits[u.id].sobrenome}
+                                onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], sobrenome: e.target.value } }))}
+                                className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                              />
+                            </div>
+                            <input
+                              type="email"
+                              placeholder="E-mail"
+                              value={userEdits[u.id].email}
+                              onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], email: e.target.value } }))}
+                              className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                            />
+                            <div className="flex items-center gap-1 mt-1">
+                              <button onClick={() => handleSaveUserEdit(u.id)} className="px-2 py-1 bg-primary text-black text-[10px] font-bold rounded">Salvar</button>
+                              <button onClick={() => setUserEdits(p => { const copy={...p}; delete copy[u.id]; return copy })} className="px-2 py-1 border border-border/40 text-[10px] text-muted-foreground rounded">Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="group flex items-center gap-2">
+                            <div>
+                              <span className="font-bold text-sm text-neutral-200 block">{u.nome} {u.sobrenome || ''}</span>
+                              <span className="text-[11px] text-muted-foreground">{u.email}</span>
+                            </div>
+                            <button
+                              onClick={() => setUserEdits(p => ({ ...p, [u.id]: { nome: u.nome, sobrenome: u.sobrenome || '', email: u.email } }))}
+                              className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-neutral-800 text-muted-foreground hover:text-primary"
+                              title="Editar Perfil"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-3">
                         <select
                           value={u.role}
                           onChange={e => handleUpdateUserRole(u.id, e.target.value as UserRole)}
-                          className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
+                          className="px-2.5 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
                         >
                           <option value="USER">Vendedor (USER)</option>
                           <option value="MODERATOR">Gerente (MODERATOR)</option>
@@ -2417,7 +2634,7 @@ function SettingsContent() {
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           disabled={u.id === currentUser.id}
-                          className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -2436,7 +2653,8 @@ function SettingsContent() {
                           { key: 'listas-disparo', label: 'Caixa Rápido' },
                           { key: 'lead-search-google', label: 'Google Maps' },
                           { key: 'lead-search-cnpj', label: 'CNPJ Search' },
-                          { key: 'ai-insights', label: 'Qualificação IA' }
+                          { key: 'ai-insights', label: 'Qualificação IA' },
+                          { key: 'view-all-deals', label: 'Visão Global (Time)' }
                         ].map(feat => {
                           const isPermitted = (u.permissions || []).includes(feat.key)
                           return (
@@ -2447,7 +2665,7 @@ function SettingsContent() {
                               className={`flex items-center justify-between p-2 rounded-xl border text-[10px] font-semibold transition-all ${
                                 isPermitted
                                   ? 'bg-primary/5 border-primary/40 text-primary'
-                                  : 'border-border/30 bg-muted/40 text-muted-foreground hover:text-foreground'
+                                  : 'border-border/30 bg-neutral-900/40 text-muted-foreground hover:text-foreground'
                               }`}
                             >
                               <span>{feat.label}</span>
@@ -2466,7 +2684,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={passwordEdit[u.id] ?? ''}
                         onChange={e => setPasswordEdit(p => ({ ...p, [u.id]: e.target.value }))}
-                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
+                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
                       />
                       <button
                         onClick={() => handleUpdatePassword(u.id)}
@@ -2516,7 +2734,7 @@ function SettingsContent() {
                         placeholder="Ex: Vendas High Ticket Sul"
                         value={teamForm.nome}
                         onChange={e => setTeamForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div className="col-span-2">
@@ -2524,7 +2742,7 @@ function SettingsContent() {
                       <select
                         value={teamForm.ownerUserId}
                         onChange={e => setTeamForm(p => ({ ...p, ownerUserId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="">-- Selecione o líder --</option>
                         {users.map(u => (
@@ -2537,7 +2755,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddTeam(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                     >
                       Cancelar
                     </button>
@@ -2553,7 +2771,7 @@ function SettingsContent() {
 
               {/* Teams Dashboard */}
               {teams.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-card/10">
+                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
                   Nenhum time comercial criado.
                 </div>
               ) : (
@@ -2569,7 +2787,7 @@ function SettingsContent() {
                           className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
                             selectedTeamId === t.id
                               ? 'bg-primary/5 border-primary/45 text-primary'
-                              : 'border-border/10 bg-muted/30 text-muted-foreground hover:text-foreground'
+                              : 'border-border/10 bg-neutral-900/30 text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <span className="text-xs font-bold truncate max-w-[150px]">{t.nome}</span>
@@ -2578,7 +2796,7 @@ function SettingsContent() {
                               e.stopPropagation()
                               handleDeleteTeam(t.id)
                             }}
-                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                            className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2606,7 +2824,7 @@ function SettingsContent() {
                           <div className="flex gap-2">
                             <select
                               id="add-member-select"
-                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
                               defaultValue=""
                             >
                               <option value="" disabled>-- Selecione um usuário --</option>
@@ -2647,7 +2865,7 @@ function SettingsContent() {
                                 return (
                                   <div
                                     key={mId}
-                                    className="p-3.5 rounded-xl border border-border/20 bg-card/20 flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
+                                    className="p-3.5 rounded-xl border border-border/20 bg-neutral-950/20 flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
                                   >
                                     <div className="min-w-0">
                                       <span className="text-xs font-bold text-neutral-200 block truncate">{usr.nome} {usr.sobrenome || ''}</span>
@@ -2655,7 +2873,7 @@ function SettingsContent() {
                                     </div>
                                     <button
                                       onClick={() => handleRemoveTeamMember(selectedTeam.id, mId)}
-                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
                                       title="Remover integrante"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -2719,7 +2937,7 @@ function SettingsContent() {
                         placeholder="Ex: Sondagem de Faturamento inicial"
                         value={templateForm.nome}
                         onChange={e => setTemplateForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
 
@@ -2728,7 +2946,7 @@ function SettingsContent() {
                       <select
                         value={templateForm.categoria}
                         onChange={e => setTemplateForm(p => ({ ...p, categoria: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="Sondagem">Sondagem</option>
                         <option value="Follow-up">Follow-up</option>
@@ -2746,7 +2964,7 @@ function SettingsContent() {
                             key={variable}
                             type="button"
                             onClick={() => setTemplateForm(p => ({ ...p, corpo: p.corpo + variable }))}
-                            className="px-2 py-1 rounded bg-card border border-border/20 text-xs text-primary hover:bg-card transition-colors"
+                            className="px-2 py-1 rounded bg-neutral-950 border border-border/20 text-xs text-primary hover:bg-neutral-900 transition-colors"
                           >
                             {variable}
                           </button>
@@ -2758,11 +2976,11 @@ function SettingsContent() {
                         placeholder="Escreva a mensagem aqui..."
                         value={templateForm.corpo}
                         onChange={e => setTemplateForm(p => ({ ...p, corpo: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-mono"
                       />
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-card/50 border border-border/20 space-y-1.5">
+                    <div className="p-3.5 rounded-xl bg-neutral-900/50 border border-border/20 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] font-bold uppercase text-primary">Preview com dados fictícios</p>
                         <div className="flex flex-wrap gap-1">
@@ -2801,7 +3019,7 @@ function SettingsContent() {
                         setTemplateForm({ nome: '', categoria: 'Sondagem', corpo: '' })
                         setEditingTemplate(null)
                       }}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-card"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
                     >
                       Cancelar
                     </button>
@@ -2818,7 +3036,7 @@ function SettingsContent() {
               {/* Templates grid list */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {templates.map(tpl => (
-                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-card/35 flex flex-col justify-between hover:border-border/40 transition-all">
+                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-neutral-900/35 flex flex-col justify-between hover:border-border/40 transition-all">
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm text-neutral-250 truncate max-w-[180px]">{tpl.nome}</span>
@@ -2826,7 +3044,7 @@ function SettingsContent() {
                           {tpl.categoria}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-background/30 p-3 rounded-xl border border-border/10 font-mono mt-3">
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-black/30 p-3 rounded-xl border border-border/10 font-mono mt-3">
                         {tpl.corpo}
                       </p>
                     </div>
@@ -2834,13 +3052,13 @@ function SettingsContent() {
                     <div className="flex gap-2 border-t border-border/10 pt-4 mt-4">
                       <button
                         onClick={() => handleEditTemplate(tpl)}
-                        className="flex-1 py-1.5 bg-muted hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
+                        className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteTemplate(tpl.id)}
-                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-foreground text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
+                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
                       >
                         Excluir
                       </button>
@@ -2849,7 +3067,7 @@ function SettingsContent() {
                 ))}
 
                 {templates.length === 0 && (
-                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-card/10">
+                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
                     Nenhum template de mensagem criado.
                   </div>
                 )}
@@ -2857,8 +3075,9 @@ function SettingsContent() {
             </div>
           )}
 
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
