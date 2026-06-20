@@ -50,7 +50,7 @@ export default function BuscarLeadsTab() {
     queryFn: () => fetch('/api/admin/niches').then(r => r.json())
   })
 
-  const activeNiches = niches.filter((n: any) => n.status === 'ativo')
+  const activeNiches = Array.isArray(niches) ? niches.filter((n: any) => n.status === 'ativo') : []
 
   const ESTADOS = [
     { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' }, { sigla: 'AP', nome: 'Amapá' },
@@ -287,7 +287,7 @@ export default function BuscarLeadsTab() {
                   className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
                 >
                   <option value="">-- Escolha uma lista existente --</option>
-                  {listas.map((l: any) => (
+                  {Array.isArray(listas) && listas.map((l: any) => (
                     <option key={l.id} value={l.id}>{l.nomeLista}</option>
                   ))}
                 </select>
@@ -332,7 +332,7 @@ export default function BuscarLeadsTab() {
                 className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
               >
                 <option value="">-- Escolha um funil --</option>
-                {pipelines.map((p: any) => (
+                {Array.isArray(pipelines) && pipelines.map((p: any) => (
                   <option key={p.id} value={p.id}>{p.nome}</option>
                 ))}
               </select>
@@ -345,7 +345,7 @@ export default function BuscarLeadsTab() {
                 className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground disabled:opacity-50"
               >
                 <option value="">-- Escolha uma etapa --</option>
-                {pipelineStages.map((s: any) => (
+                {Array.isArray(pipelineStages) && pipelineStages.map((s: any) => (
                   <option key={s.id} value={s.id}>{s.nome}</option>
                 ))}
               </select>

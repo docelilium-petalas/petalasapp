@@ -214,7 +214,7 @@ export default function GestaoNichosTab() {
       <div className="space-y-3">
         {isLoading ? (
           <div className="text-center py-8 text-xs text-muted-foreground italic">Carregando nichos...</div>
-        ) : niches.length === 0 ? (
+        ) : !Array.isArray(niches) || niches.length === 0 ? (
           <div className="text-center py-10 text-xs text-muted-foreground italic border border-dashed border-border/20 rounded-3xl bg-neutral-900/20">
             Nenhum nicho configurado. Crie o primeiro nicho acima.
           </div>
