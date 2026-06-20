@@ -82,7 +82,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
           <div className="absolute inset-0 bg-primary/20 blur-md scale-150 animate-pulse mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent blur-sm" />
           
-          <img src="/logo.jpg" alt="Logo Caixa Rápido" className="w-full h-full object-cover relative z-10" />
+          <img src="/logo.png" alt="Logo Caixa Rápido" className="w-full h-full object-cover relative z-10" />
         </div>
         <div className="flex flex-col">
           <span className="font-bold tracking-tight text-foreground text-sm uppercase leading-tight">Caixa Rápido</span>
@@ -359,7 +359,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             {/* Discreet Logo */}
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-border/30 flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
           </div>
         </header>
@@ -374,7 +374,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             {/* Discreet Logo Mobile */}
             <div className="w-7 h-7 rounded-lg overflow-hidden border border-border/30 flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             {/* Search Trigger */}
             <button
