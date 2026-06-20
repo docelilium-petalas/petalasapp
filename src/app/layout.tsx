@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${montserrat.variable} h-full antialiased dark`}
+      className={`${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans font-light">
         <AuthProvider>{children}</AuthProvider>

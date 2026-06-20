@@ -7,21 +7,21 @@
   --primary-glow: 345 60% 55%;
   --primary-deep: 345 50% 30%;
 
-  /* === BACKGROUND: Preto premium (Supabase Ink #171717 / Canvas Night #1c1c1c) === */
-  --background: 0 0% 9%;
-  --foreground: 0 0% 100%;
+  /* === BACKGROUND: Pastel Pink (#FBE6EB) === */
+  --background: 346 70% 94%;
+  --foreground: 345 50% 15%;
 
   /* === SURFACES === */
-  --card: 0 0% 11%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 100%;
-  --secondary: 0 0% 13%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 13%;
-  --muted-foreground: 0 0% 60%;
-  --accent: 345 44% 13%;
-  --accent-foreground: 345 44% 75%;
+  --card: 0 0% 100%;
+  --card-foreground: 345 50% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 345 50% 15%;
+  --secondary: 346 40% 90%;
+  --secondary-foreground: 345 50% 15%;
+  --muted: 346 30% 88%;
+  --muted-foreground: 345 20% 40%;
+  --accent: 345 30% 85%;
+  --accent-foreground: 345 50% 15%;
 
   /* === STATUS === */
   --destructive: 0 84% 50%;
@@ -34,8 +34,8 @@
   --info-foreground: 0 0% 9%;
 
   /* === LINHAS === */
-  --border: 0 0% 18%;
-  --input: 0 0% 15%;
+  --border: 346 30% 85%;
+  --input: 346 30% 85%;
   --ring: 345 44% 43%;
 
   --radius: 0.75rem;
@@ -60,13 +60,13 @@
   --status-lost: 0 84% 55%;
 
   /* === SIDEBAR === */
-  --sidebar-background: 0 0% 0%;
-  --sidebar-foreground: 345 10% 80%;
+  --sidebar-background: 346 70% 94%;
+  --sidebar-foreground: 345 50% 15%;
   --sidebar-primary: 345 44% 43%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 345 50% 12%;
-  --sidebar-accent-foreground: 345 60% 75%;
-  --sidebar-border: 345 25% 10%;
+  --sidebar-accent: 346 40% 90%;
+  --sidebar-accent-foreground: 345 50% 15%;
+  --sidebar-border: 346 30% 85%;
   --sidebar-ring: 345 44% 43%;
 
   /* === CHARTS === */
@@ -430,7 +430,7 @@
   .ambient-bg::before {
     width: 500px;
     height: 500px;
-    background: hsl(345 44% 43% / 0.25);
+    background: hsl(345 44% 43% / 0.1);
     top: -150px;
     left: -100px;
     animation: float 12s ease-in-out infinite;
@@ -439,7 +439,7 @@
   .ambient-bg::after {
     width: 400px;
     height: 400px;
-    background: hsl(345 60% 60% / 0.18);
+    background: hsl(346 70% 94% / 0.3);
     bottom: -120px;
     right: -80px;
     animation: float 14s ease-in-out infinite reverse;
@@ -594,42 +594,44 @@
 
 /* === LIGHT MODE OVERRIDES ===
    Unlayered CSS wins over Tailwind utilities — fixes hardcoded dark backgrounds. */
-.light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
-.light textarea,
-.light select {
+body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body textarea,
+body select {
   background-color: hsl(var(--background));
   border-color: hsl(var(--border));
   color: hsl(var(--foreground));
 }
 
-.light input::placeholder,
-.light textarea::placeholder {
+body input::placeholder,
+body textarea::placeholder {
   color: hsl(var(--muted-foreground));
 }
 
 /* Hardcoded neutral card/surface backgrounds */
-.light .bg-neutral-950 { background-color: hsl(0 0% 97%) !important; }
-.light .bg-neutral-900 { background-color: hsl(0 0% 95%) !important; }
-.light .bg-neutral-800 { background-color: hsl(0 0% 90%) !important; }
-.light .bg-black { background-color: hsl(0 0% 98%) !important; }
+body .bg-neutral-950 { background-color: hsl(0 0% 100%) !important; }
+body .bg-neutral-900 { background-color: hsl(346 40% 98%) !important; }
+body .bg-neutral-800 { background-color: hsl(346 40% 95%) !important; }
+body .bg-black { background-color: hsl(0 0% 100%) !important; }
 
 /* Semi-transparent dark overlays */
-.light .bg-neutral-900\/60,
-.light .bg-neutral-900\/50,
-.light .bg-neutral-900\/40,
-.light .bg-neutral-950\/30 {
-  background-color: hsl(0 0% 96% / 0.9) !important;
+body .bg-neutral-900\/60,
+body .bg-neutral-900\/50,
+body .bg-neutral-900\/40,
+body .bg-neutral-950\/30 {
+  background-color: hsl(346 70% 94% / 0.9) !important;
 }
-.light .bg-black\/40,
-.light .bg-black\/60,
-.light .bg-black\/80 {
+body .bg-black\/40,
+body .bg-black\/60,
+body .bg-black\/80 {
   background-color: hsl(0 0% 0% / 0.08) !important;
 }
 
 /* Muted text in light mode (ensure enough contrast) */
-.light .text-neutral-600 { color: hsl(0 0% 32%) !important; }
+body .text-neutral-600 { color: hsl(345 50% 15% / 0.7) !important; }
+body .text-neutral-500 { color: hsl(345 50% 15% / 0.6) !important; }
+body .text-neutral-400 { color: hsl(345 50% 15% / 0.5) !important; }
 
 /* Borders in light mode */
-.light .border-neutral-800 { border-color: hsl(0 0% 82%) !important; }
-.light .border-neutral-700 { border-color: hsl(0 0% 78%) !important; }
+body .border-neutral-800 { border-color: hsl(346 30% 85%) !important; }
+body .border-neutral-700 { border-color: hsl(346 30% 80%) !important; }
 
