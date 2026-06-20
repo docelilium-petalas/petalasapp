@@ -94,7 +94,7 @@ export default function AuthPage() {
             <Coins className="w-3.5 h-3.5" />
             <span>Foco em Faturamento</span>
           </div>
-          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-primary-foreground">
+          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-primary">
             Controle sua operação comercial e <span className="ocr-gradient-text">acelere o caixa.</span>
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -136,14 +136,14 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'login' ? 'bg-primary text-black shadow' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'login' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Entrar
             </button>
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'register' ? 'bg-primary text-black shadow' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${mode === 'register' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Criar conta
             </button>
@@ -151,7 +151,7 @@ export default function AuthPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-primary-foreground">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               {mode === 'login' ? 'Bem-vindo à operação' : 'Criar nova conta'}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
@@ -173,7 +173,7 @@ export default function AuthPage() {
                     value={nome}
                     onChange={e => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
+                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
                   />
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function AuthPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
@@ -250,7 +250,7 @@ export default function AuthPage() {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
+                    className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
                   />
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-black font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm tracking-wide transition-all active:scale-98 hover:shadow-lg hover:shadow-primary/20 cursor-pointer border border-primary-glow mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />

@@ -310,7 +310,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <button
               onClick={() => router.push('/pipeline?action=new')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-black font-semibold text-xs transition-transform active:scale-95 hover:shadow-lg hover:shadow-primary/20 ocr-glow-soft cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs transition-transform active:scale-95 hover:shadow-lg hover:shadow-primary/20 ocr-glow-soft cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden lg:inline">Oportunidade</span>
@@ -398,7 +398,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             {(pathname === '/pipeline' || pathname === '/contacts') && (
               <button
                 onClick={triggerMobileAdd}
-                className="p-2 rounded-xl bg-primary text-black font-bold active:opacity-80"
+                className="p-2 rounded-xl bg-primary text-primary-foreground font-bold active:opacity-80"
               >
                 <Plus className="w-4.5 h-4.5" />
               </button>

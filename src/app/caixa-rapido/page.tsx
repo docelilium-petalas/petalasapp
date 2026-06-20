@@ -244,7 +244,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
         {!showBuilder && (
           <button
             onClick={() => setShowBuilder(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" /> Novo Segmento
           </button>
@@ -449,7 +449,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all"
+              className="flex-1 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all"
             >
               {editingId ? 'Salvar Alterações' : 'Criar Segmento'}
             </button>
@@ -621,7 +621,7 @@ function TemplatesTab() {
         </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" /> Novo Template
         </button>
@@ -648,7 +648,7 @@ function TemplatesTab() {
             {searchQ ? 'Nenhum template encontrado' : 'Nenhum template criado'}
           </h3>
           {!searchQ && (
-            <button onClick={openNew} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-black transition-all">
+            <button onClick={openNew} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
               Criar primeiro template
             </button>
           )}
@@ -726,7 +726,7 @@ function TemplatesTab() {
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                     <button key={v} type="button" onClick={() => setForm(f => ({ ...f, corpo: f.corpo + v }))}
-                      className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-mono hover:bg-primary hover:text-black transition-colors">
+                      className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-colors">
                       {v}
                     </button>
                   ))}
@@ -753,7 +753,7 @@ function TemplatesTab() {
               <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted">
                 Cancelar
               </button>
-              <button onClick={handleSave} className="flex-1 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg transition-all">
+              <button onClick={handleSave} className="flex-1 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg transition-all">
                 {editingTemplate ? 'Salvar Alterações' : 'Criar Template'}
               </button>
             </div>
@@ -901,7 +901,7 @@ function CadenciasTab() {
             </div>
             <button
               onClick={() => { resetBuilder(); setView('builder') }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
             >
               <Plus className="w-4 h-4" /> Nova Cadência
             </button>
@@ -912,7 +912,7 @@ function CadenciasTab() {
               <Workflow className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
               <h3 className="font-bold text-foreground mb-2">Nenhuma cadência criada</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">Cadências enviam sequências de mensagens automaticamente para nutrir seus leads.</p>
-              <button onClick={() => setView('builder')} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-black transition-all">
+              <button onClick={() => setView('builder')} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
                 Criar primeira cadência
               </button>
             </div>
@@ -1009,7 +1009,7 @@ function CadenciasTab() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-foreground">Etapas da Cadência</h4>
-              <button onClick={addStep} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-black transition-all">
+              <button onClick={addStep} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all">
                 <Plus className="w-3.5 h-3.5" /> Adicionar Etapa
               </button>
             </div>
@@ -1084,7 +1084,7 @@ function CadenciasTab() {
               Cancelar
             </button>
             <button onClick={handleSave}
-              className="flex-1 py-2.5 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all">
+              className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all">
               {isEditing ? 'Salvar Alterações' : 'Criar Cadência'}
             </button>
           </div>
@@ -1742,7 +1742,7 @@ export default function CaixaRapidoPage() {
             <p className="text-sm text-muted-foreground">Máquina de reativação de leads e outbound automático.</p>
             <button
               onClick={() => { setActiveTab('wizard'); setWizardStep(1); setWizardError(null) }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
             >
               <Plus className="w-4 h-4" /> Nova Ação (Disparo)
             </button>
@@ -1784,7 +1784,7 @@ export default function CaixaRapidoPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${
-                    active ? 'bg-primary text-black shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    active ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1809,7 +1809,7 @@ export default function CaixaRapidoPage() {
                     <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">Crie sua primeira máquina de disparos para recuperar leads perdidos ou contatos da base.</p>
                     <button
                       onClick={() => { setActiveTab('wizard'); setWizardStep(1) }}
-                      className="mt-6 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold text-sm hover:bg-primary hover:text-black transition-all"
+                      className="mt-6 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold text-sm hover:bg-primary hover:text-primary-foreground transition-all"
                     >
                       Criar Primeira Ação
                     </button>
@@ -2027,7 +2027,7 @@ export default function CaixaRapidoPage() {
                               <div className="flex gap-2 border-t border-border/50 pt-4 mt-auto">
                                 {lista.status === 'ATIVA' && (
                                   <button onClick={() => openEditTemplateModal(lista)}
-                                    className="flex-1 py-1.5 bg-primary text-black text-xs font-semibold rounded-lg hover:opacity-90 transition-colors">
+                                    className="flex-1 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90 transition-colors">
                                     Editar Template
                                   </button>
                                 )}
@@ -2083,7 +2083,7 @@ export default function CaixaRapidoPage() {
                   ].map(s => (
                     <div key={s.step} className="relative flex flex-col items-center gap-2 z-10 bg-background px-1.5 sm:px-2">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                        wizardStep === s.step ? 'bg-primary text-black shadow-[0_0_16px_hsl(var(--primary)/0.5)]' :
+                        wizardStep === s.step ? 'bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.5)]' :
                         wizardStep > s.step ? 'bg-primary/20 text-primary border border-primary/50' :
                         'bg-muted text-muted-foreground border border-border'
                       }`}>
@@ -2236,7 +2236,7 @@ export default function CaixaRapidoPage() {
                               className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
                             >
                               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-primary border-primary' : 'border-border'}`}>
-                                {selected && <Check className="w-3 h-3 text-black" />}
+                                {selected && <Check className="w-3 h-3 text-primary-foreground" />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-foreground truncate">{deal.contato}</p>
@@ -2259,7 +2259,7 @@ export default function CaixaRapidoPage() {
                         <button
                           type="button"
                           onClick={() => setShowManualAddForm(true)}
-                          className="flex items-center gap-1.5 px-3.5 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-black transition-all"
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all"
                         >
                           <Plus className="w-3.5 h-3.5" /> Adicionar Contato ou Negócio Manualmente
                         </button>
@@ -2429,7 +2429,7 @@ export default function CaixaRapidoPage() {
                             <button
                               type="button"
                               onClick={handleSaveManualLead}
-                              className="flex-1 py-1.5 bg-primary text-black font-extrabold text-xs rounded-lg hover:opacity-90 active:scale-95 transition-all"
+                              className="flex-1 py-1.5 bg-primary text-primary-foreground font-extrabold text-xs rounded-lg hover:opacity-90 active:scale-95 transition-all"
                             >
                               Adicionar Lead
                             </button>
@@ -2570,14 +2570,14 @@ export default function CaixaRapidoPage() {
                           <button
                             type="button"
                             onClick={() => setNovaLista((p: any) => ({ ...p, mensagemManual: '' }))}
-                            className={`flex-1 py-2 text-xs font-bold transition-all ${!novaLista.mensagemManual ? 'bg-primary text-black' : 'bg-transparent text-muted-foreground hover:text-foreground'}`}
+                            className={`flex-1 py-2 text-xs font-bold transition-all ${!novaLista.mensagemManual ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground hover:text-foreground'}`}
                           >
                             Usar Template
                           </button>
                           <button
                             type="button"
                             onClick={() => setNovaLista((p: any) => ({ ...p, mensagemTemplateId: null, mensagemManual: p.mensagemManual || ' ' }))}
-                            className={`flex-1 py-2 text-xs font-bold transition-all ${novaLista.mensagemManual ? 'bg-primary text-black' : 'bg-transparent text-muted-foreground hover:text-foreground'}`}
+                            className={`flex-1 py-2 text-xs font-bold transition-all ${novaLista.mensagemManual ? 'bg-primary text-primary-foreground' : 'bg-transparent text-muted-foreground hover:text-foreground'}`}
                           >
                             Escrever Manual
                           </button>
@@ -2750,7 +2750,7 @@ export default function CaixaRapidoPage() {
                                       setNewWebhookForm({ nome: '', url: '' })
                                       toast.success('Webhook cadastrado!')
                                     } catch (err: any) { toast.error(err.message) }
-                                  }} className="flex-1 py-1.5 rounded-lg bg-primary text-black text-xs font-bold">Salvar</button>
+                                  }} className="flex-1 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold">Salvar</button>
                                 </div>
                               </div>
                             )}
@@ -2805,7 +2805,7 @@ export default function CaixaRapidoPage() {
                                 const isNow = cumulativeMs === 0 || scheduledAt <= new Date()
                                 return (
                                   <div key={etapa.ordem} className="flex items-center gap-3">
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isNow ? 'bg-primary text-black' : 'bg-muted text-muted-foreground border border-border'}`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isNow ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground border border-border'}`}>
                                       {etapa.ordem}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -2870,11 +2870,11 @@ export default function CaixaRapidoPage() {
                       {wizardStep === 1 ? 'Cancelar' : 'Voltar'}
                     </button>
                     {wizardStep < 6 ? (
-                      <button onClick={handleWizardNext} disabled={loadingDeals} className="flex items-center gap-2 px-6 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60">
+                      <button onClick={handleWizardNext} disabled={loadingDeals} className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60">
                         {loadingDeals ? <RefreshCw className="w-4 h-4 animate-spin" /> : <>Próximo <ChevronRight className="w-4 h-4" /></>}
                       </button>
                     ) : (
-                      <button onClick={handleCreateList} disabled={dispatching} className="flex items-center gap-2 px-8 py-2.5 bg-primary text-black rounded-xl font-bold text-sm active:scale-95 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed">
+                      <button onClick={handleCreateList} disabled={dispatching} className="flex items-center gap-2 px-8 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm active:scale-95 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed">
                         {dispatching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                         {dispatching ? 'Criando...' : (() => {
                           const cad = cadences.find((c: any) => c.id === novaLista.selectedCadenceId)
@@ -3019,7 +3019,7 @@ export default function CaixaRapidoPage() {
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setEditingListTemplate(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
-              <button onClick={handleSaveTemplateText} className="flex-1 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
+              <button onClick={handleSaveTemplateText} className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
             </div>
           </div>
         </div>
@@ -3119,7 +3119,7 @@ export default function CaixaRapidoPage() {
             </div>
             <div className="flex gap-3 pt-1">
               <button onClick={() => setEditingListaMeta(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
-              <button onClick={handleSaveListaMeta} className="flex-1 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
+              <button onClick={handleSaveListaMeta} className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
             </div>
           </div>
         </div>
@@ -3208,7 +3208,7 @@ export default function CaixaRapidoPage() {
               <button
                 onClick={handleConfirmarReutilizar}
                 disabled={reutilizarLoading || !reutilizarForm.nomeLista.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {reutilizarLoading ? (
                   <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />

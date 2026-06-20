@@ -143,7 +143,7 @@ export default function GestaoNichosTab() {
         {!showForm && (
           <button
             onClick={() => handleOpenForm()}
-            className="px-4 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-2 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-2 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" /> Novo Nicho
           </button>
@@ -202,7 +202,7 @@ export default function GestaoNichosTab() {
             <button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="px-5 py-2 rounded-xl bg-primary text-black font-extrabold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
             >
               {editingId ? 'Salvar Alterações' : 'Cadastrar Nicho'}
             </button>

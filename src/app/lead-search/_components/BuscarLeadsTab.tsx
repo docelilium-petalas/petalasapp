@@ -361,7 +361,7 @@ export default function BuscarLeadsTab() {
             </button>
             <button
               onClick={() => executeBulkAction(showBulkModal)}
-              className="px-4 py-2 rounded-xl bg-primary text-black text-xs font-bold hover:opacity-90 transition-all"
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-all"
             >
               Confirmar
             </button>
@@ -462,15 +462,15 @@ export default function BuscarLeadsTab() {
               disabled={isTriggering || triggerSuccess}
               className={`w-full py-2.5 rounded-xl font-extrabold hover:shadow-lg active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed ${
                 triggerSuccess 
-                  ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' 
+                  ? 'bg-emerald-500 text-primary-foreground shadow-lg shadow-emerald-500/20' 
                   : isTriggering 
                     ? 'bg-muted text-muted-foreground' 
-                    : 'bg-primary text-black hover:shadow-primary/20'
+                    : 'bg-primary text-primary-foreground hover:shadow-primary/20'
               }`}
             >
               {triggerSuccess ? (
                 <>
-                  <svg className="w-4 h-4 text-black animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-4 h-4 text-primary-foreground animate-scale-in" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Busca Iniciada!</span>
@@ -561,7 +561,7 @@ export default function BuscarLeadsTab() {
             <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               <button
                 onClick={() => handleCriarAcaoCaixaRapido()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-black text-xs font-black transition-all hover:opacity-90 active:scale-95 whitespace-nowrap shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-black transition-all hover:opacity-90 active:scale-95 whitespace-nowrap shrink-0"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -595,7 +595,7 @@ export default function BuscarLeadsTab() {
 
         <div className="rounded-2xl border border-border overflow-hidden bg-card/30">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-[#111111] border-b border-border/50 text-[10px] text-muted-foreground font-black tracking-widest uppercase">
+            <thead className="bg-card border-b border-border/50 text-[10px] text-muted-foreground font-black tracking-widest uppercase">
               <tr>
                 <th className="p-4 w-12 text-center">
                   <button onClick={() => handleSelectAll(selectedLeads.size !== leadsData?.leads?.length)}>
@@ -613,7 +613,7 @@ export default function BuscarLeadsTab() {
                 <th className="p-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/30 bg-[#0A0A0A]">
+            <tbody className="divide-y divide-border/30 bg-card">
               {loadingLeads ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-muted-foreground text-xs">
@@ -727,7 +727,7 @@ export default function BuscarLeadsTab() {
           
           {/* Pagination */}
           {(leadsData?.totalPages ?? 0) > 1 && (
-            <div className="p-4 border-t border-border/50 flex justify-end gap-2 bg-[#111111]">
+            <div className="p-4 border-t border-border/50 flex justify-end gap-2 bg-card">
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}

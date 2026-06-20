@@ -244,10 +244,10 @@ export default function BussolaPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex flex-col h-full min-h-screen bg-card text-foreground select-none">
+      <div className="flex flex-col h-full min-h-screen bg-secondary text-foreground select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────────── */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border/20 bg-card backdrop-blur-md sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-primary/20 bg-secondary backdrop-blur-md sticky top-0 z-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
@@ -282,7 +282,7 @@ export default function BussolaPage() {
 
           {/* Tab switcher — scrollable on mobile */}
           <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary border border-border/30 w-max min-w-full sm:w-fit sm:min-w-0">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary border border-primary/20 w-max min-w-full sm:w-fit sm:min-w-0">
               {TABS.map(tab => {
                 const Icon = tab.icon
                 const active = activeTab === tab.id
@@ -449,7 +449,7 @@ export default function BussolaPage() {
                 {/* Pipeline */}
                 <div className="relative">
                   <button onClick={() => setShowPipelineDD(!showPipelineDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Target className="w-4 h-4 text-muted-foreground" />
                     <span>Pipeline: {activePipelineName}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -457,7 +457,7 @@ export default function BussolaPage() {
                   {showPipelineDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowPipelineDD(false)} />
-                      <div className="absolute left-0 mt-2 w-56 rounded-xl border border-border/30 bg-[#0c101b] p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-56 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         {pipelines.map(p => (
                           <button key={p.id} onClick={() => { setActivePipelineId(p.id); setShowPipelineDD(false) }}
                             className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePipelineId === p.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-primary-foreground'}`}>
@@ -472,7 +472,7 @@ export default function BussolaPage() {
                 {/* Period */}
                 <div className="relative">
                   <button onClick={() => setShowPeriodDD(!showPeriodDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>Período: {periodLabel}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -480,7 +480,7 @@ export default function BussolaPage() {
                   {showPeriodDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowPeriodDD(false)} />
-                      <div className="absolute left-0 mt-2 w-64 rounded-xl border border-border/30 bg-[#0c101b] p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-64 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         {[
                           ['hoje', 'Hoje'], ['ontem', 'Ontem'], ['7d', 'Últimos 7 dias'],
                           ['15d', 'Últimos 15 dias'], ['30d', 'Últimos 30 dias'],
@@ -495,9 +495,9 @@ export default function BussolaPage() {
                         {preset === 'customizado' && (
                           <div className="flex gap-2 mt-2 px-2">
                             <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
-                              className="flex-1 bg-secondary border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-primary/20 rounded-lg px-2 py-1 text-xs text-foreground" />
                             <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
-                              className="flex-1 bg-secondary border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-primary/20 rounded-lg px-2 py-1 text-xs text-foreground" />
                           </div>
                         )}
                       </div>
@@ -508,7 +508,7 @@ export default function BussolaPage() {
                 {/* Sellers */}
                 <div className="relative">
                   <button onClick={() => setShowSellersDD(!showSellersDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Users className="w-4 h-4 text-muted-foreground" />
                     <span>Vendedores: {ownerIds.length === 0 ? 'Todos' : ownerIds.length + ' sel.'}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -516,7 +516,7 @@ export default function BussolaPage() {
                   {showSellersDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowSellersDD(false)} />
-                      <div className="absolute left-0 mt-2 w-52 rounded-xl border border-border/30 bg-[#0c101b] p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-52 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
                           Todos os vendedores {ownerIds.length === 0 && <Check className="w-3.5 h-3.5 text-primary" />}
                         </button>
@@ -533,7 +533,7 @@ export default function BussolaPage() {
                 </div>
 
                 <button onClick={handleDownloadPDF} disabled={isAnyLoading || pdfLoading}
-                  className="ml-auto flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
+                  className="ml-auto flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50">
                   <FileText className="w-4 h-4" />
                   {pdfLoading ? 'Gerando...' : 'Baixar PDF'}
                 </button>
@@ -555,7 +555,7 @@ export default function BussolaPage() {
                     { label: 'Pipeline', value: activePipelineName, icon: BarChart3, color: 'text-purple-400' },
                   ].map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="ocr-card card-padding">
-                      <div className={`p-2 rounded-xl bg-secondary border border-border/50 ${color} w-fit mb-2`}>
+                      <div className={`p-2 rounded-xl bg-secondary border border-primary/20 ${color} w-fit mb-2`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">{label}</p>

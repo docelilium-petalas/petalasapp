@@ -56,7 +56,7 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string
     label: 'NÃO RESPONDEU',
     color: 'text-muted-foreground',
     bg: 'bg-muted',
-    border: 'border-border',
+    border: 'border-primary/20',
     emoji: '⚪'
   }
 }
@@ -74,7 +74,7 @@ const LOSS_REASONS = [
 
 // Owner badge color generator (deterministic HSL)
 function getOwnerColor(userId: string) {
-  if (!userId) return { bg: 'bg-muted', border: 'border-border', text: 'text-muted-foreground' }
+  if (!userId) return { bg: 'bg-muted', border: 'border-primary/20', text: 'text-muted-foreground' }
   let hash = 0
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash)
@@ -191,7 +191,7 @@ function DraggableDealCard({
       } ${
         isSelected
           ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
-          : 'border-border/50 bg-card hover:bg-card/80 shadow-sm'
+          : 'border-primary/20 bg-card hover:bg-card/80 shadow-sm'
       } ${isPulsing ? 'animate-pulse border-primary/90' : ''}`}
       onClick={(e) => {
         if (isSelectionMode) {
@@ -242,7 +242,7 @@ function DraggableDealCard({
             </button>
             {isOpenMenu && (
               <div
-                className="absolute right-0 top-8 w-44 rounded-xl border border-border bg-popover shadow-2xl overflow-hidden z-50"
+                className="absolute right-0 top-8 w-44 rounded-xl border border-primary/20 bg-popover shadow-2xl overflow-hidden z-50"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -300,25 +300,25 @@ function DraggableDealCard({
           )}
 
           {deal.produtoInteresse && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50 truncate max-w-[100px]">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-primary/20 truncate max-w-[100px]">
               📦 {deal.produtoInteresse}
             </span>
           )}
 
           {deal.origem && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-primary/20">
               🔗 {deal.origem}
             </span>
           )}
 
           {deal.ramoEmpresa && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50 truncate max-w-[100px]">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-primary/20 truncate max-w-[100px]">
               🏢 {deal.ramoEmpresa}
             </span>
           )}
 
           {deal.faturamentoMensal !== undefined && deal.faturamentoMensal > 0 && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-border/50">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-muted text-muted-foreground border border-primary/20">
               💰 Fat: {BRL(deal.faturamentoMensal)}
             </span>
           )}
@@ -384,7 +384,7 @@ function DraggableDealCard({
         </div>
 
         {/* Row 5: Value + Action Trigger */}
-        <div className="flex items-center justify-between border-t border-border/10 pt-1.5 mt-1 pointer-events-none">
+        <div className="flex items-center justify-between border-t border-primary/20 pt-1.5 mt-1 pointer-events-none">
           <span className="text-[14px] font-extrabold text-primary tracking-tight">
             {BRL(deal.valorEstimado)}
           </span>
@@ -451,12 +451,12 @@ function DroppableColumn({
       className={`flex flex-col w-72 shrink-0 rounded-2xl border transition-all duration-300 ${
         isOver
           ? 'border-primary/80 bg-primary/5 shadow-inner'
-          : 'border-border/30 bg-card'
+          : 'border-primary/20 bg-card'
       }`}
     >
       {/* Stage Header */}
       <div
-        className="group px-4 py-3.5 border-b border-border/20 flex flex-col gap-1.5"
+        className="group px-4 py-3.5 border-b border-primary/20 flex flex-col gap-1.5"
         style={{ borderTop: `3px solid ${stage.cor}` }}
       >
         <div className="flex items-center justify-between">
@@ -547,8 +547,8 @@ function DroppableColumn({
         })}
 
         {deals.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 text-center opacity-30 border border-dashed border-border/10 rounded-xl">
-            <div className="w-8 h-8 rounded-full border border-dashed border-border mb-2 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-10 text-center opacity-30 border border-dashed border-primary/20 rounded-xl">
+            <div className="w-8 h-8 rounded-full border border-dashed border-primary/20 mb-2 flex items-center justify-center">
               <Plus className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="text-[11px] text-muted-foreground">Arraste negócios aqui</p>
@@ -1379,7 +1379,7 @@ return sum + d.valorEstimado * (prob / 100)
       {/* ─── DESKTOP HEADER & FILTERS ─── */}
       {!isMobile && (
         <>
-          <div className="flex flex-col gap-4 px-6 py-4 border-b border-border/20 bg-card backdrop-blur-md shrink-0">
+          <div className="flex flex-col gap-4 px-6 py-4 border-b border-primary/20 bg-card backdrop-blur-md shrink-0">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3">
@@ -1390,7 +1390,7 @@ return sum + d.valorEstimado * (prob / 100)
                       value={selectedPipelineId}
                       onChange={handlePipelineSwitch}
                       options={pipelines.map((p) => ({ value: p.id, label: `${p.nome} ${p.isDefault ? '⭐' : ''}` }))}
-                      className="bg-secondary border border-border/40 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                      className="bg-secondary border border-primary/20 text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                     />
                   )}
                 </div>
@@ -1405,7 +1405,7 @@ return sum + d.valorEstimado * (prob / 100)
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     showKpis
                       ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'bg-secondary border-border/40 text-muted-foreground hover:text-foreground'
+                      : 'bg-secondary border-primary/20 text-muted-foreground hover:text-foreground'
                   }`}
                   title={showKpis ? 'Ocultar indicadores' : 'Mostrar indicadores'}
                 >
@@ -1417,8 +1417,8 @@ return sum + d.valorEstimado * (prob / 100)
                   onClick={() => setIsSelectionMode(!isSelectionMode)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     isSelectionMode
-                      ? 'bg-primary text-black border-primary'
-                      : 'bg-secondary border-border/40 text-muted-foreground hover:text-foreground'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary border-primary/20 text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
@@ -1427,7 +1427,7 @@ return sum + d.valorEstimado * (prob / 100)
 
                 <button
                   onClick={() => setShowArchived(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/40 bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                 >
                   <Archive className="w-3.5 h-3.5" />
                   Ver Arquivados
@@ -1437,7 +1437,7 @@ return sum + d.valorEstimado * (prob / 100)
                   onClick={() => {
                     router.push('/settings?tab=pipeline')
                   }}
-                  className="p-2 rounded-xl border border-border/40 bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                  className="p-2 rounded-xl border border-primary/20 bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                   title="Configurar Pipelines"
                 >
                   <Settings className="w-4 h-4" />
@@ -1445,7 +1445,7 @@ return sum + d.valorEstimado * (prob / 100)
 
                 <button
                   onClick={() => setShowNewDeal(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" /> Novo Deal
                 </button>
@@ -1462,7 +1462,7 @@ return sum + d.valorEstimado * (prob / 100)
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar por deal, contato..."
-                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-primary/20 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                   {searchText && (
                     <button
@@ -1477,7 +1477,7 @@ return sum + d.valorEstimado * (prob / 100)
                 <select
                   value={filterOwner}
                   onChange={(e) => setFilterOwner(e.target.value)}
-                  className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card border border-primary/20 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Vendedor: Todos</option>
                   <option value="unassigned">Sem responsável</option>
@@ -1491,7 +1491,7 @@ return sum + d.valorEstimado * (prob / 100)
                 <select
                   value={filterPriority}
                   onChange={(e) => setFilterPriority(e.target.value)}
-                  className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card border border-primary/20 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Prioridade: Todas</option>
                   <option value="BAIXA">Lead AP</option>
@@ -1503,7 +1503,7 @@ return sum + d.valorEstimado * (prob / 100)
                 <select
                   value={filterOrigin}
                   onChange={(e) => setFilterOrigin(e.target.value)}
-                  className="bg-card border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="bg-card border border-primary/20 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
                 >
                   <option value="all">Origem: Todas</option>
                   <option value="Meta Ads">Meta Ads</option>
@@ -1538,30 +1538,30 @@ return sum + d.valorEstimado * (prob / 100)
                   <div className="flex items-center gap-1">
                     <MobileActionSelect label="Mover etapa" value={bulkStageTarget} onChange={setBulkStageTarget}
                       options={stages.map((s) => ({ value: s.id, label: s.nome }))} placeholder="Etapa..."
-                      className="bg-secondary border border-border/40 rounded-xl px-2.5 py-1 text-xs" />
+                      className="bg-secondary border border-primary/20 rounded-xl px-2.5 py-1 text-xs" />
                     <button onClick={handleBulkMove} disabled={!bulkStageTarget}
-                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Mover</button>
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Mover</button>
                   </div>
                   <div className="flex items-center gap-1">
                     <MobileActionSelect label="Atribuir vendedor" value={bulkOwnerTarget} onChange={setBulkOwnerTarget}
                       options={users.map((u) => ({ value: u.id, label: u.nome }))} placeholder="Vendedor..."
-                      className="bg-secondary border border-border/40 rounded-xl px-2.5 py-1 text-xs" />
+                      className="bg-secondary border border-primary/20 rounded-xl px-2.5 py-1 text-xs" />
                     <button onClick={handleBulkAssign} disabled={!bulkOwnerTarget}
-                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Atribuir</button>
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Atribuir</button>
                   </div>
                   <button onClick={handleGoToCaixaRapido}
-                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition-colors">
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-primary-foreground font-bold text-xs flex items-center gap-1.5 transition-colors">
                     <Zap className="w-3 h-3" /> Nova Ação
                   </button>
                   <div className="flex items-center gap-1">
                     <MobileActionSelect label="Cadência" value={selectedCadenciaTarget} onChange={setSelectedCadenciaTarget}
                       options={cadencias.map((c) => ({ value: c.id, label: c.nome }))} placeholder="Cadência..."
-                      className="bg-secondary border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground" />
+                      className="bg-secondary border border-primary/20 rounded-xl px-2.5 py-1 text-xs text-foreground" />
                     <button onClick={handleBulkAddToCadence} disabled={!selectedCadenciaTarget}
-                      className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-bold text-xs disabled:opacity-40">Cadência</button>
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Cadência</button>
                   </div>
                   <button onClick={handleBulkCloseWon}
-                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs">Ganho</button>
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-primary-foreground font-bold text-xs">Ganho</button>
                   <button onClick={handleBulkCloseLost}
                     className="px-2.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-primary-foreground font-bold text-xs">Perdido</button>
                   <button onClick={handleBulkDelete}
@@ -1587,7 +1587,7 @@ return sum + d.valorEstimado * (prob / 100)
                 { label: 'Ticket Médio', value: BRL(ticketMedio), sub: 'Por negócio', color: 'text-foreground' },
                 { label: 'Conversão', value: `${conversionRate.toFixed(1)}%`, sub: 'Ganho/Perdido', color: 'text-primary' }
               ].map((kpi, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl border border-border/20 bg-secondary flex flex-col gap-0.5">
+                <div key={idx} className="p-2.5 rounded-xl border border-primary/20 bg-secondary flex flex-col gap-0.5">
                   <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wide">{kpi.label}</p>
                   <h3 className={`text-sm font-extrabold tracking-tight ${kpi.color}`}>{kpi.value}</h3>
                   <p className="text-[9px] text-muted-foreground">{kpi.sub}</p>
@@ -1602,7 +1602,7 @@ return sum + d.valorEstimado * (prob / 100)
       {isMobile ? (
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Stage selector header */}
-          <div className="shrink-0 bg-background border-b border-border/30">
+          <div className="shrink-0 bg-background border-b border-primary/20">
             {/* Pipeline selector (only when multiple pipelines) */}
             {pipelines.length > 1 && (
               <div className="flex items-center gap-2 px-4 pt-3 pb-1">
@@ -1610,7 +1610,7 @@ return sum + d.valorEstimado * (prob / 100)
                 <select
                   value={selectedPipelineId}
                   onChange={e => handlePipelineSwitch(e.target.value)}
-                  className="flex-1 bg-muted border border-border/40 text-xs font-semibold rounded-xl px-2 py-1.5 focus:outline-none text-foreground"
+                  className="flex-1 bg-muted border border-primary/20 text-xs font-semibold rounded-xl px-2 py-1.5 focus:outline-none text-foreground"
                 >
                   {pipelines.map(p => (
                     <option key={p.id} value={p.id}>{p.nome}{p.isDefault ? ' ★' : ''}</option>
@@ -1631,8 +1631,8 @@ return sum + d.valorEstimado * (prob / 100)
                       onClick={() => setActiveStageIndex(idx)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 ${
                         isActive
-                          ? 'border-transparent text-black shadow-md'
-                          : 'border-border/40 bg-muted/60 text-muted-foreground'
+                          ? 'border-transparent text-primary-foreground shadow-md'
+                          : 'border-primary/20 bg-muted/60 text-muted-foreground'
                       }`}
                       style={isActive ? { backgroundColor: stage.cor } : {}}
                     >
@@ -1652,7 +1652,7 @@ return sum + d.valorEstimado * (prob / 100)
               const stageDls = visibleDeals.filter(d => d.stageId === st.id && d.status === 'OPEN')
               const stageTotal = stageDls.reduce((s, d) => s + d.valorEstimado, 0)
               return (
-                <div className="flex items-center justify-between px-4 py-2 border-t border-border/10">
+                <div className="flex items-center justify-between px-4 py-2 border-t border-primary/20">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: st.cor }} />
                     <span className="text-xs font-bold text-foreground">{st.nome}</span>
@@ -1666,7 +1666,7 @@ return sum + d.valorEstimado * (prob / 100)
                     <button
                       onClick={() => setIsSelectionMode(!isSelectionMode)}
                       className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${
-                        isSelectionMode ? 'bg-primary text-black' : 'bg-muted text-muted-foreground hover:bg-muted'
+                        isSelectionMode ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       {isSelectionMode ? 'Sair da Seleção' : 'Selecionar'}
@@ -1753,8 +1753,8 @@ return sum + d.valorEstimado * (prob / 100)
                   })}
 
                   {stageDealsList.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-40 border border-dashed border-border/20 rounded-2xl">
-                      <div className="w-10 h-10 rounded-full border border-dashed border-border mb-3 flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-40 border border-dashed border-primary/20 rounded-2xl">
+                      <div className="w-10 h-10 rounded-full border border-dashed border-primary/20 mb-3 flex items-center justify-center">
                         <Plus className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <p className="text-sm font-semibold text-muted-foreground">Sem negócios nesta etapa</p>
@@ -1814,7 +1814,7 @@ return sum + d.valorEstimado * (prob / 100)
 
               <button
                 onClick={() => setShowNewStageModal(true)}
-                className="w-72 shrink-0 rounded-2xl border border-dashed border-border/30 hover:border-primary/50 bg-card hover:bg-primary/5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-all group min-h-[150px]"
+                className="w-72 shrink-0 rounded-2xl border border-dashed border-primary/20 hover:border-primary/50 bg-card hover:bg-primary/5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-all group min-h-[150px]"
               >
                 <div className="w-10 h-10 rounded-full bg-secondary group-hover:bg-primary/10 flex items-center justify-center transition-colors">
                   <Plus className="w-5 h-5" />
@@ -1844,9 +1844,9 @@ return sum + d.valorEstimado * (prob / 100)
         <button
           type="button"
           onClick={() => setShowNewDeal(true)}
-          className="fixed bottom-20 right-6 z-30 w-14 h-14 rounded-full bg-primary text-black flex items-center justify-center shadow-2xl active:scale-95 hover:shadow-primary/30 transition-transform ocr-glow-intense border border-primary/20 shrink-0"
+          className="fixed bottom-20 right-6 z-30 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl active:scale-95 hover:shadow-primary/30 transition-transform ocr-glow-intense border border-primary/20 shrink-0"
         >
-          <Plus className="w-7 h-7 text-black font-extrabold" />
+          <Plus className="w-7 h-7 text-primary-foreground font-extrabold" />
         </button>
       )}
 
@@ -1857,7 +1857,7 @@ return sum + d.valorEstimado * (prob / 100)
           onClick={() => setShowMobileFilters(false)}
         >
           <div
-            className="w-full max-h-[85vh] bg-card border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
+            className="w-full max-h-[85vh] bg-card border-t border-primary/20 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag Handle */}
@@ -1865,7 +1865,7 @@ return sum + d.valorEstimado * (prob / 100)
               <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
-            <div className="flex items-center justify-between pb-2 border-b border-border/20 shrink-0">
+            <div className="flex items-center justify-between pb-2 border-b border-primary/20 shrink-0">
               <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Filtros e Busca</h3>
               <button
                 type="button"
@@ -1887,7 +1887,7 @@ return sum + d.valorEstimado * (prob / 100)
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Buscar deal, contato ou telefone..."
-                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
+                    className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   {searchText && (
                     <button
@@ -1955,7 +1955,7 @@ return sum + d.valorEstimado * (prob / 100)
             </div>
 
             {/* Filter buttons */}
-            <div className="pt-3 border-t border-border/20 flex gap-3 shrink-0">
+            <div className="pt-3 border-t border-primary/20 flex gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -1965,14 +1965,14 @@ return sum + d.valorEstimado * (prob / 100)
                   setSearchText('')
                   setShowMobileFilters(false)
                 }}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-bold text-muted-foreground active:bg-secondary"
+                className="flex-1 py-3 rounded-xl border border-primary/20 text-xs font-bold text-muted-foreground active:bg-secondary"
               >
                 Limpar Filtros
               </button>
               <button
                 type="button"
                 onClick={() => setShowMobileFilters(false)}
-                className="flex-1 py-3 rounded-xl bg-primary text-black font-extrabold text-xs active:opacity-90 animate-pulse-glow"
+                className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs active:opacity-90 animate-pulse-glow"
               >
                 Aplicar
               </button>
@@ -1986,10 +1986,10 @@ return sum + d.valorEstimado * (prob / 100)
         <div className="fixed bottom-20 left-2 right-2 z-40 bg-card border border-primary/30 rounded-2xl p-3 shadow-2xl flex flex-wrap items-center gap-2 animate-scale-in">
           <span className="text-xs font-bold text-primary">{selectedDeals.size} sel.</span>
           <button onClick={handleGoToCaixaRapido}
-            className="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-black font-bold text-xs flex items-center gap-1.5">
+            className="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-primary-foreground font-bold text-xs flex items-center gap-1.5">
             <Zap className="w-3 h-3" /> Nova Ação
           </button>
-          <button onClick={handleBulkCloseWon} className="px-2 py-1.5 rounded-xl bg-emerald-500 text-black font-bold text-xs">Ganho</button>
+          <button onClick={handleBulkCloseWon} className="px-2 py-1.5 rounded-xl bg-emerald-500 text-primary-foreground font-bold text-xs">Ganho</button>
           <button onClick={handleBulkCloseLost} className="px-2 py-1.5 rounded-xl bg-rose-500 text-primary-foreground font-bold text-xs">Perdido</button>
           <button onClick={() => { setSelectedDeals(new Set()); setIsSelectionMode(false) }}
             className="p-1.5 text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
@@ -2003,7 +2003,7 @@ return sum + d.valorEstimado * (prob / 100)
           onClick={() => setShowNewDeal(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
+            className="relative w-full max-w-lg bg-card border border-primary/20 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 overflow-y-auto mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
@@ -2030,7 +2030,7 @@ return sum + d.valorEstimado * (prob / 100)
                   onChange={(e) => setNewDeal((p) => ({ ...p, titulo: e.target.value }))}
                   onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                   placeholder="Ex: Contrato de Tráfego Semestral"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
               </div>
 
@@ -2052,14 +2052,14 @@ return sum + d.valorEstimado * (prob / 100)
                       value={newContactData.nome}
                       onChange={(e) => setNewContactData(p => ({ ...p, nome: e.target.value }))}
                       placeholder="Nome do Contato"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                     />
                     <input
                       type="text"
                       value={newContactData.telefone}
                       onChange={(e) => setNewContactData(p => ({ ...p, telefone: e.target.value }))}
                       placeholder="Telefone (WhatsApp)"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                     />
                   </div>
                 ) : (
@@ -2082,7 +2082,7 @@ return sum + d.valorEstimado * (prob / 100)
                     onChange={(e) => setNewDeal((p) => ({ ...p, valorEstimado: e.target.value }))}
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Ex: 5000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
 
@@ -2155,18 +2155,18 @@ return sum + d.valorEstimado * (prob / 100)
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4 shrink-0 border-t border-border/10 max-md:pb-4">
+            <div className="flex gap-3 pt-4 shrink-0 border-t border-primary/20 max-md:pb-4">
               <button
                 type="button"
                 onClick={() => setShowNewDeal(false)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-secondary active:bg-muted transition-colors"
+                className="flex-1 py-3 rounded-xl border border-primary/20 text-xs font-semibold text-muted-foreground hover:bg-secondary active:bg-muted transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleCreateDeal}
-                className="flex-1 py-3 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 active:opacity-90 transition-all"
+                className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 active:opacity-90 transition-all"
               >
                 Criar Oportunidade
               </button>
@@ -2182,7 +2182,7 @@ return sum + d.valorEstimado * (prob / 100)
           onClick={() => setShowNewStageModal(false)}
         >
           <div
-            className="w-full max-w-sm bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            className="w-full max-w-sm bg-card border border-primary/20 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
@@ -2207,23 +2207,23 @@ return sum + d.valorEstimado * (prob / 100)
                   value={newStageName}
                   onChange={(e) => setNewStageName(e.target.value)}
                   placeholder="Ex: Em Negociação"
-                  className="w-full px-3 py-2 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                  className="w-full px-3 py-2 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
                   autoFocus
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4 shrink-0 border-t border-border/10 max-md:pb-4">
+            <div className="flex gap-3 pt-4 shrink-0 border-t border-primary/20 max-md:pb-4">
               <button
                 onClick={() => setShowNewStageModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-secondary"
+                className="flex-1 py-2.5 rounded-xl border border-primary/20 text-xs font-semibold text-muted-foreground hover:bg-secondary"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateStage}
                 disabled={!newStageName.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary/90 disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 disabled:opacity-50"
               >
                 Criar
               </button>
@@ -2282,10 +2282,10 @@ return sum + d.valorEstimado * (prob / 100)
               )}
             </div>
 
-            <div className="flex gap-3 pt-4 shrink-0 border-t border-border/10 max-md:pb-4">
+            <div className="flex gap-3 pt-4 shrink-0 border-t border-primary/20 max-md:pb-4">
               <button
                 onClick={() => { setStageToDelete(null); setMigrateToStageId('') }}
-                className="flex-1 py-2.5 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-secondary"
+                className="flex-1 py-2.5 rounded-xl border border-primary/20 text-xs font-semibold text-muted-foreground hover:bg-secondary"
               >
                 Cancelar
               </button>
@@ -2308,7 +2308,7 @@ return sum + d.valorEstimado * (prob / 100)
           onClick={() => setShowLostReasonModal(null)}
         >
           <div
-            className="w-full max-w-md bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
+            className="w-full max-w-md bg-card border border-primary/20 rounded-2xl p-6 space-y-4 animate-scale-in max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:pb-10 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle */}
@@ -2350,7 +2350,7 @@ return sum + d.valorEstimado * (prob / 100)
                     onFocus={(e) => isMobile && e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Descreva brevemente o motivo..."
                     rows={3}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                   />
                 </div>
               )}
@@ -2360,7 +2360,7 @@ return sum + d.valorEstimado * (prob / 100)
               <button
                 type="button"
                 onClick={() => setShowLostReasonModal(null)}
-                className="flex-1 py-3 rounded-xl border border-border/40 text-xs font-semibold text-muted-foreground hover:bg-secondary transition-colors"
+                className="flex-1 py-3 rounded-xl border border-primary/20 text-xs font-semibold text-muted-foreground hover:bg-secondary transition-colors"
               >
                 Cancelar
               </button>
@@ -2510,7 +2510,7 @@ function ArchivedDealsView({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl bg-card border border-border/40 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh] max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
+        className="w-full max-w-4xl bg-card border border-primary/20 rounded-2xl p-6 space-y-4 animate-scale-in shadow-2xl flex flex-col max-h-[85vh] max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sheet Handle */}
@@ -2540,14 +2540,14 @@ function ArchivedDealsView({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar título, contato..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-primary/20 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as 'ALL' | 'WON' | 'LOST')}
-            className="bg-secondary border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-secondary border border-primary/20 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="ALL">Status: Todos</option>
             <option value="WON">Ganhos (Won)</option>
@@ -2557,7 +2557,7 @@ function ArchivedDealsView({
           <select
             value={filterOwner}
             onChange={(e) => setFilterOwner(e.target.value)}
-            className="bg-secondary border border-border/30 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
+            className="bg-secondary border border-primary/20 rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground focus:outline-none"
           >
             <option value="all">Vendedor: Todos</option>
             {users.map((u) => (
@@ -2569,10 +2569,10 @@ function ArchivedDealsView({
         </div>
 
         {/* Table list / Cards List */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin border border-border/20 rounded-xl">
+        <div className="flex-1 overflow-y-auto scrollbar-thin border border-primary/20 rounded-xl">
           <table className="hidden md:table w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-secondary border-b border-border/20 text-muted-foreground font-semibold">
+              <tr className="bg-secondary border-b border-primary/20 text-muted-foreground font-semibold">
                 <th className="px-4 py-3">Título</th>
                 <th className="px-4 py-3">Contato</th>
                 <th className="px-4 py-3">Valor</th>
@@ -2618,7 +2618,7 @@ function ArchivedDealsView({
                           // update internal state too
                           setArchived((prev) => prev.filter((item) => item.id !== d.id))
                         }}
-                        className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-black font-semibold transition-all"
+                        className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground font-semibold transition-all"
                       >
                         Reabrir
                       </button>
@@ -2893,7 +2893,7 @@ function DealDetailDrawer({
       className="fixed inset-0 z-50 pointer-events-none"
     >
       <div
-        className="absolute right-4 top-[7.5vh] w-full max-w-2xl bg-card border border-border/40 h-[85vh] flex flex-col shadow-2xl rounded-2xl pointer-events-auto max-md:right-0 max-md:w-full max-md:h-[85vh] max-md:bottom-0 max-md:top-auto max-md:rounded-t-3xl max-md:rounded-b-none"
+        className="absolute right-4 top-[7.5vh] w-full max-w-2xl bg-card border border-primary/20 h-[85vh] flex flex-col shadow-2xl rounded-2xl pointer-events-auto max-md:right-0 max-md:w-full max-md:h-[85vh] max-md:bottom-0 max-md:top-auto max-md:rounded-t-3xl max-md:rounded-b-none"
         style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
           transition: isDragging ? 'none' : 'transform 0.1s ease-out'
@@ -2918,7 +2918,7 @@ function DealDetailDrawer({
         </div>
         {/* Header */}
         <div 
-          className="p-6 border-b border-border/20 flex flex-col gap-4 cursor-grab active:cursor-grabbing max-md:cursor-default"
+          className="p-6 border-b border-primary/20 flex flex-col gap-4 cursor-grab active:cursor-grabbing max-md:cursor-default"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -2955,7 +2955,7 @@ function DealDetailDrawer({
                     setStageInput(newStage)
                     await onUpdateDeal(deal.id, { stageId: newStage })
                   }}
-                  className="text-[10px] font-bold bg-secondary hover:bg-secondary border border-border/40 rounded-full px-3 py-1.5 text-muted-foreground focus:outline-none transition-colors cursor-pointer"
+                  className="text-[10px] font-bold bg-secondary hover:bg-secondary border border-primary/20 rounded-full px-3 py-1.5 text-muted-foreground focus:outline-none transition-colors cursor-pointer"
                 >
                   {stages.map(s => (
                     <option key={s.id} value={s.id}>{s.nome}</option>
@@ -2972,7 +2972,7 @@ function DealDetailDrawer({
                       onMarkWon(deal)
                       onClose()
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-primary-foreground text-xs font-bold transition-all"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" /> Ganho
                   </button>
@@ -2990,21 +2990,21 @@ function DealDetailDrawer({
                   onClick={async () => {
                     await onReopenDeal(deal.id)
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-primary text-black text-xs font-bold hover:scale-[1.01]"
+                  className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:scale-[1.01]"
                 >
                   Reabrir Negócio
                 </button>
               )}
               <button
                 onClick={() => onDeleteDeal(deal.id)}
-                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-rose-400 transition-colors"
+                className="p-2 rounded-xl border border-primary/20 hover:bg-muted text-muted-foreground hover:text-rose-400 transition-colors"
                 title="Excluir negócio"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ml-1 hidden md:flex"
+                className="p-2 rounded-xl border border-primary/20 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ml-1 hidden md:flex"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -3018,11 +3018,11 @@ function DealDetailDrawer({
                   type="text"
                   value={titleInput}
                   onChange={(e) => setTitleInput(e.target.value)}
-                  className="bg-secondary border border-border text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
+                  className="bg-secondary border border-primary/20 text-foreground font-bold px-3 py-1.5 rounded-xl text-lg focus:outline-none"
                 />
                 <button
                   onClick={handleSaveTitle}
-                  className="px-3 py-1.5 rounded-xl bg-primary text-black text-xs font-bold"
+                  className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
                 >
                   Salvar
                 </button>
@@ -3031,7 +3031,7 @@ function DealDetailDrawer({
                     setTitleInput(deal.titulo)
                     setIsEditingTitle(false)
                   }}
-                  className="px-3 py-1.5 rounded-xl border border-border text-xs text-muted-foreground"
+                  className="px-3 py-1.5 rounded-xl border border-primary/20 text-xs text-muted-foreground"
                 >
                   Cancelar
                 </button>
@@ -3049,7 +3049,7 @@ function DealDetailDrawer({
 
           {/* SLA Progression Bar */}
           {slaHours > 0 && deal.status === 'OPEN' && (
-            <div className="p-3.5 rounded-xl border border-border/20 bg-secondary space-y-1.5">
+            <div className="p-3.5 rounded-xl border border-primary/20 bg-secondary space-y-1.5">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="font-semibold text-muted-foreground">Progresso do SLA da Etapa</span>
                 <span className="font-bold text-foreground">{slaProgressText}</span>
@@ -3089,7 +3089,7 @@ function DealDetailDrawer({
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-border/20 bg-secondary overflow-x-auto select-none shrink-0">
+        <div className="flex border-b border-primary/20 bg-secondary overflow-x-auto select-none shrink-0">
           {[
             { id: 'resumo', label: 'Resumo' },
             { id: 'contato', label: 'Contato' },
@@ -3142,7 +3142,7 @@ function DealDetailDrawer({
                       ]}
                     />
                   ) : (
-                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm text-foreground/70 cursor-not-allowed">
+                    <div className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-sm text-foreground/70 cursor-not-allowed">
                       {ownerInput ? users.find(u => u.id === ownerInput)?.nome || 'Sem responsável' : 'Sem responsável'}
                     </div>
                   )}
@@ -3156,7 +3156,7 @@ function DealDetailDrawer({
                     type="number"
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-primary/20 bg-secondary text-xs focus:outline-none"
                   />
                 </div>
 
@@ -3206,16 +3206,16 @@ function DealDetailDrawer({
                 </div>
               </div>
 
-              <div className="border-t border-border/20 pt-4 mt-2">
+              <div className="border-t border-primary/20 pt-4 mt-2">
                 <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
                   Snapshot do Contato (Read-only)
                 </h4>
                 <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
-                  <div className="p-3 rounded-xl bg-secondary border border-border/20">
+                  <div className="p-3 rounded-xl bg-secondary border border-primary/20">
                     <p className="ocr-label mb-0.5">Telefone</p>
                     <p className="text-xs font-semibold">{dealContact?.telefone || '-'}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-secondary border border-border/20 relative">
+                  <div className="p-3 rounded-xl bg-secondary border border-primary/20 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Faturamento Mensal</p>
                       {showFaturamentoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3236,7 +3236,7 @@ function DealDetailDrawer({
                       className="w-full bg-transparent border-none p-0 text-xs font-semibold focus:outline-none focus:ring-0 text-foreground"
                     />
                   </div>
-                  <div className="p-3 rounded-xl bg-secondary border border-border/20 col-span-2 max-md:col-span-1 relative">
+                  <div className="p-3 rounded-xl bg-secondary border border-primary/20 col-span-2 max-md:col-span-1 relative">
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="ocr-label">Ramo da Empresa</p>
                       {showRamoCheck && <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />}
@@ -3263,7 +3263,7 @@ function DealDetailDrawer({
                 <button
                   type="button"
                   onClick={handleSaveFields}
-                  className="px-4 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg transition-all"
+                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg transition-all"
                 >
                   Salvar Alterações
                 </button>
@@ -3275,7 +3275,7 @@ function DealDetailDrawer({
           {activeTab === 'contato' && (
             <div className="space-y-4">
               {dealContact ? (
-                <div className="ocr-card card-padding space-y-4 border border-border/30">
+                <div className="ocr-card card-padding space-y-4 border border-primary/20">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-lg">
                       {dealContact.nome[0]}
@@ -3289,7 +3289,7 @@ function DealDetailDrawer({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3.5 text-xs border-t border-border/20 pt-3.5">
+                  <div className="grid grid-cols-2 gap-3.5 text-xs border-t border-primary/20 pt-3.5">
                     <div>
                       <p className="ocr-label mb-0.5">Telefone</p>
                       <p className="font-semibold">{dealContact.telefone}</p>
@@ -3305,7 +3305,7 @@ function DealDetailDrawer({
 
                   <div className="text-xs">
                     <p className="ocr-label mb-1">Último UTM Identificado</p>
-                    <p className="font-semibold bg-secondary p-2 rounded-xl border border-border/20 inline-block">
+                    <p className="font-semibold bg-secondary p-2 rounded-xl border border-primary/20 inline-block">
                       Source: {dealContact.lastUtmSource || 'Orgânico'} • Campaign: {dealContact.lastUtmCampaign || '-'}
                     </p>
                   </div>
@@ -3314,13 +3314,13 @@ function DealDetailDrawer({
                     onClick={() => {
                       router.push(`/contacts?id=${dealContact.id}`)
                     }}
-                    className="w-full py-2.5 rounded-xl border border-border text-xs font-semibold hover:bg-secondary text-foreground transition-colors"
+                    className="w-full py-2.5 rounded-xl border border-primary/20 text-xs font-semibold hover:bg-secondary text-foreground transition-colors"
                   >
                     Ver Perfil Completo de Contatos
                   </button>
                 </div>
               ) : (
-                <div className="p-6 text-center text-muted-foreground bg-secondary rounded-2xl border border-dashed border-border/20">
+                <div className="p-6 text-center text-muted-foreground bg-secondary rounded-2xl border border-dashed border-primary/20">
                   Nenhum contato vinculado encontrado.
                 </div>
               )}
@@ -3347,7 +3347,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Escreva detalhes gerais do negócio, perfis dos decisores, etc..."
                   rows={6}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
 
@@ -3361,7 +3361,7 @@ function DealDetailDrawer({
                   }}
                   placeholder="Descreva especificamente o que foi acordado em call/visita..."
                   rows={4}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground font-mono"
                 />
               </div>
             </div>
@@ -3371,7 +3371,7 @@ function DealDetailDrawer({
           {activeTab === 'atividades' && (
             <div className="space-y-5">
               {/* Form to add */}
-              <div className="p-4 rounded-xl border border-border/30 bg-secondary space-y-3">
+              <div className="p-4 rounded-xl border border-primary/20 bg-secondary space-y-3">
                 <h4 className="text-xs font-bold text-foreground">Nova Atividade</h4>
                 <div className="grid grid-cols-2 gap-2.5">
                   <input
@@ -3379,12 +3379,12 @@ function DealDetailDrawer({
                     value={actTitle}
                     onChange={(e) => setActTitle(e.target.value)}
                     placeholder="Título da tarefa..."
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-secondary text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-primary/20 bg-secondary text-xs focus:outline-none"
                   />
                   <select
                     value={actTipo}
                     onChange={(e) => setActTipo(e.target.value)}
-                    className="bg-secondary border border-border/30 rounded-lg px-2.5 py-1.5 text-xs"
+                    className="bg-secondary border border-primary/20 rounded-lg px-2.5 py-1.5 text-xs"
                   >
                     <option value="tarefa">Tarefa</option>
                     <option value="ligacao">Ligação</option>
@@ -3397,14 +3397,14 @@ function DealDetailDrawer({
                     type="datetime-local"
                     value={actDate}
                     onChange={(e) => setActDate(e.target.value)}
-                    className="bg-secondary border border-border/30 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
+                    className="bg-secondary border border-primary/20 rounded-lg px-2 py-1.5 text-xs text-muted-foreground"
                   />
                   <textarea
                     value={actDesc}
                     onChange={(e) => setActDesc(e.target.value)}
                     placeholder="Descrição..."
                     rows={2}
-                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-border/30 bg-secondary text-xs focus:outline-none"
+                    className="col-span-2 w-full px-2.5 py-1.5 rounded-lg border border-primary/20 bg-secondary text-xs focus:outline-none"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -3434,7 +3434,7 @@ function DealDetailDrawer({
                       setActDate('')
                       setEditingActId(null)
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold text-[10px]"
+                    className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold text-[10px]"
                   >
                     {editingActId ? 'Salvar Edição' : 'Agendar Atividade'}
                   </button>
@@ -3447,7 +3447,7 @@ function DealDetailDrawer({
                         setActDesc('')
                         setActDate('')
                       }}
-                      className="px-3 py-1.5 rounded-lg border border-border/40 text-muted-foreground text-[10px]"
+                      className="px-3 py-1.5 rounded-lg border border-primary/20 text-muted-foreground text-[10px]"
                     >
                       Cancelar
                     </button>
@@ -3465,8 +3465,8 @@ function DealDetailDrawer({
                         key={act.id}
                         className={`p-3 rounded-xl border flex items-start justify-between gap-3 text-xs ${
                           act.status === 'DONE'
-                            ? 'bg-secondary border-border/10 opacity-60'
-                            : 'bg-secondary border-border/30'
+                            ? 'bg-secondary border-primary/20 opacity-60'
+                            : 'bg-secondary border-primary/20'
                         }`}
                       >
                         <div className="flex gap-2 items-start">
@@ -3523,7 +3523,7 @@ function DealDetailDrawer({
             <div className="space-y-4">
               <h4 className="text-xs font-bold text-foreground">Logs de Atividade do Funil</h4>
               {dealHistoryList.length > 0 ? (
-                <div className="relative border-l-2 border-border/20 pl-4 ml-2 space-y-4">
+                <div className="relative border-l-2 border-primary/20 pl-4 ml-2 space-y-4">
                   {dealHistoryList.map((log) => {
                     let logTitle = `Migrou de: ${log.deStage} → ${log.paraStage}`
                     let logColor = 'bg-primary'
@@ -3564,7 +3564,7 @@ function DealDetailDrawer({
           {/* 6. UTM / ATRIBUIÇÃO */}
           {activeTab === 'utm' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-border/30 bg-secondary space-y-3 text-xs">
+              <div className="p-4 rounded-xl border border-primary/20 bg-secondary space-y-3 text-xs">
                 <div className="flex items-center gap-1.5 text-primary font-bold">
                   <Info className="w-3.5 h-3.5" />
                   <span>UTMs Congeladas na Criação</span>
@@ -3575,7 +3575,7 @@ function DealDetailDrawer({
                   atribuição correta do ROI.
                 </p>
 
-                <div className="grid grid-cols-2 gap-3.5 border-t border-border/20 pt-3.5">
+                <div className="grid grid-cols-2 gap-3.5 border-t border-primary/20 pt-3.5">
                   {[
                     { label: 'UTM Source', value: deal.utmSource || '-' },
                     { label: 'UTM Medium', value: deal.utmMedium || '-' },
@@ -3586,7 +3586,7 @@ function DealDetailDrawer({
                     { label: 'Landing Page', value: deal.utmLandingPage || '/' },
                     { label: 'Referrer URL', value: deal.utmReferrer || '-' }
                   ].map((utmField, idx) => (
-                    <div key={idx} className="p-2 rounded bg-secondary border border-border/10">
+                    <div key={idx} className="p-2 rounded bg-secondary border border-primary/20">
                       <span className="ocr-label block text-[9px]">{utmField.label}</span>
                       <span className="font-semibold truncate block mt-0.5 text-foreground" title={utmField.value}>
                         {utmField.value}
@@ -3600,7 +3600,7 @@ function DealDetailDrawer({
 
           {/* 7. MENSAGENS REAL/MOCK */}
           {activeTab === 'mensagens' && (
-            <div className="flex flex-col h-[400px] border border-border/30 rounded-xl overflow-hidden bg-secondary">
+            <div className="flex flex-col h-[400px] border border-primary/20 rounded-xl overflow-hidden bg-secondary">
               {loadingMessages ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -3624,7 +3624,7 @@ function DealDetailDrawer({
                     ).map(([dateLabel, msgs]) => (
                       <React.Fragment key={dateLabel}>
                         <div className="flex justify-center my-4">
-                          <span className="text-[10px] bg-muted text-muted-foreground px-3 py-1 rounded-full font-semibold border border-border">
+                          <span className="text-[10px] bg-muted text-muted-foreground px-3 py-1 rounded-full font-semibold border border-primary/20">
                             {dateLabel}
                           </span>
                         </div>
@@ -3643,7 +3643,7 @@ function DealDetailDrawer({
                                   ? 'bg-muted text-foreground rounded-tl-none'
                                   : m.sender === 'ai'
                                   ? 'bg-primary/10 border border-primary/20 text-primary rounded-tr-none'
-                                  : 'bg-primary text-black font-semibold rounded-tr-none'
+                                  : 'bg-primary text-primary-foreground font-semibold rounded-tr-none'
                               }`}
                             >
                               {m.text}
@@ -3658,7 +3658,7 @@ function DealDetailDrawer({
               )}
 
               {/* Chat Input */}
-              <div className="p-3 border-t border-border/20 bg-card flex gap-2">
+              <div className="p-3 border-t border-primary/20 bg-card flex gap-2">
                 <input
                   type="text"
                   value={newMsg}
@@ -3673,7 +3673,7 @@ function DealDetailDrawer({
                     }
                   }}
                   placeholder="Simular resposta WhatsApp..."
-                  className="flex-1 bg-secondary border border-border/40 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                  className="flex-1 bg-secondary border border-primary/20 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
                 />
                 <button
                   onClick={() => {
@@ -3684,7 +3684,7 @@ function DealDetailDrawer({
                     ])
                     setNewMsg('')
                   }}
-                  className="p-1.5 rounded-xl bg-primary text-black hover:opacity-90"
+                  className="p-1.5 rounded-xl bg-primary text-primary-foreground hover:opacity-90"
                 >
                   <Send className="w-4 h-4" />
                 </button>

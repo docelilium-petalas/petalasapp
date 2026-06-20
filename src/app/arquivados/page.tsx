@@ -149,7 +149,7 @@ export default function ArquivadosPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-[#0d0d11] text-foreground select-none overflow-hidden">
+      <div className="flex flex-col h-full bg-card text-foreground select-none overflow-hidden">
         {/* HEADER */}
         <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border/20 bg-card backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">

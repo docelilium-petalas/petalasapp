@@ -1221,7 +1221,7 @@ function SettingsContent() {
   }, [teams, selectedTeamId])
 
   return (
-    <div className="flex h-full bg-[#0a0a0c] text-foreground select-none flex-col md:flex-row">
+    <div className="flex h-full bg-card text-foreground select-none flex-col md:flex-row">
       
       {/* Sidebar navigation */}
       {(!isMobile || !mobileTabActive) && (
@@ -1357,7 +1357,7 @@ function SettingsContent() {
                 <div className="flex justify-end pt-3">
                   <button
                     onClick={handleSaveProfile}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-black font-extrabold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
                   >
                     <Save className="w-4 h-4" /> Salvar Perfil
                   </button>
@@ -1415,7 +1415,7 @@ function SettingsContent() {
                         </button>
                         <button
                           onClick={handleCreatePipeline}
-                          className="px-2.5 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                          className="px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                         >
                           Criar Funil
                         </button>
@@ -1448,7 +1448,7 @@ function SettingsContent() {
                                 />
                                 <button
                                   onClick={handleRenamePipeline}
-                                  className="p-1 rounded-md bg-primary text-black"
+                                  className="p-1 rounded-md bg-primary text-primary-foreground"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                 </button>
@@ -1520,7 +1520,7 @@ function SettingsContent() {
                     {!isAddingStage && (
                       <button
                         onClick={handleOpenAddStage}
-                        className="px-2.5 py-1.5 rounded-xl bg-primary text-black font-extrabold text-[10px] flex items-center gap-1 hover:shadow-md active:scale-95 transition-all"
+                        className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-[10px] flex items-center gap-1 hover:shadow-md active:scale-95 transition-all"
                       >
                         <Plus className="w-3.5 h-3.5" /> Adicionar Etapa
                       </button>
@@ -1654,7 +1654,7 @@ function SettingsContent() {
                         </button>
                         <button
                           onClick={handleSaveStage}
-                          className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                          className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                         >
                           {editingStageId ? 'Salvar Etapa' : 'Adicionar Etapa'}
                         </button>
@@ -1701,7 +1701,7 @@ function SettingsContent() {
                 {!showAddIntegration && (
                   <button
                     onClick={() => setShowAddIntegration(true)}
-                    className="px-3 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95"
+                    className="px-3 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Nova Integração
                   </button>
@@ -1736,7 +1736,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleSaveGoogleMapsWebhook}
-                      className="px-4 py-2.5 rounded-xl bg-primary text-black font-extrabold hover:opacity-90 active:scale-95 transition-all text-xs flex-1 md:flex-none"
+                      className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-extrabold hover:opacity-90 active:scale-95 transition-all text-xs flex-1 md:flex-none"
                     >
                       Salvar
                     </button>
@@ -1793,7 +1793,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleCreateIntegration}
-                      className="px-3 py-2 rounded-xl bg-primary text-black font-bold hover:opacity-90"
+                      className="px-3 py-2 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90"
                     >
                       Cadastrar
                     </button>
@@ -1922,7 +1922,7 @@ function SettingsContent() {
                               </button>
                               <button
                                 onClick={() => handleAddEndpoint(int.id)}
-                                className="px-2.5 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                                className="px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                               >
                                 Cadastrar
                               </button>
@@ -2213,7 +2213,7 @@ function SettingsContent() {
                       setEditingChannelId(null)
                       setShowAddChannel(true)
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95 hover:shadow-primary/20"
+                    className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95 hover:shadow-primary/20"
                   >
                     <Plus className="w-4 h-4" /> Novo Canal
                   </button>
@@ -2291,7 +2291,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleSaveChannel}
-                      className="px-4 py-2 rounded-xl bg-primary text-black font-extrabold hover:opacity-90 active:scale-95 transition-all"
+                      className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold hover:opacity-90 active:scale-95 transition-all"
                     >
                       Salvar Canal
                     </button>
@@ -2377,7 +2377,7 @@ function SettingsContent() {
 
                               <button
                                 onClick={() => handleSimulateDisparo(chan)}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary text-black font-extrabold text-[10px] hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95"
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-[10px] hover:shadow-lg hover:shadow-primary/10 transition-all active:scale-95"
                               >
                                 <Send className="w-3 h-3" /> Simular Disparo
                               </button>
@@ -2488,7 +2488,7 @@ function SettingsContent() {
                 {!showAddUser && (
                   <button
                     onClick={() => setShowAddUser(true)}
-                    className="px-3 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg active:scale-95 transition-all"
+                    className="px-3 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" /> Novo Usuário
                   </button>
@@ -2553,7 +2553,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleCreateUser}
-                      className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                      className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                     >
                       Cadastrar
                     </button>
@@ -2599,7 +2599,7 @@ function SettingsContent() {
                               className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
                             />
                             <div className="flex items-center gap-1 mt-1">
-                              <button onClick={() => handleSaveUserEdit(u.id)} className="px-2 py-1 bg-primary text-black text-[10px] font-bold rounded">Salvar</button>
+                              <button onClick={() => handleSaveUserEdit(u.id)} className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-bold rounded">Salvar</button>
                               <button onClick={() => setUserEdits(p => { const copy={...p}; delete copy[u.id]; return copy })} className="px-2 py-1 border border-border/40 text-[10px] text-muted-foreground rounded">Cancelar</button>
                             </div>
                           </div>
@@ -2689,7 +2689,7 @@ function SettingsContent() {
                       <button
                         onClick={() => handleUpdatePassword(u.id)}
                         disabled={!passwordEdit[u.id]}
-                        className="px-3 py-1.5 rounded-xl bg-primary text-black font-bold text-[10px] disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
+                        className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-[10px] disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
                       >
                         <Save className="w-3.5 h-3.5" />
                       </button>
@@ -2715,7 +2715,7 @@ function SettingsContent() {
                 {!showAddTeam && (
                   <button
                     onClick={() => setShowAddTeam(true)}
-                    className="px-3 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg active:scale-95 transition-all"
+                    className="px-3 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" /> Criar Equipe
                   </button>
@@ -2761,7 +2761,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleCreateTeam}
-                      className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                      className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                     >
                       Criar Time
                     </button>
@@ -2845,7 +2845,7 @@ function SettingsContent() {
                                   selectEl.value = ''
                                 }
                               }}
-                              className="px-3.5 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:opacity-90 shrink-0 transition-all active:scale-95"
+                              className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:opacity-90 shrink-0 transition-all active:scale-95"
                             >
                               Adicionar
                             </button>
@@ -2915,7 +2915,7 @@ function SettingsContent() {
                       setEditingTemplate(null)
                       setShowAddTemplate(true)
                     }}
-                    className="px-3 py-2 rounded-xl bg-primary text-black font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95"
+                    className="px-3 py-2 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs flex items-center gap-1.5 hover:shadow-lg transition-all active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Novo Template
                   </button>
@@ -3025,7 +3025,7 @@ function SettingsContent() {
                     </button>
                     <button
                       onClick={handleSaveTemplate}
-                      className="px-3 py-1.5 rounded-lg bg-primary text-black font-bold hover:opacity-90"
+                      className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold hover:opacity-90"
                     >
                       {editingTemplate ? 'Salvar Alterações' : 'Criar Template'}
                     </button>

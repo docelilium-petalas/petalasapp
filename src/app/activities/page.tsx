@@ -352,7 +352,7 @@ function ActivitiesContent() {
   }, [formCalendarMonth])
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0c] text-foreground select-none">
+    <div className="flex flex-col h-full bg-card text-foreground select-none">
       
       {/* Topbar / KPIs */}
       <div className="px-4 sm:px-6 py-4 border-b border-border/30 bg-card backdrop-blur-xl shrink-0 flex flex-col gap-3">
@@ -367,7 +367,7 @@ function ActivitiesContent() {
 
           <button
             onClick={() => handleOpenForm(null)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 shrink-0"
           >
             <Plus className="w-4 h-4" /> <span className="hidden xs:inline">Nova </span>Atividade
           </button>
@@ -395,13 +395,13 @@ function ActivitiesContent() {
             <div className="p-1 rounded-xl bg-secondary border border-border/40 flex items-center gap-1">
               <button
                 onClick={() => setView('lista')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'lista' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 Lista
               </button>
               <button
                 onClick={() => setView('calendario')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'calendario' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'calendario' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 Calendário
               </button>
@@ -683,7 +683,7 @@ function ActivitiesContent() {
                             } ${isTodayDay ? 'ring-1 ring-primary ring-inset bg-primary/[0.02]' : 'hover:bg-secondary'}`}
                           >
                             <span className={`text-xs font-bold self-start w-5 h-5 rounded-full flex items-center justify-center ${
-                              isTodayDay ? 'bg-primary text-black font-extrabold' : isCurrentMonth ? 'text-muted-foreground' : 'text-muted-foreground'
+                              isTodayDay ? 'bg-primary text-primary-foreground font-extrabold' : isCurrentMonth ? 'text-muted-foreground' : 'text-muted-foreground'
                             }`}>
                               {format(day, 'd')}
                             </span>
@@ -747,7 +747,7 @@ function ActivitiesContent() {
                               {format(day, 'eeeeee', { locale: ptBR })}
                             </span>
                             <span className={`text-sm font-extrabold w-6 h-6 rounded-full flex items-center justify-center ${
-                              isTodayDay ? 'bg-primary text-black' : 'text-foreground'
+                              isTodayDay ? 'bg-primary text-primary-foreground' : 'text-foreground'
                             }`}>
                               {format(day, 'd')}
                             </span>
@@ -807,7 +807,7 @@ function ActivitiesContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md animate-fade-in max-md:items-end max-md:p-0">
           <div
             onClick={e => e.stopPropagation()}
-            className="w-full max-w-lg rounded-3xl border border-border/60 bg-[#0e0e11] shadow-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto scrollbar-thin max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
+            className="w-full max-w-lg rounded-3xl border border-border/60 bg-card shadow-2xl p-6 relative flex flex-col max-h-[90vh] overflow-y-auto scrollbar-thin max-md:max-h-[85vh] max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-l-0 max-md:border-r-0 max-md:pb-10 mobile-bottom-sheet"
           >
             {/* Sheet Handle */}
             <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-2">
@@ -954,7 +954,7 @@ function ActivitiesContent() {
                                 }}
                                 className={`w-7 h-7 rounded-lg text-[10px] font-bold flex items-center justify-center transition-all ${
                                   isSel
-                                    ? 'bg-primary text-black'
+                                    ? 'bg-primary text-primary-foreground'
                                     : isCurrentM
                                     ? 'text-foreground hover:bg-muted'
                                     : 'text-muted-foreground hover:bg-secondary'
@@ -1047,7 +1047,7 @@ function ActivitiesContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-black font-extrabold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
                 >
                   {editingActivity ? 'Salvar Alterações' : 'Criar Atividade'}
                 </button>

@@ -264,7 +264,7 @@ export default function DashboardPage() {
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-primary-foreground">Dashboard Comercial</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-primary">Dashboard Comercial</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Visão executiva consolidada da sua operação de vendas
             </p>
