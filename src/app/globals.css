@@ -1,32 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  /* === PRIMARY: Burgundy/Pink (Doce Lilium) === */
-  --primary: 345 44% 43%;
+  /* === PRIMARY: Dark Burgundy (#44121E) === */
+  --primary: 346 58% 17%;
   --primary-foreground: 0 0% 100%;
-  --primary-glow: 345 60% 55%;
-  --primary-deep: 345 50% 30%;
+  --primary-glow: 351 41% 63%;
+  --primary-deep: 346 58% 12%;
 
   /* === BACKGROUND: Pastel Pink (#FBE6EB) === */
   --background: 346 70% 94%;
-  --foreground: 345 50% 15%;
+  --foreground: 346 58% 17%;
 
   /* === SURFACES === */
   --card: 0 0% 100%;
-  --card-foreground: 345 50% 15%;
+  --card-foreground: 346 58% 17%;
   --popover: 0 0% 100%;
-  --popover-foreground: 345 50% 15%;
-  --secondary: 346 40% 90%;
-  --secondary-foreground: 345 50% 15%;
-  --muted: 346 30% 88%;
-  --muted-foreground: 345 20% 40%;
-  --accent: 345 30% 85%;
-  --accent-foreground: 345 50% 15%;
+  --popover-foreground: 346 58% 17%;
+  --secondary: 351 41% 63%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 62 60% 91%;
+  --muted-foreground: 351 41% 40%;
+  --accent: 62 60% 91%;
+  --accent-foreground: 346 58% 17%;
 
   /* === STATUS === */
-  --destructive: 0 84% 50%;
+  --destructive: 346 58% 40%;
   --destructive-foreground: 0 0% 100%;
-  --success: 80 30% 45%;
+  --success: 63 53% 29%;
   --success-foreground: 0 0% 100%;
   --warning: 38 95% 55%;
   --warning-foreground: 0 0% 9%;
@@ -34,9 +34,9 @@
   --info-foreground: 0 0% 9%;
 
   /* === LINHAS === */
-  --border: 346 30% 85%;
-  --input: 346 30% 85%;
-  --ring: 345 44% 43%;
+  --border: 351 41% 80%;
+  --input: 351 41% 80%;
+  --ring: 351 41% 63%;
 
   --radius: 0.75rem;
 
@@ -60,30 +60,30 @@
   --status-lost: 0 84% 55%;
 
   /* === SIDEBAR === */
-  --sidebar-background: 346 70% 94%;
-  --sidebar-foreground: 345 50% 15%;
-  --sidebar-primary: 345 44% 43%;
+  --sidebar-background: 346 58% 17%;
+  --sidebar-foreground: 346 70% 94%;
+  --sidebar-primary: 351 41% 63%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 346 40% 90%;
-  --sidebar-accent-foreground: 345 50% 15%;
-  --sidebar-border: 346 30% 85%;
-  --sidebar-ring: 345 44% 43%;
+  --sidebar-accent: 346 58% 25%;
+  --sidebar-accent-foreground: 346 70% 94%;
+  --sidebar-border: 346 58% 22%;
+  --sidebar-ring: 351 41% 63%;
 
   /* === CHARTS === */
-  --chart-1: 145 100% 45%;
-  --chart-2: 142 100% 61%;
-  --chart-3: 120 70% 48%;
-  --chart-4: 38 95% 55%;
-  --chart-5: 0 84% 55%;
+  --chart-1: 346 58% 17%;
+  --chart-2: 351 41% 63%;
+  --chart-3: 63 53% 29%;
+  --chart-4: 62 60% 91%;
+  --chart-5: 65 68% 11%;
 
   /* === SIGNATURE GRADIENTS === */
-  --ocr-gradient: linear-gradient(135deg, hsl(345 50% 30%) 0%, hsl(345 44% 43%) 50%, hsl(345 60% 60%) 100%);
-  --ocr-gradient-text: linear-gradient(135deg, hsl(345 70% 75%) 0%, hsl(345 60% 55%) 45%, hsl(0 0% 100%) 100%);
-  --ocr-gradient-soft: linear-gradient(135deg, hsl(345 44% 43% / 0.16) 0%, hsl(345 60% 60% / 0.06) 100%);
-  --ocr-gradient-border: linear-gradient(135deg, hsl(345 60% 60% / 0.65), hsl(345 44% 43% / 0.2));
-  --ocr-glow: 0 0 40px hsl(345 44% 43% / 0.35), 0 0 80px hsl(345 60% 60% / 0.15);
-  --ocr-glow-soft: 0 0 24px hsl(345 44% 43% / 0.22);
-  --ocr-glow-intense: 0 0 60px hsl(345 60% 60% / 0.5), 0 0 120px hsl(345 44% 43% / 0.25);
+  --ocr-gradient: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(351 41% 63%) 100%);
+  --ocr-gradient-text: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(351 41% 63%) 100%);
+  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 41% 63% / 0.16) 0%, hsl(62 60% 91% / 0.5) 100%);
+  --ocr-gradient-border: linear-gradient(135deg, hsl(351 41% 63% / 0.65), hsl(346 58% 17% / 0.2));
+  --ocr-glow: 0 0 40px hsl(346 58% 17% / 0.35), 0 0 80px hsl(351 41% 63% / 0.15);
+  --ocr-glow-soft: 0 0 24px hsl(351 41% 63% / 0.22);
+  --ocr-glow-intense: 0 0 60px hsl(351 41% 63% / 0.5), 0 0 120px hsl(346 58% 17% / 0.25);
 
   /* === SHADOWS === */
   --shadow-performance: 0 25px 50px -12px rgb(0 0 0 / 0.8), 0 0 0 1px hsl(145 100% 45% / 0.06);
@@ -430,7 +430,7 @@
   .ambient-bg::before {
     width: 500px;
     height: 500px;
-    background: hsl(345 44% 43% / 0.1);
+    background: hsl(351 41% 63% / 0.15);
     top: -150px;
     left: -100px;
     animation: float 12s ease-in-out infinite;
@@ -439,7 +439,7 @@
   .ambient-bg::after {
     width: 400px;
     height: 400px;
-    background: hsl(346 70% 94% / 0.3);
+    background: hsl(62 60% 91% / 0.3);
     bottom: -120px;
     right: -80px;
     animation: float 14s ease-in-out infinite reverse;
