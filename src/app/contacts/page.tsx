@@ -608,10 +608,10 @@ export default function ContactsPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex h-full flex-col bg-black text-foreground relative">
+      <div className="flex h-full flex-col bg-card text-foreground relative">
         
         {/* MAIN COLUMN: LIST AND FILTERS */}
-        <div className="flex flex-col flex-1 bg-neutral-900/10 shrink-0 select-none overflow-hidden">
+        <div className="flex flex-col flex-1 bg-secondary shrink-0 select-none overflow-hidden">
           
           {/* List Header & KPIs */}
           <div className="p-5 border-b border-border/20 space-y-4">
@@ -622,8 +622,8 @@ export default function ContactsPage() {
                 onClick={() => setCategoryFilter('all')}
                 className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
                   categoryFilter === 'all'
-                    ? 'bg-neutral-800 border-neutral-600 border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
-                    : 'bg-neutral-900/40 border border-border/20 hover:bg-neutral-850/50 hover:border-neutral-700'
+                    ? 'bg-muted border-border border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
+                    : 'bg-secondary border border-border/20 hover:bg-neutral-850/50 hover:border-border'
                 }`}
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total</span>
@@ -668,8 +668,8 @@ export default function ContactsPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 font-medium">{filteredContacts.length}</span>
+                <h1 className="text-2xl font-bold tracking-tight text-primary-foreground flex items-center gap-2">
+                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{filteredContacts.length}</span>
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Base unificada de leads NetLife</p>
               </div>
@@ -679,7 +679,7 @@ export default function ContactsPage() {
                   className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
                     isSelectionMode 
                       ? 'bg-primary/20 border-primary text-primary hover:bg-primary/30' 
-                      : 'border-border/60 hover:bg-neutral-800 text-muted-foreground'
+                      : 'border-border/60 hover:bg-muted text-muted-foreground'
                   }`}
                   title="Seleção em Lote"
                 >
@@ -695,17 +695,17 @@ export default function ContactsPage() {
             </div>
 
             {/* Search Box */}
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-black/40 shadow-inner focus-within:border-primary/50 transition-colors">
-              <Search className="w-4 h-4 text-neutral-400 shrink-0" />
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border/30 bg-card shadow-inner focus-within:border-primary/50 transition-colors">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Buscar por nome, telefone ou email..."
-                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-neutral-500 text-foreground"
+                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground text-foreground"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-neutral-800">
-                  <X className="w-3.5 h-3.5 text-neutral-400" />
+                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-muted">
+                  <X className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
               )}
             </div>
@@ -713,8 +713,8 @@ export default function ContactsPage() {
             {/* Tag/Origin filters */}
             <div className="flex flex-col gap-2 pt-1">
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                <Tag className="w-3 h-3 text-neutral-500 shrink-0" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-neutral-500 shrink-0 mr-1">Tags:</span>
+                <Tag className="w-3 h-3 text-muted-foreground shrink-0" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground shrink-0 mr-1">Tags:</span>
                 {categoriesStore.categories.tags.map(tagObj => {
                   const tag = tagObj.label
                   const isSelected = selectedTags.includes(tag)
@@ -725,7 +725,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-secondary border-border/20 text-muted-foreground hover:border-border'
                       }`}
                     >
                       {tag}
@@ -735,8 +735,8 @@ export default function ContactsPage() {
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                <Globe className="w-3 h-3 text-neutral-500 shrink-0" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-neutral-500 shrink-0 mr-1">Origem:</span>
+                <Globe className="w-3 h-3 text-muted-foreground shrink-0" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground shrink-0 mr-1">Origem:</span>
                 {categoriesStore.categories.origins.map(orig => {
                   const isSelected = selectedOrigens.includes(orig)
                   return (
@@ -746,7 +746,7 @@ export default function ContactsPage() {
                       className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
                         isSelected 
                           ? 'bg-primary/20 border-primary/45 text-primary' 
-                          : 'bg-neutral-900 border-border/20 text-neutral-400 hover:border-neutral-700'
+                          : 'bg-secondary border-border/20 text-muted-foreground hover:border-border'
                       }`}
                     >
                       {orig}
@@ -758,17 +758,17 @@ export default function ContactsPage() {
 
             {/* Selection Toolbar */}
             {isSelectionMode && (
-              <div className="flex items-center justify-between p-3.5 bg-neutral-950 border border-primary/25 rounded-2xl animate-scale-in">
+              <div className="flex items-center justify-between p-3.5 bg-card border border-primary/25 rounded-2xl animate-scale-in">
                 <div className="flex items-center gap-2">
-                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-white">
+                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-primary-foreground">
                     {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                   </button>
-                  <span className="text-xs text-neutral-300 font-semibold">{checkedCount} selecionados</span>
+                  <span className="text-xs text-muted-foreground font-semibold">{checkedCount} selecionados</span>
                 </div>
                 {checkedCount > 0 && (
                   <button
                     onClick={handleBulkDelete}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-white transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-primary-foreground transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
                   </button>
@@ -781,10 +781,10 @@ export default function ContactsPage() {
           <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-thin px-5 pb-5">
             <div className="min-w-[800px] flex flex-col h-full">
               {/* Table Header */}
-              <div className="grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 px-5 py-3 border-b border-border/20 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-neutral-950/80 backdrop-blur-md z-10 rounded-t-xl mt-2">
+              <div className="grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 px-5 py-3 border-b border-border/20 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-card backdrop-blur-md z-10 rounded-t-xl mt-2">
                 <div className="w-5 flex items-center justify-center">
                   {isSelectionMode && (
-                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-neutral-400 hover:text-white">
+                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-primary-foreground">
                       {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   )}
@@ -826,14 +826,14 @@ export default function ContactsPage() {
                       className={`grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 items-center px-5 py-3 rounded-xl border transition-all cursor-pointer ${
                         isSelected 
                           ? 'bg-primary/5 border-primary/30' 
-                          : 'bg-neutral-950/60 border-border/10 hover:border-border/30 hover:bg-neutral-900/60'
+                          : 'bg-card border-border/10 hover:border-border/30 hover:bg-secondary'
                       } ${isSelectionMode && isChecked ? 'bg-primary/5 border-primary/50' : ''}`}
                     >
                       {/* Checkbox */}
                       <div className="w-5 flex items-center justify-center">
                         <button 
                           onClick={(e) => { e.stopPropagation(); toggleChecked(c.id, e); }} 
-                          className="shrink-0 p-0.5 rounded text-neutral-500 hover:text-white"
+                          className="shrink-0 p-0.5 rounded text-muted-foreground hover:text-primary-foreground"
                         >
                           {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                         </button>
@@ -841,12 +841,12 @@ export default function ContactsPage() {
 
                       {/* Identidade */}
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-md`}>
+                        <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-primary-foreground shrink-0 shadow-md`}>
                           {initials(c)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-neutral-200 truncate">{cleanVal(c.nome)} {cleanVal(c.sobrenome)}</p>
-                          <p className="text-[10px] text-neutral-500 truncate mt-0.5">{c.telefone || cleanVal(c.email) || 'Sem contato'}</p>
+                          <p className="text-sm font-bold text-foreground truncate">{cleanVal(c.nome)} {cleanVal(c.sobrenome)}</p>
+                          <p className="text-[10px] text-muted-foreground truncate mt-0.5">{c.telefone || cleanVal(c.email) || 'Sem contato'}</p>
                         </div>
                       </div>
 
@@ -857,7 +857,7 @@ export default function ContactsPage() {
                             LEAD
                           </span>
                         ) : (
-                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-500 border border-neutral-700 tracking-wider">
+                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-muted text-muted-foreground border border-border tracking-wider">
                             CONTATO
                           </span>
                         )}
@@ -866,28 +866,28 @@ export default function ContactsPage() {
                       {/* Canal */}
                       <div className="flex items-center gap-1.5">
                         {c.derivedOrigem?.toLowerCase().includes('google') ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-secondary border border-border/20">
                             <span className="text-[10px] font-black text-blue-400">G</span>
-                            <span className="text-[9px] font-bold text-neutral-300 uppercase">Google</span>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Google</span>
                           </div>
                         ) : isHmi ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-secondary border border-border/20">
                             <span className="text-[10px] font-black text-purple-400">M</span>
-                            <span className="text-[9px] font-bold text-neutral-300 uppercase">Meta Ads</span>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Meta Ads</span>
                           </div>
                         ) : c.derivedOrigem ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neutral-900 border border-border/20">
-                            <span className="text-[10px] font-black text-neutral-400">{c.derivedOrigem.charAt(0)}</span>
-                            <span className="text-[9px] font-bold text-neutral-300 uppercase truncate max-w-[100px]">{c.derivedOrigem}</span>
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-secondary border border-border/20">
+                            <span className="text-[10px] font-black text-muted-foreground">{c.derivedOrigem.charAt(0)}</span>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase truncate max-w-[100px]">{c.derivedOrigem}</span>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-neutral-600">-</span>
+                          <span className="text-[10px] text-muted-foreground">-</span>
                         )}
                       </div>
 
                       {/* Logs */}
                       <div>
-                        <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
                           Atualizado em: {new Date((c as any).updatedAt || c.createdAt).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
@@ -896,14 +896,14 @@ export default function ContactsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); }}
-                          className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground hover:text-primary-foreground hover:bg-muted transition-colors"
                           title="Ver Detalhes"
                         >
                           <Info className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); openEditModal(c); }}
-                          className="p-2 rounded-xl text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground hover:text-primary-foreground hover:bg-muted transition-colors"
                           title="Editar"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -918,21 +918,21 @@ export default function ContactsPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-border/20 flex items-center justify-between bg-neutral-900/50">
+            <div className="p-4 border-t border-border/20 flex items-center justify-between bg-secondary">
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-800 disabled:opacity-50 hover:bg-neutral-700"
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted disabled:opacity-50 hover:bg-muted"
               >
                 Anterior
               </button>
-              <span className="text-xs text-neutral-400">
+              <span className="text-xs text-muted-foreground">
                 Página {page} de {totalPages}
               </span>
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-neutral-800 disabled:opacity-50 hover:bg-neutral-700"
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted disabled:opacity-50 hover:bg-muted"
               >
                 Próxima
               </button>
@@ -942,20 +942,20 @@ export default function ContactsPage() {
 
         {/* MODAL: DETAILS PANE */}
         {selectedId && selectedContact && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedId(null)}>
-            <div className="w-full max-w-5xl h-[95vh] bg-neutral-950 border border-border/40 rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-sm animate-fade-in" onClick={() => setSelectedId(null)}>
+            <div className="w-full max-w-5xl h-[95vh] bg-card border border-border/40 rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
               
               {/* Modal Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 border-b border-border/20 bg-black/40 backdrop-blur-md sticky top-0 z-20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 border-b border-border/20 bg-card backdrop-blur-md sticky top-0 z-20">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <button onClick={() => setSelectedId(null)} className="p-2 rounded-xl border border-border/50 text-neutral-400 hover:bg-neutral-800 shrink-0 mr-1" title="Fechar">
+                    <button onClick={() => setSelectedId(null)} className="p-2 rounded-xl border border-border/50 text-muted-foreground hover:bg-muted shrink-0 mr-1" title="Fechar">
                       <X className="w-4 h-4" />
                     </button>
-                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-white shadow-lg shrink-0`}>
+                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shrink-0`}>
                       {initials(selectedContact)}
                     </div>
                     <div className="min-w-0">
-                      <h2 className="text-base sm:text-xl font-bold text-white leading-tight truncate">
+                      <h2 className="text-base sm:text-xl font-bold text-primary-foreground leading-tight truncate">
                         {cleanVal(selectedContact.nome)} {cleanVal(selectedContact.sobrenome)}
                       </h2>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -982,21 +982,21 @@ export default function ContactsPage() {
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <button
                     onClick={() => setShowMergeModal(true)}
-                    className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors"
                     title="Mesclar Contato"
                   >
                     <Merge className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditModal(selectedContact)}
-                    className="p-2 rounded-xl border border-border hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors"
                     title="Editar Contato"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleSingleDelete(selectedContact.id)}
-                    className="p-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-white transition-all"
+                    className="p-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-primary-foreground transition-all"
                     title="Excluir Contato"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1008,28 +1008,28 @@ export default function ContactsPage() {
               <div className="p-6 space-y-6 max-w-4xl mx-auto w-full">
                 
                 {/* QUICK ACTIONS BAR */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-950/40 p-3 rounded-2xl border border-border/10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-card p-3 rounded-2xl border border-border/10">
                   <button
                     onClick={() => handleWhatsApp(selectedContact.telefone)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-secondary hover:border-emerald-500/50 hover:bg-emerald-500/5 text-xs font-semibold text-foreground transition-all hover:scale-[1.02]"
                   >
                     <Phone className="w-4 h-4 text-emerald-400" /> Abrir WhatsApp
                   </button>
                   <a
                     href={`/activities?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-secondary hover:border-indigo-500/50 hover:bg-indigo-500/5 text-xs font-semibold text-foreground transition-all text-center hover:scale-[1.02]"
                   >
                     <Calendar className="w-4 h-4 text-indigo-400" /> Agendar Atividade
                   </a>
                   <a
                     href={`/pipeline?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-neutral-200 transition-all text-center hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-secondary hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold text-foreground transition-all text-center hover:scale-[1.02]"
                   >
                     <Zap className="w-4 h-4 text-primary" /> Criar Negócio
                   </a>
                   <button
                     onClick={() => handleTestWebhook(selectedContact.telefone, selectedContact.nome)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-neutral-900/40 hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-neutral-200 transition-all hover:scale-[1.02]"
+                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-secondary hover:border-amber-500/50 hover:bg-amber-500/5 text-xs font-semibold text-foreground transition-all hover:scale-[1.02]"
                     title="Simula a chegada de um lead via Webhook Elementor"
                   >
                     <Globe className="w-4 h-4 text-amber-400" /> Disparar Webhook
@@ -1064,13 +1064,13 @@ export default function ContactsPage() {
                       icon: () => <FileText className="w-5 h-5 text-amber-400" />
                     }
                   ].map((stat, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-neutral-900/30 backdrop-blur-sm relative overflow-hidden shadow-md">
+                    <div key={idx} className="p-4 rounded-2xl border border-border/10 bg-secondary backdrop-blur-sm relative overflow-hidden shadow-md">
                       <div className="absolute top-0 right-0 p-3 opacity-20">
                         {stat.icon()}
                       </div>
-                      <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">{stat.label}</p>
-                      <p className="text-xl font-bold text-white mt-1">{stat.value}</p>
-                      <p className="text-[10px] text-neutral-400 mt-0.5">{stat.desc}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                      <p className="text-xl font-bold text-primary-foreground mt-1">{stat.value}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{stat.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -1089,7 +1089,7 @@ export default function ContactsPage() {
                       className={`pb-3 font-semibold text-xs transition-all shrink-0 tracking-wider uppercase relative ${
                         detailTab === tab.id 
                           ? 'text-primary' 
-                          : 'text-neutral-400 hover:text-white'
+                          : 'text-muted-foreground hover:text-primary-foreground'
                       }`}
                     >
                       {tab.label}
@@ -1106,8 +1106,8 @@ export default function ContactsPage() {
                     
                     {/* Informações Pessoais & Endereço */}
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <UserCheck className="w-3.5 h-3.5 text-primary" /> Informações Pessoais
                         </h4>
                         <div className="space-y-3 text-sm">
@@ -1119,15 +1119,15 @@ export default function ContactsPage() {
                             { label: 'Data de Nascimento', value: cleanVal(selectedContact.dataNascimento) ? new Date(selectedContact.dataNascimento as string).toLocaleDateString('pt-BR') : '-' }
                           ].map(item => (
                             <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border/5 gap-1">
-                              <span className="text-neutral-500 text-xs shrink-0">{item.label}</span>
-                              <span className="font-semibold text-neutral-200 text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
+                              <span className="text-muted-foreground text-xs shrink-0">{item.label}</span>
+                              <span className="font-semibold text-foreground text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-primary" /> Endereço Completo
                         </h4>
                         <div className="space-y-3 text-sm">
@@ -1140,8 +1140,8 @@ export default function ContactsPage() {
                             { label: 'Cidade / Estado', value: cleanVal(selectedContact.enderecoCompleto?.cidade) ? `${selectedContact.enderecoCompleto?.cidade} - ${cleanDisplayVal(selectedContact.enderecoCompleto?.estado, '')}`.replace(/\s-\s$/, '') : '-' }
                           ].map(item => (
                             <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border/5 gap-1">
-                              <span className="text-neutral-500 text-xs shrink-0">{item.label}</span>
-                              <span className="font-semibold text-neutral-200 text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
+                              <span className="text-muted-foreground text-xs shrink-0">{item.label}</span>
+                              <span className="font-semibold text-foreground text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
                             </div>
                           ))}
                         </div>
@@ -1149,33 +1149,33 @@ export default function ContactsPage() {
                     </div>
 
                     {/* Marketing & UTM info */}
-                    <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                      <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-primary" /> Atribuição de Marketing (UTMs)
                       </h4>
                       
                       <div className="grid md:grid-cols-2 gap-6">
                         {/* First Touch UTM */}
                         <div className="space-y-2 border-r border-border/10 pr-2">
-                          <h5 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Primeiro Toque (Congelado)</h5>
+                          <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Primeiro Toque (Congelado)</h5>
                           <div className="space-y-1.5 text-xs">
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmSource)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmMedium)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmCampaign)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmTerm)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Capturado em</span><span className="font-semibold text-neutral-300 text-xs sm:text-right break-all">{cleanVal(selectedContact.firstUtmAt) ? new Date(selectedContact.firstUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmSource)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmMedium)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmCampaign)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmTerm)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Capturado em</span><span className="font-semibold text-muted-foreground text-xs sm:text-right break-all">{cleanVal(selectedContact.firstUtmAt) ? new Date(selectedContact.firstUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
                           </div>
                         </div>
 
                         {/* Last Touch UTM */}
                         <div className="space-y-2">
-                          <h5 className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Último Toque (Mais Recente)</h5>
+                          <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Último Toque (Mais Recente)</h5>
                           <div className="space-y-1.5 text-xs">
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmSource)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmMedium)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmCampaign)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-neutral-200 text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmTerm)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-neutral-500 text-[11px] shrink-0">Atualizado em</span><span className="font-semibold text-neutral-300 text-xs sm:text-right break-all">{cleanVal(selectedContact.lastUtmAt) ? new Date(selectedContact.lastUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmSource)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmMedium)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmCampaign)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmTerm)}</span></div>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5"><span className="text-muted-foreground text-[11px] shrink-0">Atualizado em</span><span className="font-semibold text-muted-foreground text-xs sm:text-right break-all">{cleanVal(selectedContact.lastUtmAt) ? new Date(selectedContact.lastUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
                           </div>
                         </div>
                       </div>
@@ -1184,13 +1184,13 @@ export default function ContactsPage() {
                     {/* Tags e Campos Customizados */}
                     <div className="grid md:grid-cols-2 gap-6">
                       
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5 text-primary" /> Tags Comerciais
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {(selectedContact.tags || []).length === 0 && (
-                            <span className="text-xs text-neutral-500">Nenhuma tag cadastrada.</span>
+                            <span className="text-xs text-muted-foreground">Nenhuma tag cadastrada.</span>
                           )}
                           {(selectedContact.tags || []).map((tag: string) => (
                             <span key={tag} className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -1200,18 +1200,18 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Settings className="w-3.5 h-3.5 text-primary" /> Campos Customizados
                         </h4>
                         <div className="space-y-2 text-xs">
                           {Object.keys(selectedContact.camposCustomizados || {}).length === 0 ? (
-                            <span className="text-neutral-500">Nenhum campo customizado inserido.</span>
+                            <span className="text-muted-foreground">Nenhum campo customizado inserido.</span>
                           ) : (
                             Object.entries(selectedContact.camposCustomizados || {}).map(([key, val]) => (
                               <div key={key} className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border/5">
-                                <span className="text-neutral-400 capitalize">{key.replace(/_/g, ' ')}</span>
-                                <span className="font-semibold text-neutral-200 break-all text-left sm:text-right">{String(val)}</span>
+                                <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
+                                <span className="font-semibold text-foreground break-all text-left sm:text-right">{String(val)}</span>
                               </div>
                             ))
                           )}
@@ -1222,11 +1222,11 @@ export default function ContactsPage() {
 
                     {/* Webhook Meta fbMetadata */}
                     {selectedContact.fbMetadata && Object.keys(selectedContact.fbMetadata).length > 0 && (
-                      <div className="p-5 rounded-2xl border border-border/10 bg-neutral-950/40 space-y-4">
-                        <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Globe className="w-3.5 h-3.5 text-primary" /> Metadata Lead Ads (Facebook Ads Integration)
                         </h4>
-                        <pre className="p-4 rounded-xl bg-black border border-border/25 text-neutral-300 font-mono text-[11px] overflow-x-auto">
+                        <pre className="p-4 rounded-xl bg-card border border-border/25 text-muted-foreground font-mono text-[11px] overflow-x-auto">
                           {JSON.stringify(selectedContact.fbMetadata, null, 2)}
                         </pre>
                       </div>
@@ -1239,19 +1239,19 @@ export default function ContactsPage() {
                 {detailTab === 'vendas' && (
                   <div className="space-y-4">
                     {selectedContactDeals.filter(d => d.status === 'WON').length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-neutral-500 text-xs">
+                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-muted-foreground text-xs">
                         Nenhuma compra finalizada registrada no CRM.
                       </div>
                     ) : (
                       selectedContactDeals.filter(d => d.status === 'WON').map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                               <ShoppingBag className="w-4 h-4 text-emerald-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-white">{deal.titulo}</p>
-                              <p className="text-[10px] text-neutral-400 mt-0.5">
+                              <p className="text-sm font-bold text-primary-foreground">{deal.titulo}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
                                 Fechado em: {deal.fechadoEm ? new Date(deal.fechadoEm).toLocaleDateString('pt-BR') : new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
                               </p>
                             </div>
@@ -1260,7 +1260,7 @@ export default function ContactsPage() {
                             <p className="text-sm font-extrabold text-emerald-400">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}
                             </p>
-                            <span className="text-[9px] px-1.5 py-0.5 bg-neutral-900 text-neutral-400 rounded-md border border-neutral-800">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-secondary text-muted-foreground rounded-md border border-border">
                               WON Deal
                             </span>
                           </div>
@@ -1274,14 +1274,14 @@ export default function ContactsPage() {
                 {detailTab === 'deals' && (
                   <div className="space-y-4">
                     {selectedContactDeals.length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-neutral-500 text-xs">
+                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-muted-foreground text-xs">
                         Nenhum negócio ativo ou histórico para este lead.
                       </div>
                     ) : (
                       selectedContactDeals.map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 space-y-3">
+                        <div key={deal.id} className="p-4 rounded-2xl border border-border/15 bg-card space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-white">{deal.titulo}</p>
+                            <p className="text-sm font-bold text-primary-foreground">{deal.titulo}</p>
                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                               deal.status === 'WON' 
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
@@ -1293,11 +1293,11 @@ export default function ContactsPage() {
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-neutral-400">
-                            <div><span className="block text-[9px] uppercase tracking-wider text-neutral-500">Valor</span><span className="font-semibold text-neutral-200">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-neutral-500">Prioridade</span><span className="font-semibold text-neutral-200">{deal.prioridade}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-neutral-500">Produto</span><span className="font-semibold text-neutral-200">{deal.produtoInteresse || '-'}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-neutral-500">Criado em</span><span className="font-semibold text-neutral-300">{new Date(deal.createdAt).toLocaleDateString('pt-BR')}</span></div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-muted-foreground">
+                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Valor</span><span className="font-semibold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}</span></div>
+                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Prioridade</span><span className="font-semibold text-foreground">{deal.prioridade}</span></div>
+                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Produto</span><span className="font-semibold text-foreground">{deal.produtoInteresse || '-'}</span></div>
+                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Criado em</span><span className="font-semibold text-muted-foreground">{new Date(deal.createdAt).toLocaleDateString('pt-BR')}</span></div>
                           </div>
                         </div>
                       ))
@@ -1309,28 +1309,28 @@ export default function ContactsPage() {
                 {detailTab === 'atividades' && (
                   <div className="space-y-4">
                     {selectedContactActivities.length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-neutral-500 text-xs">
+                      <div className="text-center py-10 border border-dashed border-border/20 rounded-2xl text-muted-foreground text-xs">
                         Nenhuma atividade cadastrada para este contato.
                       </div>
                     ) : (
                       selectedContactActivities.map(act => (
-                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-neutral-950/40 flex items-center justify-between">
+                        <div key={act.id} className="p-4 rounded-2xl border border-border/15 bg-card flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                               act.status === 'DONE' 
-                                ? 'bg-neutral-800 border border-neutral-700 text-neutral-500' 
+                                ? 'bg-muted border border-border text-muted-foreground' 
                                 : 'bg-primary/10 border border-primary/20 text-primary'
                             }`}>
                               <Calendar className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-neutral-500' : 'text-white'}`}>
+                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-muted-foreground' : 'text-primary-foreground'}`}>
                                 {act.titulo}
                               </p>
                               {act.descricao && (
-                                <p className="text-[11px] text-neutral-400 truncate mt-0.5 max-w-sm">{act.descricao}</p>
+                                <p className="text-[11px] text-muted-foreground truncate mt-0.5 max-w-sm">{act.descricao}</p>
                               )}
-                              <p className="text-[10px] text-neutral-500 mt-0.5">
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
                                 Vencimento: {new Date(act.dueAt).toLocaleDateString('pt-BR')}
                               </p>
                             </div>
@@ -1338,7 +1338,7 @@ export default function ContactsPage() {
                           
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             act.status === 'DONE' 
-                              ? 'bg-neutral-800 text-neutral-400' 
+                              ? 'bg-muted text-muted-foreground' 
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
                             {act.status}
@@ -1359,14 +1359,14 @@ export default function ContactsPage() {
       {/* CREATE & EDIT CONTACT DIALOG (TABBED FORM) */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFormModal(false)}>
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-card backdrop-blur-md" />
           <div 
             className="relative w-full max-w-lg bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-5 animate-scale-in shadow-2xl overflow-y-auto max-h-[90vh]" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
-              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
+              <h3 className="text-lg font-bold text-primary-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
+              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1383,7 +1383,7 @@ export default function ContactsPage() {
                   type="button"
                   onClick={() => setFormTab(tab.id as 'dados' | 'endereco' | 'marketing')}
                   className={`pb-2 text-xs font-bold uppercase tracking-wider relative transition-colors ${
-                    formTab === tab.id ? 'text-primary' : 'text-neutral-400 hover:text-white'
+                    formTab === tab.id ? 'text-primary' : 'text-muted-foreground hover:text-primary-foreground'
                   }`}
                 >
                   {tab.label}
@@ -1396,57 +1396,57 @@ export default function ContactsPage() {
             {formTab === 'dados' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Nome *</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Nome *</label>
                   <input
                     value={formData.nome}
                     onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
                     placeholder="João"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Sobrenome</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Sobrenome</label>
                   <input
                     value={formData.sobrenome}
                     onChange={e => setFormData(p => ({ ...p, sobrenome: e.target.value }))}
                     placeholder="Silva"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Telefone *</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Telefone *</label>
                   <input
                     value={formData.telefone}
                     onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
                     placeholder="5562999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">E-mail</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">E-mail</label>
                   <input
                     value={formData.email}
                     onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                     placeholder="joao@empresa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">CPF ou CNPJ</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">CPF ou CNPJ</label>
                   <input
                     value={formData.documento}
                     onChange={e => setFormData(p => ({ ...p, documento: e.target.value }))}
                     placeholder="123.456.789-00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Data Nascimento</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Data Nascimento</label>
                   <input
                     value={formData.dataNascimento}
                     onChange={e => setFormData(p => ({ ...p, dataNascimento: e.target.value }))}
                     type="date"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 flex items-center gap-2 pt-2">
@@ -1455,9 +1455,9 @@ export default function ContactsPage() {
                     type="checkbox"
                     checked={formData.consentimentoLgpd}
                     onChange={e => setFormData(p => ({ ...p, consentimentoLgpd: e.target.checked }))}
-                    className="rounded border-neutral-700 bg-neutral-950 text-primary focus:ring-0 focus:ring-offset-0"
+                    className="rounded border-border bg-card text-primary focus:ring-0 focus:ring-offset-0"
                   />
-                  <label htmlFor="consentimento" className="text-xs text-neutral-400 cursor-pointer">Aceita os termos de consentimento LGPD</label>
+                  <label htmlFor="consentimento" className="text-xs text-muted-foreground cursor-pointer">Aceita os termos de consentimento LGPD</label>
                 </div>
               </div>
             )}
@@ -1466,66 +1466,66 @@ export default function ContactsPage() {
             {formTab === 'endereco' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">CEP</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">CEP</label>
                   <input
                     value={formData.enderecoCompleto.cep}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cep: e.target.value } }))}
                     placeholder="74000-000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Logradouro (Rua/Av.)</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Logradouro (Rua/Av.)</label>
                   <input
                     value={formData.enderecoCompleto.rua}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, rua: e.target.value } }))}
                     placeholder="Av. Anhanguera"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Número</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Número</label>
                   <input
                     value={formData.enderecoCompleto.numero}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, numero: e.target.value } }))}
                     placeholder="100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Complemento</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Complemento</label>
                   <input
                     value={formData.enderecoCompleto.complemento}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, complemento: e.target.value } }))}
                     placeholder="Quadra 12"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Bairro</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Bairro</label>
                   <input
                     value={formData.enderecoCompleto.bairro}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, bairro: e.target.value } }))}
                     placeholder="Setor Central"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Cidade</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Cidade</label>
                   <input
                     value={formData.enderecoCompleto.cidade}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cidade: e.target.value }, cidade: e.target.value }))}
                     placeholder="Goiânia"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Estado</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Estado</label>
                   <input
                     value={formData.enderecoCompleto.estado}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, estado: e.target.value }, estado: e.target.value }))}
                     placeholder="GO"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
               </div>
@@ -1535,25 +1535,25 @@ export default function ContactsPage() {
             {formTab === 'marketing' && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Origem Comercial (Mídia)</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Origem Comercial (Mídia)</label>
                   <input
                     value={formData.origem}
                     onChange={e => setFormData(p => ({ ...p, origem: e.target.value }))}
                     placeholder="Meta Ads"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                   />
                 </div>
 
                 {/* Tags management */}
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block">Adicionar Tags</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block">Adicionar Tags</label>
                   <div className="flex gap-2">
                     <input
                       value={newTagInput}
                       onChange={e => setNewTagInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
                       placeholder="Nova tag"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-neutral-950 text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-white"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border/30 bg-card text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
                     />
                     <button
                       type="button"
@@ -1567,7 +1567,7 @@ export default function ContactsPage() {
                     {formData.tags.map(tag => (
                       <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
                         {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-white font-bold ml-0.5">×</button>
+                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-primary-foreground font-bold ml-0.5">×</button>
                       </span>
                     ))}
                   </div>
@@ -1575,34 +1575,34 @@ export default function ContactsPage() {
 
                 {/* Custom fields management */}
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 block">Campos Customizados</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground block">Campos Customizados</label>
                   <div className="flex gap-2">
                     <input
                       value={customFieldKey}
                       onChange={e => setCustomFieldKey(e.target.value)}
                       placeholder="Nome do campo (ex: Ramo)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-primary-foreground focus:outline-none"
                     />
                     <input
                       value={customFieldValue}
                       onChange={e => setCustomFieldValue(e.target.value)}
                       placeholder="Valor"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 text-xs text-white focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border/30 bg-card text-xs text-primary-foreground focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={addCustomField}
-                      className="px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs"
+                      className="px-3 rounded-xl bg-muted hover:bg-muted text-primary-foreground font-semibold text-xs"
                     >
                       Adicionar
                     </button>
                   </div>
                   <div className="space-y-1.5 max-h-[120px] overflow-y-auto scrollbar-thin">
                     {Object.entries(formData.camposCustomizados).map(([key, val]) => (
-                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-neutral-950 border border-border/10 text-xs">
-                        <span className="text-neutral-400 capitalize">{key.replace(/_/g, ' ')}</span>
+                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-card border border-border/10 text-xs">
+                        <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-semibold">{val}</span>
+                          <span className="text-primary-foreground font-semibold">{val}</span>
                           <button type="button" onClick={() => removeCustomField(key)} className="text-rose-400 hover:text-rose-600 font-bold">×</button>
                         </div>
                       </div>
@@ -1617,7 +1617,7 @@ export default function ContactsPage() {
               <button 
                 type="button"
                 onClick={() => setShowFormModal(false)} 
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -1636,16 +1636,16 @@ export default function ContactsPage() {
       {/* MERGE CONTACTS DIALOG */}
       {showMergeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowMergeModal(false)}>
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-card backdrop-blur-md" />
           <div 
             className="relative w-full max-w-md bg-[#0d111c] border border-border/30 rounded-3xl p-6 space-y-4 animate-scale-in shadow-2xl" 
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-primary-foreground flex items-center gap-2">
                 <Merge className="w-5 h-5 text-primary" /> Mesclar Contatos
               </h3>
-              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors">
+              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1654,26 +1654,26 @@ export default function ContactsPage() {
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <div>
                 <span className="font-extrabold block">Instrução importante:</span>
-                O contato principal será mantido: <span className="font-extrabold text-white">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
+                O contato principal será mantido: <span className="font-extrabold text-primary-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Buscar Contato Secundário</label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-neutral-950 focus-within:border-primary/50 transition-colors">
-                <Search className="w-4 h-4 text-neutral-500 shrink-0" />
+              <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Buscar Contato Secundário</label>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-card focus-within:border-primary/50 transition-colors">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
                   value={mergeQuery}
                   onChange={e => setMergeQuery(e.target.value)}
                   placeholder="Buscar contato secundário..."
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none"
+                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-neutral-950/30">
+            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border/10 rounded-2xl bg-card">
               {mergeEligibleContacts.length === 0 && (
-                <div className="p-4 text-center text-xs text-neutral-500">Nenhum outro contato elegível encontrado.</div>
+                <div className="p-4 text-center text-xs text-muted-foreground">Nenhum outro contato elegível encontrado.</div>
               )}
               {mergeEligibleContacts.map(c => (
                 <button
@@ -1682,12 +1682,12 @@ export default function ContactsPage() {
                   className={`w-full flex items-center justify-between p-3 text-left text-xs transition-colors ${
                     mergeTargetId === c.id 
                       ? 'bg-primary/10 text-primary' 
-                      : 'text-neutral-300 hover:bg-neutral-900/40'
+                      : 'text-muted-foreground hover:bg-secondary'
                   }`}
                 >
                   <div>
                     <p className="font-bold">{c.nome} {c.sobrenome || ''}</p>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">{c.telefone}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{c.telefone}</p>
                   </div>
                   {mergeTargetId === c.id && <Check className="w-4 h-4 text-primary" />}
                 </button>
@@ -1697,7 +1697,7 @@ export default function ContactsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowMergeModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -1715,7 +1715,7 @@ export default function ContactsPage() {
 
       {/* Floating Bulk Actions Bar */}
       {isSelectionMode && checkedCount > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-neutral-950/95 border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-card border border-primary/30 rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
             <p className="text-xs font-bold text-foreground">
@@ -1731,7 +1731,7 @@ export default function ContactsPage() {
                 onChange={setSelectedListaTarget}
                 options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
                 placeholder="Disparo..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-secondary border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToLista}
@@ -1749,7 +1749,7 @@ export default function ContactsPage() {
                 onChange={setSelectedCadenciaTarget}
                 options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
                 placeholder="Cadência..."
-                className="bg-neutral-900 border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
+                className="bg-secondary border border-border/40 rounded-xl px-2.5 py-1 text-xs text-foreground"
               />
               <button
                 onClick={handleBulkAddToCadence}
@@ -1762,7 +1762,7 @@ export default function ContactsPage() {
 
             <button
               onClick={handleBulkDelete}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-white transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-primary-foreground transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
             </button>
@@ -1772,7 +1772,7 @@ export default function ContactsPage() {
                 setCheckedIds({})
                 setIsSelectionMode(false)
               }}
-              className="text-neutral-500 hover:text-foreground font-bold pl-1 text-[11px]"
+              className="text-muted-foreground hover:text-foreground font-bold pl-1 text-[11px]"
             >
               Limpar
             </button>

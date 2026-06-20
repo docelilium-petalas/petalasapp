@@ -131,7 +131,7 @@ export default function GestaoNichosTab() {
     <div className="space-y-6 animate-fade-in max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
             <Tag className="w-5 h-5 text-primary" />
             Configuração de Nichos
           </h2>
@@ -164,7 +164,7 @@ export default function GestaoNichosTab() {
                 placeholder="Ex: Clínicas Odontológicas"
                 value={formData.nome}
                 onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
               />
             </div>
             
@@ -174,7 +174,7 @@ export default function GestaoNichosTab() {
                 placeholder="Ex: Buscar apenas clínicas que tenham implantes no site, ignorar dentistas autônomos..."
                 value={formData.promptN8n}
                 onChange={e => setFormData(p => ({ ...p, promptN8n: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground min-h-[100px] resize-y"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground min-h-[100px] resize-y"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function GestaoNichosTab() {
               <select
                 value={formData.status}
                 onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}
-                className="px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                className="px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
               >
                 <option value="ativo">Ativo</option>
                 <option value="inativo">Inativo</option>
@@ -195,7 +195,7 @@ export default function GestaoNichosTab() {
             <button
               type="button"
               onClick={handleCloseForm}
-              className="px-4 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900 font-bold transition-all"
+              className="px-4 py-2 rounded-xl border border-border text-muted-foreground hover:bg-secondary font-bold transition-all"
             >
               Cancelar
             </button>
@@ -215,24 +215,24 @@ export default function GestaoNichosTab() {
         {isLoading ? (
           <div className="text-center py-8 text-xs text-muted-foreground italic">Carregando nichos...</div>
         ) : !Array.isArray(niches) || niches.length === 0 ? (
-          <div className="text-center py-10 text-xs text-muted-foreground italic border border-dashed border-border/20 rounded-3xl bg-neutral-900/20">
+          <div className="text-center py-10 text-xs text-muted-foreground italic border border-dashed border-border/20 rounded-3xl bg-secondary">
             Nenhum nicho configurado. Crie o primeiro nicho acima.
           </div>
         ) : (
           niches.map((niche: any) => (
-            <div key={niche.id} className="p-5 rounded-2xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-border/60 transition-all">
+            <div key={niche.id} className="p-5 rounded-2xl border border-border/30 bg-card backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-border/60 transition-all">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-foreground text-sm">{niche.nome}</h3>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    niche.status === 'ativo' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-neutral-800 text-muted-foreground border border-border'
+                    niche.status === 'ativo' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-muted text-muted-foreground border border-border'
                   }`}>
                     {niche.status}
                   </span>
                 </div>
                 {niche.promptN8n && (
                   <p className="text-[11px] text-muted-foreground mt-2 line-clamp-2 pr-4">
-                    <strong className="text-neutral-400">Prompt:</strong> {niche.promptN8n}
+                    <strong className="text-muted-foreground">Prompt:</strong> {niche.promptN8n}
                   </p>
                 )}
                 <div className="text-[10px] text-muted-foreground mt-2">
@@ -245,7 +245,7 @@ export default function GestaoNichosTab() {
                   onClick={() => handleToggleStatus(niche)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                     niche.status === 'ativo' 
-                      ? 'border-border text-muted-foreground hover:bg-neutral-900' 
+                      ? 'border-border text-muted-foreground hover:bg-secondary' 
                       : 'border-primary/30 text-primary bg-primary/5 hover:bg-primary/10'
                   }`}
                 >
@@ -253,14 +253,14 @@ export default function GestaoNichosTab() {
                 </button>
                 <button
                   onClick={() => handleOpenForm(niche)}
-                  className="p-2 rounded-xl bg-neutral-900 border border-border hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
+                  className="p-2 rounded-xl bg-secondary border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                   title="Editar"
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(niche.id)}
-                  className="p-2 rounded-xl bg-neutral-900 border border-border hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400 transition-all"
+                  className="p-2 rounded-xl bg-secondary border border-border hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400 transition-all"
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />

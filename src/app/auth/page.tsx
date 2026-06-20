@@ -69,7 +69,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-black">
+    <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-card">
       <Toaster theme="dark" position="top-right" closeButton />
 
       {/* Floating Ambient Orbs */}
@@ -77,7 +77,7 @@ export default function AuthPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
 
       {/* LEFT SIDE: Marketing (Desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-neutral-950/20 border-r border-border/30 relative">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card border-r border-border/30 relative">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-primary/20 text-primary ocr-glow-soft shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -94,18 +94,18 @@ export default function AuthPage() {
             <Coins className="w-3.5 h-3.5" />
             <span>Foco em Faturamento</span>
           </div>
-          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-white">
+          <h2 className="text-4xl xl:text-5xl font-black leading-tight tracking-tight text-primary-foreground">
             Controle sua operação comercial e <span className="ocr-gradient-text">acelere o caixa.</span>
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Pipeline, prospecção ativa, disparos de WhatsApp, inteligência artificial e métricas comerciais consolidadas em uma única máquina de vendas.
           </p>
           <div className="pt-6 grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-border/40 bg-neutral-900/10 backdrop-blur-sm">
+            <div className="p-4 rounded-xl border border-border/40 bg-secondary backdrop-blur-sm">
               <span className="block text-lg font-bold text-primary text-glow">10x</span>
               <span className="text-[10px] text-muted-foreground uppercase font-medium">Velocidade de Prospecção</span>
             </div>
-            <div className="p-4 rounded-xl border border-border/40 bg-neutral-900/10 backdrop-blur-sm">
+            <div className="p-4 rounded-xl border border-border/40 bg-secondary backdrop-blur-sm">
               <span className="block text-lg font-bold text-primary text-glow">+45%</span>
               <span className="text-[10px] text-muted-foreground uppercase font-medium">Conversão Comercial</span>
             </div>
@@ -120,7 +120,7 @@ export default function AuthPage() {
 
       {/* RIGHT SIDE: Auth Card */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative z-10">
-        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border/80 bg-neutral-950/60 backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
+        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border/80 bg-card backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
 
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center gap-2 justify-center mb-6">
@@ -132,7 +132,7 @@ export default function AuthPage() {
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded-xl border border-border/60 bg-neutral-900/60 p-1 mb-8">
+          <div className="flex rounded-xl border border-border/60 bg-secondary p-1 mb-8">
             <button
               type="button"
               onClick={() => switchMode('login')}
@@ -151,7 +151,7 @@ export default function AuthPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-primary-foreground">
               {mode === 'login' ? 'Bem-vindo à operação' : 'Criar nova conta'}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
@@ -165,37 +165,37 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Nome</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                  <User className="w-4 h-4 text-neutral-600 shrink-0" />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome</label>
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border bg-card focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="text"
                     value={nome}
                     onChange={e => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
                   />
                 </div>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">E-mail</label>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                <Mail className="w-4 h-4 text-neutral-600 shrink-0" />
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">E-mail</label>
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border bg-card focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@empresa.com"
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Senha</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Senha</label>
                 {mode === 'login' && (
                   <button
                     type="button"
@@ -206,19 +206,19 @@ export default function AuthPage() {
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                <Lock className="w-4 h-4 text-neutral-600 shrink-0" />
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border bg-card focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-1 hover:bg-neutral-900 rounded-md text-neutral-600 hover:text-neutral-400 transition-colors"
+                  className="p-1 hover:bg-secondary rounded-md text-muted-foreground hover:text-muted-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -232,9 +232,9 @@ export default function AuthPage() {
                   id="keepConnected"
                   checked={keepConnected}
                   onChange={e => setKeepConnected(e.target.checked)}
-                  className="w-4 h-4 rounded border-neutral-700 bg-black text-primary focus:ring-primary focus:ring-offset-black"
+                  className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary focus:ring-offset-black"
                 />
-                <label htmlFor="keepConnected" className="text-xs text-neutral-500 cursor-pointer">
+                <label htmlFor="keepConnected" className="text-xs text-muted-foreground cursor-pointer">
                   Manter conectado
                 </label>
               </div>
@@ -242,15 +242,15 @@ export default function AuthPage() {
 
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Confirmar senha</label>
-                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-neutral-800 bg-black focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                  <Lock className="w-4 h-4 text-neutral-600 shrink-0" />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Confirmar senha</label>
+                <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border bg-card focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                  <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder:text-neutral-600"
+                    className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
                   />
                 </div>
               </div>

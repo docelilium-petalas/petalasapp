@@ -74,10 +74,10 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
   const isActive = (href: string) => pathname === href
 
   return (
-    <div className="flex flex-col h-full bg-background border-r border-border/40 select-none">
+    <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border select-none">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-border/20">
-        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-black border border-primary/30 overflow-hidden shrink-0">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
+        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-primary/30 overflow-hidden shrink-0">
           {/* Motion blur light background effect */}
           <div className="absolute inset-0 bg-primary/20 blur-md scale-150 animate-pulse mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent blur-sm" />
@@ -85,8 +85,8 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
           <img src="/logo.png" alt="Logo Caixa Rápido" className="w-full h-full object-cover relative z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold tracking-tight text-foreground text-sm uppercase leading-tight">Caixa Rápido</span>
-          <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em]">Operação CRM</span>
+          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Caixa Rápido</span>
+          <span className="text-[9px] text-sidebar-foreground/60 font-semibold uppercase tracking-[0.2em]">Operação CRM</span>
         </div>
       </div>
 
@@ -102,11 +102,11 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
               onClick={onItemClick}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                 active
-                  ? 'bg-primary/15 text-primary border-l-2 border-primary shadow-[inset_1px_0_0_0_rgba(0,230,118,0.1)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  ? 'bg-sidebar-primary/20 text-sidebar-primary-foreground border-l-2 border-sidebar-primary'
+                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
               }`}
             >
-              <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-105 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+              <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-105 ${active ? 'text-sidebar-primary-foreground' : 'text-sidebar-foreground/70'}`} />
               <span>{item.name}</span>
               {item.name === 'Bússola' && (
                 <span className="ml-auto flex h-2 w-2 relative">
@@ -120,14 +120,14 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
       </nav>
 
       {/* Team / Profile footer */}
-      <div className="p-4 border-t border-border/20 bg-muted/30">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-border/20 bg-muted/40">
-          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
+      <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/30">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-sidebar-border bg-sidebar-accent/50">
+          <div className="w-8 h-8 rounded-lg bg-sidebar flex items-center justify-center font-bold text-xs text-sidebar-primary border border-sidebar-primary/20">
             {user.nome[0]}{user.sobrenome[0]}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-foreground truncate">{user.nome} {user.sobrenome}</p>
-            <p className="text-[10px] text-muted-foreground truncate">{user.teamName}</p>
+            <p className="text-xs font-semibold text-sidebar-foreground truncate">{user.nome} {user.sobrenome}</p>
+            <p className="text-[10px] text-sidebar-foreground/60 truncate">{user.teamName}</p>
           </div>
           <button
             onClick={async () => {
@@ -135,7 +135,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
               router.push('/auth')
               router.refresh()
             }}
-            className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+            className="text-sidebar-foreground/60 hover:text-destructive transition-colors cursor-pointer"
             title="Sair"
           >
             <LogOut className="w-4 h-4" />
@@ -301,11 +301,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border/40 bg-neutral-900/30 text-xs text-muted-foreground hover:border-primary/50 transition-all select-none"
+              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border/40 bg-secondary text-xs text-muted-foreground hover:border-primary/50 transition-all select-none"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
               <span>Buscar...</span>
-              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-neutral-800 border border-border/60 text-[9px]">⌘K</kbd>
+              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-muted border border-border/60 text-[9px]">⌘K</kbd>
             </button>
 
             <button
@@ -320,7 +320,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-neutral-900/40 text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-secondary text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
               >
                 <Bell className="w-4.5 h-4.5" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
@@ -455,7 +455,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Menu Bottom Sheet (Mobile) */}
       {menuSheetOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMenuSheetOpen(false)} />
+          <div className="fixed inset-0 bg-card backdrop-blur-sm" onClick={() => setMenuSheetOpen(false)} />
           <div className="fixed inset-x-0 bottom-0 bg-popover border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 max-h-[70vh] overflow-y-auto mobile-bottom-sheet">
             
             {/* Sheet Handle */}
@@ -513,7 +513,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                     router.push('/auth')
                     router.refresh()
                   }}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-neutral-900 transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-secondary transition-colors"
                   title="Sair"
                 >
                   <LogOut className="w-4.5 h-4.5 text-rose-500" />
@@ -527,11 +527,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Desktop Mobile Drawer Navigation (Fallback for menu open if needed, but not used since bottom tab covers it) */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed inset-0 bg-card backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-background border-r border-border animate-slide-up">
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-neutral-900/60"
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-secondary"
             >
               <X className="w-5 h-5" />
             </button>
@@ -543,7 +543,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {/* Global Search Dialog */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 max-md:pt-16 max-md:px-2">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSearchOpen(false)} />
+          <div className="fixed inset-0 bg-card backdrop-blur-md" onClick={() => setSearchOpen(false)} />
           <div className="w-full max-w-lg rounded-2xl border border-border/80 bg-popover p-4 shadow-2xl z-10 ocr-glass-strong animate-scale-in max-md:max-h-[80vh] flex flex-col">
             {/* Search Input */}
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border bg-muted/40 focus-within:border-primary transition-all shrink-0">

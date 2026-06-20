@@ -114,8 +114,8 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-neutral-900/40 hover:border-border/60 transition-all gap-3 ${
-        isDragging ? 'shadow-lg border-primary/45 bg-neutral-900' : ''
+      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-secondary hover:border-border/60 transition-all gap-3 ${
+        isDragging ? 'shadow-lg border-primary/45 bg-secondary' : ''
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -123,7 +123,7 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground shrink-0"
+          className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
         >
           <GripVertical className="w-4.5 h-4.5" />
         </button>
@@ -134,10 +134,10 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
         />
 
         <div className="min-w-0">
-          <span className="text-xs font-bold text-neutral-200 block truncate">{stage.nome}</span>
+          <span className="text-xs font-bold text-foreground block truncate">{stage.nome}</span>
           <span className="text-[10px] text-muted-foreground">
-            Probabilidade: <strong className="text-neutral-300">{stage.probabilidade}%</strong> • SLA:{' '}
-            <strong className="text-neutral-300">{stage.slaHours}h</strong> •{' '}
+            Probabilidade: <strong className="text-muted-foreground">{stage.probabilidade}%</strong> • SLA:{' '}
+            <strong className="text-muted-foreground">{stage.slaHours}h</strong> •{' '}
             <strong className="text-primary">{dealCount} negócios</strong>
           </span>
         </div>
@@ -146,14 +146,14 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => onEdit(stage)}
-          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
           title="Editar etapa"
         >
           <Edit3 className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onDelete(stage)}
-          className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
           title="Excluir etapa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -1225,7 +1225,7 @@ function SettingsContent() {
       
       {/* Sidebar navigation */}
       {(!isMobile || !mobileTabActive) && (
-        <div className={`${isMobile ? 'w-full flex-1' : 'w-60 shrink-0 border-r'} border-border/30 p-5 space-y-1 bg-black/20 flex flex-col justify-between`}>
+        <div className={`${isMobile ? 'w-full flex-1' : 'w-60 shrink-0 border-r'} border-border/30 p-5 space-y-1 bg-card flex flex-col justify-between`}>
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-3 mb-4">Configurações</p>
             <div className="space-y-1">
@@ -1242,7 +1242,7 @@ function SettingsContent() {
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isSel
                       ? 'bg-primary/10 text-primary border border-primary/20 shadow-md shadow-primary/[0.02]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-neutral-900/40 border border-transparent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent'
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -1256,8 +1256,8 @@ function SettingsContent() {
 
         {/* Developer details footer */}
         {currentUser && (
-          <div className="p-3.5 rounded-2xl bg-neutral-900/35 border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
-            <span className="font-bold text-neutral-300">Identidade do Operador</span>
+          <div className="p-3.5 rounded-2xl bg-secondary border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
+            <span className="font-bold text-muted-foreground">Identidade do Operador</span>
             <span className="truncate">ID: {currentUser.id}</span>
             <span className="capitalize">Role: {currentUser.role}</span>
           </div>
@@ -1272,7 +1272,7 @@ function SettingsContent() {
             {isMobile && mobileTabActive && (
               <button
                 onClick={() => setMobileTabActive(false)}
-                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 border border-border/40 hover:bg-neutral-800 text-xs font-bold text-neutral-200 transition-all active:scale-95 w-full justify-center md:w-auto"
+                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border/40 hover:bg-muted text-xs font-bold text-foreground transition-all active:scale-95 w-full justify-center md:w-auto"
               >
                 ← Voltar para Configurações
               </button>
@@ -1282,14 +1282,14 @@ function SettingsContent() {
           {tab === 'perfil' && currentUser && (
             <div className="space-y-6 animate-fade-in">
               <div>
-                <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                   <User className="w-5 h-5 text-primary" />
                   Perfil do Usuário
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Suas informações cadastrais e detalhes da conta</p>
               </div>
 
-              <div className="p-6 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-5">
+              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-5">
                 <div className="flex items-center gap-4 pb-5 border-b border-border/20">
                   <div className="relative group">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-xl font-extrabold text-primary overflow-hidden">
@@ -1302,7 +1302,7 @@ function SettingsContent() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-neutral-200">{perfilForm.nome} {perfilForm.sobrenome}</h3>
+                    <h3 className="font-bold text-sm text-foreground">{perfilForm.nome} {perfilForm.sobrenome}</h3>
                     <p className="text-xs text-muted-foreground">{currentUser.email}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -1320,7 +1320,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.nome}
                       onChange={e => setPerfilForm(p => ({ ...p, nome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div>
@@ -1329,7 +1329,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.sobrenome}
                       onChange={e => setPerfilForm(p => ({ ...p, sobrenome: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1338,7 +1338,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.telefone}
                       onChange={e => setPerfilForm(p => ({ ...p, telefone: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="Ex: 5562999999999"
                     />
                   </div>
@@ -1348,7 +1348,7 @@ function SettingsContent() {
                       type="text"
                       value={perfilForm.avatarUrl}
                       onChange={e => setPerfilForm(p => ({ ...p, avatarUrl: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       placeholder="https://exemplo.com/avatar.png"
                     />
                   </div>
@@ -1370,7 +1370,7 @@ function SettingsContent() {
           {tab === 'pipeline' && (
             <div className="space-y-6 animate-fade-in">
               <div>
-                <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                   <Workflow className="w-5 h-5 text-primary" />
                   Funis &amp; Etapas Comerciais
                 </h2>
@@ -1380,9 +1380,9 @@ function SettingsContent() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
                 {/* COLUMN 1: Pipelines List */}
-                <div className="lg:col-span-5 p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+                <div className="lg:col-span-5 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
                   <div className="flex items-center justify-between border-b border-border/20 pb-3">
-                    <h3 className="text-xs font-bold text-neutral-200">Pipelines Ativos</h3>
+                    <h3 className="text-xs font-bold text-foreground">Pipelines Ativos</h3>
                     {!isAddingPipeline && (
                       <button
                         onClick={() => setIsAddingPipeline(true)}
@@ -1401,7 +1401,7 @@ function SettingsContent() {
                         placeholder="Ex: Pós-Vendas / Retenção"
                         value={newPipelineName}
                         onChange={e => setNewPipelineName(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                       />
                       <div className="flex justify-end gap-2 text-[10px]">
                         <button
@@ -1409,7 +1409,7 @@ function SettingsContent() {
                             setIsAddingPipeline(false)
                             setNewPipelineName('')
                           }}
-                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                          className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                         >
                           Cancelar
                         </button>
@@ -1434,7 +1434,7 @@ function SettingsContent() {
                           className={`group relative p-3 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
                             isSel
                               ? 'border-primary/30 bg-primary/5 shadow-inner'
-                              : 'border-border/20 hover:border-border/50 bg-neutral-900/10'
+                              : 'border-border/20 hover:border-border/50 bg-secondary'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -1444,7 +1444,7 @@ function SettingsContent() {
                                   type="text"
                                   value={editingPipelineName}
                                   onChange={e => setEditingPipelineName(e.target.value)}
-                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-neutral-950 text-[11px] text-foreground focus:outline-none"
+                                  className="flex-1 px-2.5 py-1 rounded-lg border border-border bg-card text-[11px] text-foreground focus:outline-none"
                                 />
                                 <button
                                   onClick={handleRenamePipeline}
@@ -1454,7 +1454,7 @@ function SettingsContent() {
                                 </button>
                                 <button
                                   onClick={() => setEditingPipelineId(null)}
-                                  className="p-1 rounded-md border border-border hover:bg-neutral-800 text-muted-foreground"
+                                  className="p-1 rounded-md border border-border hover:bg-muted text-muted-foreground"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1462,7 +1462,7 @@ function SettingsContent() {
                             ) : (
                               <>
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                  <span className="text-xs font-bold text-neutral-200 truncate">{p.nome}</span>
+                                  <span className="text-xs font-bold text-foreground truncate">{p.nome}</span>
                                   {p.isDefault && (
                                     <span className="text-[8px] font-extrabold bg-primary/10 text-primary border border-primary/20 px-1 py-0.5 rounded">
                                       Padrão
@@ -1474,7 +1474,7 @@ function SettingsContent() {
                                   {!p.isDefault && (
                                     <button
                                       onClick={() => handleSetDefaultPipeline(p.id)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-primary"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary"
                                       title="Tornar funil padrão"
                                     >
                                       <Star className="w-3 h-3" />
@@ -1485,7 +1485,7 @@ function SettingsContent() {
                                       setEditingPipelineId(p.id)
                                       setEditingPipelineName(p.nome)
                                     }}
-                                    className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-foreground"
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                                     title="Renomear"
                                   >
                                     <Edit3 className="w-3 h-3" />
@@ -1493,7 +1493,7 @@ function SettingsContent() {
                                   {pipelines.length > 1 && (
                                     <button
                                       onClick={() => handleDeletePipeline(p.id)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                                       title="Excluir funil"
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1510,10 +1510,10 @@ function SettingsContent() {
                 </div>
 
                 {/* COLUMN 2: Stages drag and drop */}
-                <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+                <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
                   <div className="flex items-center justify-between border-b border-border/20 pb-3">
                     <div>
-                      <h3 className="text-xs font-bold text-neutral-200">Etapas do Funil Selecionado</h3>
+                      <h3 className="text-xs font-bold text-foreground">Etapas do Funil Selecionado</h3>
                       <p className="text-[9px] text-muted-foreground mt-0.5">Arraste para reordenar o fluxo</p>
                     </div>
 
@@ -1535,7 +1535,7 @@ function SettingsContent() {
                         <div>
                           <p className="text-xs font-bold text-amber-400">Migração de Negócios Pendente</p>
                           <p className="text-[11px] text-muted-foreground mt-0.5">
-                            A etapa <strong className="text-neutral-200">&quot;{deletingStage.nome}&quot;</strong> possui{' '}
+                            A etapa <strong className="text-foreground">&quot;{deletingStage.nome}&quot;</strong> possui{' '}
                             <strong className="text-primary">{deals.filter(d => d.stageId === deletingStage.id).length} negócios ativos</strong>.{' '}
                             Transfira-os para outra etapa antes de prosseguir com a exclusão.
                           </p>
@@ -1547,7 +1547,7 @@ function SettingsContent() {
                         <select
                           value={migrationStageId}
                           onChange={e => setMigrationStageId(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
+                          className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                         >
                           <option value="">-- Selecione uma etapa --</option>
                           {stages.filter(s => s.id !== deletingStage.id).map(s => (
@@ -1562,14 +1562,14 @@ function SettingsContent() {
                             setDeletingStage(null)
                             setMigrationStageId('')
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-neutral-900 text-muted-foreground"
+                          className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary text-muted-foreground"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={() => executeDeleteStage(deletingStage.id, migrationStageId)}
                           disabled={!migrationStageId}
-                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-primary-foreground font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Migrar e Confirmar Exclusão
                         </button>
@@ -1592,7 +1592,7 @@ function SettingsContent() {
                             placeholder="Ex: Demonstração Agendada"
                             value={stageForm.nome}
                             onChange={e => setStageForm(p => ({ ...p, nome: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1603,7 +1603,7 @@ function SettingsContent() {
                             max="100"
                             value={stageForm.probabilidade}
                             onChange={e => setStageForm(p => ({ ...p, probabilidade: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                         <div>
@@ -1613,7 +1613,7 @@ function SettingsContent() {
                             min="1"
                             value={stageForm.slaHours}
                             onChange={e => setStageForm(p => ({ ...p, slaHours: Math.max(1, parseInt(e.target.value) || 0) }))}
-                            className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                            className="w-full px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground"
                           />
                         </div>
                       </div>
@@ -1648,7 +1648,7 @@ function SettingsContent() {
                             setIsAddingStage(false)
                             setEditingStageId(null)
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                          className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                         >
                           Cancelar
                         </button>
@@ -1691,7 +1691,7 @@ function SettingsContent() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary" />
                     Central de Integrações (Webhooks)
                   </h2>
@@ -1709,7 +1709,7 @@ function SettingsContent() {
               </div>
 
               {/* Google Maps (N8N) Webhook Settings */}
-              <div className="p-6 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
                 <div>
                   <h3 className="text-sm font-bold text-foreground">Google Maps (N8N)</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">Webhook responsável por iniciar a automação de mineração de leads do Google Maps.</p>
@@ -1717,20 +1717,20 @@ function SettingsContent() {
                 
                 <div className="flex flex-col md:flex-row gap-4 items-end">
                   <div className="flex-1 w-full">
-                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Mineração</label>
+                    <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Webhook de Mineração</label>
                     <input
                       type="text"
                       placeholder="https://auto.devnetlife.com/webhook/buscar-google-ocr"
                       value={googleMapsWebhook}
                       onChange={e => setGoogleMapsWebhook(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                     />
                   </div>
                   <div className="flex gap-2 w-full md:w-auto">
                     <button
                       onClick={handleTestGoogleMapsWebhook}
                       disabled={testingGoogleMaps}
-                      className="px-4 py-2.5 rounded-xl border border-border text-muted-foreground font-bold hover:bg-neutral-900 transition-colors text-xs disabled:opacity-50 flex-1 md:flex-none"
+                      className="px-4 py-2.5 rounded-xl border border-border text-muted-foreground font-bold hover:bg-secondary transition-colors text-xs disabled:opacity-50 flex-1 md:flex-none"
                     >
                       {testingGoogleMaps ? 'Testando...' : 'Testar conexão'}
                     </button>
@@ -1756,7 +1756,7 @@ function SettingsContent() {
                         placeholder="Ex: Elementor Lead Forms"
                         value={integrationForm.nome}
                         onChange={e => setIntegrationForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -1764,7 +1764,7 @@ function SettingsContent() {
                       <select
                         value={integrationForm.tipo}
                         onChange={e => setIntegrationForm(p => ({ ...p, tipo: e.target.value as IntegrationTipo }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="inbound_webhook">Inbound Webhook (Recebe leads externos)</option>
                         <option value="outbound_api">Outbound API (Envia dados / Webhooks externos)</option>
@@ -1778,7 +1778,7 @@ function SettingsContent() {
                           placeholder="https://n8n.exemplo.com/webhook/disparos"
                           value={integrationForm.baseUrl}
                           onChange={e => setIntegrationForm(p => ({ ...p, baseUrl: e.target.value }))}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
                         />
                       </div>
                     )}
@@ -1787,7 +1787,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-2">
                     <button
                       onClick={() => setShowAddIntegration(false)}
-                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-2 rounded-xl border border-border text-muted-foreground hover:bg-secondary"
                     >
                       Cancelar
                     </button>
@@ -1806,11 +1806,11 @@ function SettingsContent() {
                 {integrations.map(int => (
                   <div
                     key={int.id}
-                    className="p-5 rounded-3xl border border-border/25 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
+                    className="p-5 rounded-3xl border border-border/25 bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
                   >
                     <div className="flex items-center justify-between border-b border-border/20 pb-3">
                       <div>
-                        <h3 className="font-bold text-sm text-neutral-200">{int.nome}</h3>
+                        <h3 className="font-bold text-sm text-foreground">{int.nome}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
                             int.tipo === 'inbound_webhook'
@@ -1830,16 +1830,16 @@ function SettingsContent() {
                           <button
                             onClick={() => handleToggleIntegration(int.id, int.ativo)}
                             className={`w-9 h-5 rounded-full p-0.5 transition-all flex items-center ${
-                              int.ativo ? 'bg-primary justify-end' : 'bg-neutral-800 justify-start'
+                              int.ativo ? 'bg-primary justify-end' : 'bg-muted justify-start'
                             }`}
                           >
-                            <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                            <span className="w-4 h-4 rounded-full bg-card block shadow" />
                           </button>
                         </div>
 
                         <button
                           onClick={() => handleDeleteIntegration(int.id)}
-                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
+                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 transition-colors"
                           title="Excluir integração"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1849,7 +1849,7 @@ function SettingsContent() {
 
                     {/* Integration details */}
                     {int.tipo === 'outbound_api' && (
-                      <div className="p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-card border border-border/20 text-xs">
                         <span className="ocr-label">Base URL Configurada:</span>
                         <code className="text-primary block font-mono mt-1 text-[11px] select-all break-all">{int.baseUrl}</code>
                       </div>
@@ -1859,7 +1859,7 @@ function SettingsContent() {
                       <div className="space-y-4">
                         {/* Webhook Endpoints section */}
                         <div className="flex items-center justify-between border-t border-border/10 pt-3">
-                          <span className="text-[10px] font-extrabold text-neutral-300 uppercase tracking-wider">Caminhos / Endpoints Ativos</span>
+                          <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">Caminhos / Endpoints Ativos</span>
                           {showAddEndpoint !== int.id && (
                             <button
                               onClick={() => {
@@ -1885,7 +1885,7 @@ function SettingsContent() {
                                   placeholder="carlos-leads"
                                   value={endpointForm.path}
                                   onChange={e => setEndpointForm(p => ({ ...p, path: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1895,7 +1895,7 @@ function SettingsContent() {
                                   placeholder="sec-xyz..."
                                   value={endpointForm.secretToken}
                                   onChange={e => setEndpointForm(p => ({ ...p, secretToken: e.target.value }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 />
                               </div>
                               <div>
@@ -1903,7 +1903,7 @@ function SettingsContent() {
                                 <select
                                   value={endpointForm.sourceSystem}
                                   onChange={e => setEndpointForm(p => ({ ...p, sourceSystem: e.target.value as EndpointSourceSystem }))}
-                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-neutral-950 text-xs focus:outline-none text-foreground"
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-card text-xs focus:outline-none text-foreground"
                                 >
                                   <option value="elementor">Elementor Forms</option>
                                   <option value="facebook_leads">Meta Lead Ads</option>
@@ -1916,7 +1916,7 @@ function SettingsContent() {
                             <div className="flex justify-end gap-2 text-[10px]">
                               <button
                                 onClick={() => setShowAddEndpoint(null)}
-                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                                className="px-2.5 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                               >
                                 Cancelar
                               </button>
@@ -1940,20 +1940,20 @@ function SettingsContent() {
                             return (
                               <div
                                 key={ep.id}
-                                className="p-3.5 rounded-2xl border border-border/20 bg-neutral-950/20 space-y-3"
+                                className="p-3.5 rounded-2xl border border-border/20 bg-card space-y-3"
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
-                                    <span className="text-xs font-bold text-neutral-300 block truncate">/api/webhook/inbound/{ep.path}</span>
+                                    <span className="text-xs font-bold text-muted-foreground block truncate">/api/webhook/inbound/{ep.path}</span>
                                     <span className="text-[10px] text-muted-foreground block mt-0.5">
-                                      Origem: <strong className="text-neutral-400 capitalize">{ep.sourceSystem}</strong> • Secret: {ep.secretToken || 'Sem token'}
+                                      Origem: <strong className="text-muted-foreground capitalize">{ep.sourceSystem}</strong> • Secret: {ep.secretToken || 'Sem token'}
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={() => handleToggleAccordionLog(ep.id)}
-                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-neutral-800 text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
+                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-muted text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
                                     >
                                       <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
                                       {isAccordionOpen ? 'Fechar Logs' : 'Ver Logs'}
@@ -1964,7 +1964,7 @@ function SettingsContent() {
                                         navigator.clipboard.writeText(absoluteUrl)
                                         toast.success('URL copiada!')
                                       }}
-                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                                       title="Copiar URL"
                                     >
                                       <Copy className="w-3.5 h-3.5" />
@@ -1972,7 +1972,7 @@ function SettingsContent() {
 
                                     <button
                                       onClick={() => handleDeleteEndpoint(ep.id)}
-                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
                                       title="Remover endpoint"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1994,7 +1994,7 @@ function SettingsContent() {
                                         {logs.map(log => (
                                           <div
                                             key={log.id}
-                                            className="p-3 rounded-xl border border-border/20 bg-neutral-900/60 flex flex-col gap-2"
+                                            className="p-3 rounded-xl border border-border/20 bg-secondary flex flex-col gap-2"
                                           >
                                             <div className="flex items-center justify-between text-[9px]">
                                               <span className={`font-bold px-1.5 py-0.5 rounded ${
@@ -2006,7 +2006,7 @@ function SettingsContent() {
                                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                                               </span>
                                             </div>
-                                            <pre className="text-[10px] text-neutral-300 font-mono bg-neutral-950 p-2.5 rounded-lg overflow-x-auto whitespace-pre">
+                                            <pre className="text-[10px] text-muted-foreground font-mono bg-card p-2.5 rounded-lg overflow-x-auto whitespace-pre">
                                               {log.payload}
                                             </pre>
                                           </div>
@@ -2015,9 +2015,9 @@ function SettingsContent() {
                                     )}
 
                                     {/* Snippet Example */}
-                                    <div className="p-3.5 rounded-xl border border-border/15 bg-neutral-950/60 space-y-2">
-                                      <span className="text-[10px] font-bold text-neutral-300 block">Payload Esperado (Inbound Lead JSON)</span>
-                                      <pre className="text-[9px] text-neutral-400 font-mono bg-neutral-950 p-2 rounded-lg select-all">
+                                    <div className="p-3.5 rounded-xl border border-border/15 bg-card space-y-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground block">Payload Esperado (Inbound Lead JSON)</span>
+                                      <pre className="text-[9px] text-muted-foreground font-mono bg-card p-2 rounded-lg select-all">
 {`{
   "nome": "Ricardo",
   "sobrenome": "Almeida",
@@ -2051,7 +2051,7 @@ function SettingsContent() {
           {tab === 'categorias' && (
             <div className="space-y-6 animate-fade-in">
               <div>
-                <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                   <Tag className="w-5 h-5 text-primary" />
                   Gerenciar Categorias
                 </h2>
@@ -2060,13 +2060,13 @@ function SettingsContent() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Products */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Produtos de Interesse</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.products.map(p => (
-                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
-                        <span className="text-xs text-neutral-300 font-medium">{p}</span>
-                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
+                        <span className="text-xs text-muted-foreground font-medium">{p}</span>
+                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2075,7 +2075,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Novo produto..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addProduct(e.currentTarget.value)
@@ -2088,13 +2088,13 @@ function SettingsContent() {
                 </div>
 
                 {/* Origins */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Origens dos Leads</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.origins.map(o => (
-                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
-                        <span className="text-xs text-neutral-300 font-medium">{o}</span>
-                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
+                        <span className="text-xs text-muted-foreground font-medium">{o}</span>
+                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2103,7 +2103,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova origem..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             categoriesStore.addOrigin(e.currentTarget.value)
@@ -2116,16 +2116,16 @@ function SettingsContent() {
                 </div>
 
                 {/* Tags */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Tags</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.tags.map(t => (
-                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-neutral-900/40">
+                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                          <span className="text-xs text-neutral-300 font-medium">{t.label}</span>
+                          <span className="text-xs text-muted-foreground font-medium">{t.label}</span>
                         </div>
-                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-neutral-800 rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2134,7 +2134,7 @@ function SettingsContent() {
                       <input
                         type="text"
                         placeholder="Nova tag..."
-                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none"
+                        className="flex-1 px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none"
                         onKeyDown={e => {
                           if (e.key === 'Enter') {
                             const val = e.currentTarget.value.trim()
@@ -2157,7 +2157,7 @@ function SettingsContent() {
           {tab === 'disparo' && (
             <div className="space-y-6 animate-fade-in">
               {/* Webhooks Globais Card */}
-              <div className="p-6 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
                 <div>
                   <h3 className="text-sm font-bold text-foreground">Configuração Global de Webhooks (Caixa Rápido)</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">URLs de webhooks gerais do sistema para disparo, status e cancelamento.</p>
@@ -2165,33 +2165,33 @@ function SettingsContent() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Disparo (OCR)</label>
+                    <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Webhook de Disparo (OCR)</label>
                     <input
                       type="text"
                       placeholder="https://auto.devnetlife.com/webhook/disparo-ocr"
                       value={webhookUrls.disparo_webhook_url}
                       onChange={e => handleUpdateWebhookUrl('disparo_webhook_url', e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                     />
                   </div>
                   <div>
-                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Status</label>
+                    <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Webhook de Status</label>
                     <input
                       type="text"
                       placeholder="https://..."
                       value={webhookUrls.disparo_status_webhook_url}
                       onChange={e => handleUpdateWebhookUrl('disparo_status_webhook_url', e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                     />
                   </div>
                   <div>
-                    <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Webhook de Cancelamento</label>
+                    <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Webhook de Cancelamento</label>
                     <input
                       type="text"
                       placeholder="https://..."
                       value={webhookUrls.disparo_cancelar_webhook_url}
                       onChange={e => handleUpdateWebhookUrl('disparo_cancelar_webhook_url', e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                     />
                   </div>
                 </div>
@@ -2199,7 +2199,7 @@ function SettingsContent() {
 
               <div className="flex justify-between items-center pt-4 border-t border-border/10">
                 <div>
-                  <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary animate-pulse" />
                     Canais de Disparo (Caixa Rápido)
                   </h2>
@@ -2229,33 +2229,33 @@ function SettingsContent() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Nome do Canal</label>
+                      <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Nome do Canal</label>
                       <input
                         type="text"
                         placeholder="Ex: Disparo Leads Quentes n8n"
                         value={channelForm.nome}
                         onChange={e => setChannelForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
                       />
                     </div>
                     
                     <div className="col-span-2">
-                      <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">URL do Webhook (Destinatário)</label>
+                      <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">URL do Webhook (Destinatário)</label>
                       <input
                         type="text"
                         placeholder="https://n8n.netlife.com/webhook/..."
                         value={channelForm.urlWebhook}
                         onChange={e => setChannelForm(p => ({ ...p, urlWebhook: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="ocr-label mb-1.5 block font-bold text-neutral-300 text-[11px]">Funil Vinculado (Pipeline)</label>
+                      <label className="ocr-label mb-1.5 block font-bold text-muted-foreground text-[11px]">Funil Vinculado (Pipeline)</label>
                       <select
                         value={channelForm.pipelineId}
                         onChange={e => setChannelForm(p => ({ ...p, pipelineId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="" disabled>-- Selecione um funil --</option>
                         {pipelines.map(p => (
@@ -2270,12 +2270,12 @@ function SettingsContent() {
                       <button
                         onClick={() => setChannelForm(p => ({ ...p, ativo: !p.ativo }))}
                         className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
+                          channelForm.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
                         }`}
                       >
-                        <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                        <span className="w-4 h-4 rounded-full bg-card block shadow" />
                       </button>
-                      <span className="text-xs text-muted-foreground">Status do Canal: <strong className={channelForm.ativo ? 'text-primary' : 'text-neutral-400'}>{channelForm.ativo ? 'Ativo' : 'Inativo'}</strong></span>
+                      <span className="text-xs text-muted-foreground">Status do Canal: <strong className={channelForm.ativo ? 'text-primary' : 'text-muted-foreground'}>{channelForm.ativo ? 'Ativo' : 'Inativo'}</strong></span>
                     </div>
                   </div>
 
@@ -2285,7 +2285,7 @@ function SettingsContent() {
                         setShowAddChannel(false)
                         setEditingChannelId(null)
                       }}
-                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900 transition-colors"
+                      className="px-3.5 py-2 rounded-xl border border-border text-muted-foreground hover:bg-secondary transition-colors"
                     >
                       Cancelar
                     </button>
@@ -2301,9 +2301,9 @@ function SettingsContent() {
 
               {/* Channels List Grid */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Canais Ativos</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Canais Ativos</h3>
                 {channels.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-secondary">
                     Nenhum canal de disparo configurado. Crie um canal acima.
                   </div>
                 ) : (
@@ -2313,11 +2313,11 @@ function SettingsContent() {
                       return (
                         <div
                           key={chan.id}
-                          className="p-5 rounded-3xl border border-border/25 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
+                          className="p-5 rounded-3xl border border-border/25 bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
                         >
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
-                              <h4 className="font-bold text-sm text-neutral-200">{chan.nome}</h4>
+                              <h4 className="font-bold text-sm text-foreground">{chan.nome}</h4>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border bg-primary/10 text-primary border-primary/20">
                                   {pipeName}
@@ -2333,16 +2333,16 @@ function SettingsContent() {
                                 <button
                                   onClick={() => handleToggleChannel(chan.id)}
                                   className={`w-9 h-5 rounded-full p-0.5 transition-all ${
-                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-neutral-800 flex justify-start'
+                                    chan.ativo ? 'bg-primary flex justify-end' : 'bg-muted flex justify-start'
                                   }`}
                                 >
-                                  <span className="w-4 h-4 rounded-full bg-neutral-950 block shadow" />
+                                  <span className="w-4 h-4 rounded-full bg-card block shadow" />
                                 </button>
                               </div>
 
                               <button
                                 onClick={() => handleEditChannel(chan)}
-                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                                 title="Editar canal"
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -2350,7 +2350,7 @@ function SettingsContent() {
 
                               <button
                                 onClick={() => handleDeleteChannel(chan.id)}
-                                className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 transition-colors"
+                                className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 transition-colors"
                                 title="Excluir canal"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2358,9 +2358,9 @@ function SettingsContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-neutral-950/40 border border-border/20 text-xs">
+                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border/20 text-xs">
                             <div className="min-w-0 flex-1">
-                              <span className="ocr-label text-[10px] font-bold text-neutral-400">Webhook URL:</span>
+                              <span className="ocr-label text-[10px] font-bold text-muted-foreground">Webhook URL:</span>
                               <code className="text-primary block font-mono mt-1 text-[11px] select-all truncate">{chan.urlWebhook}</code>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -2392,14 +2392,14 @@ function SettingsContent() {
 
               {/* Execution Logs Section */}
               <div className="space-y-4 border-t border-border/10 pt-6">
-                <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Histórico de Disparos (Logs)</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Histórico de Disparos (Logs)</h3>
                 
                 {disparoLogs.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-neutral-900/10">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-secondary">
                     Nenhum log de disparo registrado.
                   </div>
                 ) : (
-                  <div className="p-4 rounded-3xl border border-border/20 bg-[#0d0d11]/80 overflow-hidden">
+                  <div className="p-4 rounded-3xl border border-border/20 bg-card overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="hidden md:table w-full text-left border-collapse text-[11px]">
                         <thead>
@@ -2413,11 +2413,11 @@ function SettingsContent() {
                         </thead>
                         <tbody className="divide-y divide-border/10">
                           {disparoLogs.map(log => (
-                            <tr key={log.id} className="hover:bg-neutral-900/35 transition-colors">
-                              <td className="py-3 pr-4 text-neutral-300 whitespace-nowrap">
+                            <tr key={log.id} className="hover:bg-secondary transition-colors">
+                              <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">
                                 {new Date(log.timestamp).toLocaleString('pt-BR')}
                               </td>
-                              <td className="py-3 pr-4 font-semibold text-neutral-200">
+                              <td className="py-3 pr-4 font-semibold text-foreground">
                                 {log.channelNome}
                               </td>
                               <td className="py-3 pr-4 text-center text-primary font-bold">
@@ -2443,9 +2443,9 @@ function SettingsContent() {
                       {/* Mobile Cards View */}
                       <div className="flex flex-col gap-3 md:hidden">
                         {disparoLogs.map(log => (
-                          <div key={log.id} className="p-3.5 rounded-2xl border border-border/40 bg-neutral-950/20 space-y-2">
+                          <div key={log.id} className="p-3.5 rounded-2xl border border-border/40 bg-card space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-neutral-200 text-xs">{log.channelNome}</span>
+                              <span className="font-bold text-foreground text-xs">{log.channelNome}</span>
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[9px] border ${
                                 log.status === 'SUCESSO'
                                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
@@ -2459,7 +2459,7 @@ function SettingsContent() {
                               <span>Leads: <strong className="text-primary">{log.leadsCount}</strong></span>
                             </div>
                             {log.mensagem && (
-                              <div className="p-2 rounded bg-neutral-950/65 font-mono text-[9px] text-rose-400 break-all border border-rose-500/10">
+                              <div className="p-2 rounded bg-card font-mono text-[9px] text-rose-400 break-all border border-rose-500/10">
                                 {log.mensagem}
                               </div>
                             )}
@@ -2478,7 +2478,7 @@ function SettingsContent() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <Shield className="w-5 h-5 text-primary" />
                     Gerenciamento de Usuários
                   </h2>
@@ -2507,7 +2507,7 @@ function SettingsContent() {
                         placeholder="Ex: Aline Ferreira"
                         value={userForm.nome}
                         onChange={e => setUserForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div>
@@ -2517,7 +2517,7 @@ function SettingsContent() {
                         placeholder="aline@caixarapido.com"
                         value={userForm.email}
                         onChange={e => setUserForm(p => ({ ...p, email: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2527,7 +2527,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={userForm.password}
                         onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
                       />
                     </div>
                     <div>
@@ -2535,7 +2535,7 @@ function SettingsContent() {
                       <select
                         value={userForm.role}
                         onChange={e => setUserForm(p => ({ ...p, role: e.target.value as UserRole }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="USER">User (Vendedor)</option>
                         <option value="MODERATOR">Moderator (Gerente)</option>
@@ -2547,7 +2547,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddUser(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                     >
                       Cancelar
                     </button>
@@ -2566,7 +2566,7 @@ function SettingsContent() {
                 {users.map(u => (
                   <div
                     key={u.id}
-                    className="p-5 rounded-3xl border border-border/25 bg-[#0d0d11]/85 space-y-4"
+                    className="p-5 rounded-3xl border border-border/25 bg-card space-y-4"
                   >
                     <div className="flex items-center justify-between border-b border-border/15 pb-3">
                       <div className="flex items-center gap-3">
@@ -2581,14 +2581,14 @@ function SettingsContent() {
                                 placeholder="Nome"
                                 value={userEdits[u.id].nome}
                                 onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], nome: e.target.value } }))}
-                                className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                                className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
                               />
                               <input
                                 type="text"
                                 placeholder="Sobrenome"
                                 value={userEdits[u.id].sobrenome}
                                 onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], sobrenome: e.target.value } }))}
-                                className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                                className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
                               />
                             </div>
                             <input
@@ -2596,7 +2596,7 @@ function SettingsContent() {
                               placeholder="E-mail"
                               value={userEdits[u.id].email}
                               onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], email: e.target.value } }))}
-                              className="w-full px-2 py-1 rounded bg-neutral-900 border border-border/40 text-xs text-foreground focus:outline-none"
+                              className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
                             />
                             <div className="flex items-center gap-1 mt-1">
                               <button onClick={() => handleSaveUserEdit(u.id)} className="px-2 py-1 bg-primary text-black text-[10px] font-bold rounded">Salvar</button>
@@ -2606,12 +2606,12 @@ function SettingsContent() {
                         ) : (
                           <div className="group flex items-center gap-2">
                             <div>
-                              <span className="font-bold text-sm text-neutral-200 block">{u.nome} {u.sobrenome || ''}</span>
+                              <span className="font-bold text-sm text-foreground block">{u.nome} {u.sobrenome || ''}</span>
                               <span className="text-[11px] text-muted-foreground">{u.email}</span>
                             </div>
                             <button
                               onClick={() => setUserEdits(p => ({ ...p, [u.id]: { nome: u.nome, sobrenome: u.sobrenome || '', email: u.email } }))}
-                              className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-neutral-800 text-muted-foreground hover:text-primary"
+                              className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground hover:text-primary"
                               title="Editar Perfil"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -2624,7 +2624,7 @@ function SettingsContent() {
                         <select
                           value={u.role}
                           onChange={e => handleUpdateUserRole(u.id, e.target.value as UserRole)}
-                          className="px-2.5 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
+                          className="px-2.5 py-1.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer font-semibold"
                         >
                           <option value="USER">Vendedor (USER)</option>
                           <option value="MODERATOR">Gerente (MODERATOR)</option>
@@ -2634,7 +2634,7 @@ function SettingsContent() {
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           disabled={u.id === currentUser.id}
-                          className="p-2 rounded-xl hover:bg-neutral-900 text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -2643,7 +2643,7 @@ function SettingsContent() {
 
                     {/* Permissions Matrix */}
                     <div className="space-y-3">
-                      <span className="text-[10px] font-extrabold text-neutral-300 uppercase tracking-wider block">Matriz de Permissões de Acesso</span>
+                      <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Matriz de Permissões de Acesso</span>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {[
                           { key: 'dashboard', label: 'Painel Geral' },
@@ -2665,7 +2665,7 @@ function SettingsContent() {
                               className={`flex items-center justify-between p-2 rounded-xl border text-[10px] font-semibold transition-all ${
                                 isPermitted
                                   ? 'bg-primary/5 border-primary/40 text-primary'
-                                  : 'border-border/30 bg-neutral-900/40 text-muted-foreground hover:text-foreground'
+                                  : 'border-border/30 bg-secondary text-muted-foreground hover:text-foreground'
                               }`}
                             >
                               <span>{feat.label}</span>
@@ -2684,7 +2684,7 @@ function SettingsContent() {
                         placeholder="••••••••"
                         value={passwordEdit[u.id] ?? ''}
                         onChange={e => setPasswordEdit(p => ({ ...p, [u.id]: e.target.value }))}
-                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                        className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
                       />
                       <button
                         onClick={() => handleUpdatePassword(u.id)}
@@ -2705,7 +2705,7 @@ function SettingsContent() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
                     Gestão de Times e Equipes
                   </h2>
@@ -2734,7 +2734,7 @@ function SettingsContent() {
                         placeholder="Ex: Vendas High Ticket Sul"
                         value={teamForm.nome}
                         onChange={e => setTeamForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
                     <div className="col-span-2">
@@ -2742,7 +2742,7 @@ function SettingsContent() {
                       <select
                         value={teamForm.ownerUserId}
                         onChange={e => setTeamForm(p => ({ ...p, ownerUserId: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="">-- Selecione o líder --</option>
                         {users.map(u => (
@@ -2755,7 +2755,7 @@ function SettingsContent() {
                   <div className="flex justify-end gap-2 text-xs pt-1">
                     <button
                       onClick={() => setShowAddTeam(false)}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                     >
                       Cancelar
                     </button>
@@ -2771,14 +2771,14 @@ function SettingsContent() {
 
               {/* Teams Dashboard */}
               {teams.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
+                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-secondary">
                   Nenhum time comercial criado.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   {/* Select team */}
-                  <div className="lg:col-span-5 p-4 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-3">
-                    <span className="text-[10px] font-extrabold text-neutral-300 uppercase tracking-widest block border-b border-border/10 pb-2">Selecione o Time</span>
+                  <div className="lg:col-span-5 p-4 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-3">
+                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest block border-b border-border/10 pb-2">Selecione o Time</span>
                     <div className="space-y-1.5">
                       {teams.map(t => (
                         <div
@@ -2787,7 +2787,7 @@ function SettingsContent() {
                           className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
                             selectedTeamId === t.id
                               ? 'bg-primary/5 border-primary/45 text-primary'
-                              : 'border-border/10 bg-neutral-900/30 text-muted-foreground hover:text-foreground'
+                              : 'border-border/10 bg-secondary text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <span className="text-xs font-bold truncate max-w-[150px]">{t.nome}</span>
@@ -2796,7 +2796,7 @@ function SettingsContent() {
                               e.stopPropagation()
                               handleDeleteTeam(t.id)
                             }}
-                            className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2806,13 +2806,13 @@ function SettingsContent() {
                   </div>
 
                   {/* Manage members of selected team */}
-                  <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-xl space-y-4">
+                  <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
                     {selectedTeam ? (
                       <>
                         <div className="border-b border-border/20 pb-3">
-                          <h3 className="font-bold text-sm text-neutral-200">{selectedTeam.nome}</h3>
+                          <h3 className="font-bold text-sm text-foreground">{selectedTeam.nome}</h3>
                           <span className="text-[10px] text-muted-foreground mt-0.5">
-                            Líder do Time: <strong className="text-neutral-300">
+                            Líder do Time: <strong className="text-muted-foreground">
                               {users.find(u => u.id === selectedTeam.ownerUserId)?.nome || 'Não definido'}
                             </strong>
                           </span>
@@ -2824,7 +2824,7 @@ function SettingsContent() {
                           <div className="flex gap-2">
                             <select
                               id="add-member-select"
-                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-neutral-950 text-xs focus:outline-none text-foreground cursor-pointer"
+                              className="flex-1 px-3 py-2 rounded-xl border border-border bg-card text-xs focus:outline-none text-foreground cursor-pointer"
                               defaultValue=""
                             >
                               <option value="" disabled>-- Selecione um usuário --</option>
@@ -2854,7 +2854,7 @@ function SettingsContent() {
 
                         {/* Members list */}
                         <div className="space-y-2 pt-3">
-                          <span className="text-[10px] font-extrabold text-neutral-300 uppercase tracking-wider block">Integrantes do Time</span>
+                          <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Integrantes do Time</span>
                           {(selectedTeam.members || []).length === 0 ? (
                             <span className="text-[10px] text-muted-foreground italic pl-1">Vazio</span>
                           ) : (
@@ -2865,15 +2865,15 @@ function SettingsContent() {
                                 return (
                                   <div
                                     key={mId}
-                                    className="p-3.5 rounded-xl border border-border/20 bg-neutral-950/20 flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
+                                    className="p-3.5 rounded-xl border border-border/20 bg-card flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
                                   >
                                     <div className="min-w-0">
-                                      <span className="text-xs font-bold text-neutral-200 block truncate">{usr.nome} {usr.sobrenome || ''}</span>
+                                      <span className="text-xs font-bold text-foreground block truncate">{usr.nome} {usr.sobrenome || ''}</span>
                                       <span className="text-[10px] text-muted-foreground">{usr.email}</span>
                                     </div>
                                     <button
                                       onClick={() => handleRemoveTeamMember(selectedTeam.id, mId)}
-                                      className="p-1 rounded hover:bg-neutral-800 text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
                                       title="Remover integrante"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -2901,7 +2901,7 @@ function SettingsContent() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold tracking-wide text-neutral-100 flex items-center gap-2">
+                  <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary" />
                     Templates de Mensagem
                   </h2>
@@ -2937,7 +2937,7 @@ function SettingsContent() {
                         placeholder="Ex: Sondagem de Faturamento inicial"
                         value={templateForm.nome}
                         onChange={e => setTemplateForm(p => ({ ...p, nome: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-semibold"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground font-semibold"
                       />
                     </div>
 
@@ -2946,7 +2946,7 @@ function SettingsContent() {
                       <select
                         value={templateForm.categoria}
                         onChange={e => setTemplateForm(p => ({ ...p, categoria: e.target.value }))}
-                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                       >
                         <option value="Sondagem">Sondagem</option>
                         <option value="Follow-up">Follow-up</option>
@@ -2964,7 +2964,7 @@ function SettingsContent() {
                             key={variable}
                             type="button"
                             onClick={() => setTemplateForm(p => ({ ...p, corpo: p.corpo + variable }))}
-                            className="px-2 py-1 rounded bg-neutral-950 border border-border/20 text-xs text-primary hover:bg-neutral-900 transition-colors"
+                            className="px-2 py-1 rounded bg-card border border-border/20 text-xs text-primary hover:bg-secondary transition-colors"
                           >
                             {variable}
                           </button>
@@ -2976,11 +2976,11 @@ function SettingsContent() {
                         placeholder="Escreva a mensagem aqui..."
                         value={templateForm.corpo}
                         onChange={e => setTemplateForm(p => ({ ...p, corpo: e.target.value }))}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground font-mono"
                       />
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-neutral-900/50 border border-border/20 space-y-1.5">
+                    <div className="p-3.5 rounded-xl bg-secondary border border-border/20 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] font-bold uppercase text-primary">Preview com dados fictícios</p>
                         <div className="flex flex-wrap gap-1">
@@ -3019,7 +3019,7 @@ function SettingsContent() {
                         setTemplateForm({ nome: '', categoria: 'Sondagem', corpo: '' })
                         setEditingTemplate(null)
                       }}
-                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-neutral-900"
+                      className="px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                     >
                       Cancelar
                     </button>
@@ -3036,7 +3036,7 @@ function SettingsContent() {
               {/* Templates grid list */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {templates.map(tpl => (
-                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-neutral-900/35 flex flex-col justify-between hover:border-border/40 transition-all">
+                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-secondary flex flex-col justify-between hover:border-border/40 transition-all">
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm text-neutral-250 truncate max-w-[180px]">{tpl.nome}</span>
@@ -3044,7 +3044,7 @@ function SettingsContent() {
                           {tpl.categoria}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-black/30 p-3 rounded-xl border border-border/10 font-mono mt-3">
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-card p-3 rounded-xl border border-border/10 font-mono mt-3">
                         {tpl.corpo}
                       </p>
                     </div>
@@ -3052,13 +3052,13 @@ function SettingsContent() {
                     <div className="flex gap-2 border-t border-border/10 pt-4 mt-4">
                       <button
                         onClick={() => handleEditTemplate(tpl)}
-                        className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
+                        className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteTemplate(tpl.id)}
-                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
+                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-primary-foreground text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
                       >
                         Excluir
                       </button>
@@ -3067,7 +3067,7 @@ function SettingsContent() {
                 ))}
 
                 {templates.length === 0 && (
-                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-neutral-900/10">
+                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-secondary">
                     Nenhum template de mensagem criado.
                   </div>
                 )}
@@ -3087,7 +3087,7 @@ function SettingsFallback() {
     <div className="flex items-center justify-center h-full min-h-[60vh]">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-neutral-400">Carregando configurações...</p>
+        <p className="text-sm text-muted-foreground">Carregando configurações...</p>
       </div>
     </div>
   )

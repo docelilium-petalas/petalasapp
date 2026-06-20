@@ -58,7 +58,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none ${checked ? 'bg-primary' : 'bg-neutral-700'}`}
+      className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none ${checked ? 'bg-primary' : 'bg-muted'}`}
     >
       <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
     </button>
@@ -90,22 +90,22 @@ function LoadingSkeleton() {
     <AppLayout>
       <div className="p-4 sm:p-6 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
-          <div className="h-4 w-48 sm:w-72 bg-neutral-800 rounded-lg animate-pulse" />
-          <div className="h-9 w-32 sm:w-40 bg-neutral-800 rounded-xl animate-pulse" />
+          <div className="h-4 w-48 sm:w-72 bg-muted rounded-lg animate-pulse" />
+          <div className="h-9 w-32 sm:w-40 bg-muted rounded-xl animate-pulse" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-neutral-900/60 rounded-2xl border border-border/30 animate-pulse" />
+            <div key={i} className="h-24 bg-secondary rounded-2xl border border-border/30 animate-pulse" />
           ))}
         </div>
-        <div className="flex gap-2 p-1.5 bg-neutral-900/50 rounded-2xl border border-border/30 w-fit">
+        <div className="flex gap-2 p-1.5 bg-secondary rounded-2xl border border-border/30 w-fit">
           {[80, 96, 88, 104, 88, 80].map((w, i) => (
-            <div key={i} style={{ width: w }} className="h-9 bg-neutral-800 rounded-xl animate-pulse" />
+            <div key={i} style={{ width: w }} className="h-9 bg-muted rounded-xl animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-44 bg-neutral-900/60 rounded-2xl border border-border/30 animate-pulse" />
+            <div key={i} className="h-44 bg-secondary rounded-2xl border border-border/30 animate-pulse" />
           ))}
         </div>
       </div>
@@ -259,7 +259,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
               <Target className="w-4 h-4 text-primary" />
               {editingId ? 'Editar Segmento' : 'Criar Novo Segmento'}
             </h4>
-            <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+            <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -270,7 +270,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
               <input
                 value={form.nome}
                 onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
-                className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
+                className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
                 placeholder="Ex: Leads sem resposta 72h"
               />
             </div>
@@ -279,7 +279,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
               <select
                 value={form.pipelineId}
                 onChange={e => setForm(f => ({ ...f, pipelineId: e.target.value }))}
-                className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm text-foreground"
+                className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm text-foreground"
               >
                 <option value="">Todos os pipelines</option>
                 {pipelines.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
@@ -290,7 +290,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
               <input
                 value={form.descricao}
                 onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))}
-                className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
+                className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
                 placeholder="Descreva o propósito deste segmento..."
               />
             </div>
@@ -307,7 +307,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                     key={rt.tipo}
                     type="button"
                     onClick={() => addRegra(rt.tipo)}
-                    className="flex flex-col items-start gap-1 p-3 rounded-xl border border-border/50 bg-neutral-900/50 hover:border-primary/50 hover:bg-primary/5 text-left transition-all group"
+                    className="flex flex-col items-start gap-1 p-3 rounded-xl border border-border/50 bg-secondary hover:border-primary/50 hover:bg-primary/5 text-left transition-all group"
                   >
                     <Icon className="w-4 h-4 text-primary" />
                     <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors leading-tight">{rt.label}</span>
@@ -323,7 +323,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Regras Configuradas ({form.regras.length})</label>
               {form.regras.map((regra, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-neutral-900/60 border border-border/40">
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-secondary border border-border/40">
                   <div className="flex-1 space-y-2">
                     <p className="text-xs font-bold text-primary">
                       {RULE_TYPES.find(r => r.tipo === regra.tipo)?.label || regra.tipo}
@@ -337,7 +337,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                           min={1}
                           value={regra.horasMin}
                           onChange={e => updateRegra(idx, { horasMin: Number(e.target.value) })}
-                          className="w-20 bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="w-20 bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                         />
                         <span className="text-xs text-muted-foreground">horas</span>
                       </div>
@@ -351,7 +351,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                           min={1}
                           value={regra.diasSemAtividade}
                           onChange={e => updateRegra(idx, { diasSemAtividade: Number(e.target.value) })}
-                          className="w-20 bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="w-20 bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                         />
                         <span className="text-xs text-muted-foreground">dias</span>
                       </div>
@@ -363,7 +363,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                         <select
                           value={regra.stageId}
                           onChange={e => updateRegra(idx, { stageId: e.target.value })}
-                          className="bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                         >
                           {stages.length === 0 && <option value="">Selecione um pipeline acima</option>}
                           {stages.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
@@ -374,7 +374,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                           min={0}
                           value={regra.horasMin || 0}
                           onChange={e => updateRegra(idx, { horasMin: Number(e.target.value) || undefined })}
-                          className="w-16 bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="w-16 bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                           placeholder="0"
                         />
                         <span className="text-xs text-muted-foreground">horas (0 = qualquer)</span>
@@ -387,7 +387,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                         <select
                           value={regra.prioridade}
                           onChange={e => updateRegra(idx, { prioridade: e.target.value })}
-                          className="bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                         >
                           <option value="BAIXA">Lead AP (Baixa)</option>
                           <option value="MEDIA">Zona Cinza (Média)</option>
@@ -403,7 +403,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                         <select
                           value={regra.origem}
                           onChange={e => updateRegra(idx, { origem: e.target.value })}
-                          className="bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                         >
                           <option value="whatsapp">WhatsApp</option>
                           <option value="facebook">Facebook</option>
@@ -422,7 +422,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                         <input
                           value={(regra as any).motivoPerda || ''}
                           onChange={e => updateRegra(idx, { motivoPerda: e.target.value || undefined } as any)}
-                          className="flex-1 bg-black border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
+                          className="flex-1 bg-card border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary outline-none"
                           placeholder="Todos os motivos"
                         />
                       </div>
@@ -444,7 +444,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
           )}
 
           <div className="flex gap-3 pt-2 border-t border-border/40">
-            <button onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-neutral-800 transition-all">
+            <button onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-all">
               Cancelar
             </button>
             <button
@@ -460,10 +460,10 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
       {/* Segment Cards */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1,2,3].map(i => <div key={i} className="h-36 bg-neutral-900/60 rounded-2xl animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-36 bg-secondary rounded-2xl animate-pulse" />)}
         </div>
       ) : segmentos.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-neutral-950/30">
+        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
           <Filter className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
           <h3 className="font-bold text-foreground mb-2">Nenhum segmento criado</h3>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">Crie segmentos de público com regras baseadas no comportamento dos leads no pipeline.</p>
@@ -492,14 +492,14 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                             <div className="flex items-center gap-2 flex-wrap mb-1">
                               <PriorityBadge prioridade={seg.prioridade} />
                               {seg.tipo === 'template' && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-neutral-800 text-muted-foreground rounded border border-border/50 uppercase tracking-wider">Template</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border/50 uppercase tracking-wider">Template</span>
                               )}
                             </div>
                             <h3 className="font-bold text-primary text-sm leading-snug">{seg.nome}</h3>
                             {seg.descricao && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{seg.descricao}</p>}
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <button onClick={() => startEdit(seg)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-primary transition-colors">
+                            <button onClick={() => startEdit(seg)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             {seg.tipo !== 'template' && (
@@ -527,7 +527,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                           <button
                             onClick={() => handleEvaluate(seg.id)}
                             disabled={evaluating === seg.id}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-neutral-800 hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30 disabled:opacity-50"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30 disabled:opacity-50"
                           >
                             {evaluating === seg.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <BarChart3 className="w-3 h-3" />}
                             Avaliar
@@ -633,16 +633,16 @@ function TemplatesTab() {
           value={searchQ}
           onChange={e => setSearchQ(e.target.value)}
           placeholder="Buscar templates..."
-          className="w-full pl-9 pr-3 py-2 rounded-xl border border-border/30 bg-neutral-900/60 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+          className="w-full pl-9 pr-3 py-2 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
         />
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-40 bg-neutral-900/60 rounded-2xl animate-pulse" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-40 bg-secondary rounded-2xl animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-neutral-950/30">
+        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
           <FileText className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
           <h3 className="font-bold text-foreground mb-2">
             {searchQ ? 'Nenhum template encontrado' : 'Nenhum template criado'}
@@ -660,12 +660,12 @@ function TemplatesTab() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="font-bold text-primary text-sm truncate">{tpl.nome}</h3>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-neutral-800 rounded text-muted-foreground font-semibold mt-0.5 inline-block">
+                  <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-semibold mt-0.5 inline-block">
                     {tpl.categoria}
                   </span>
                 </div>
                 <div className="flex gap-1 shrink-0">
-                  <button onClick={() => openEdit(tpl)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-primary transition-colors">
+                  <button onClick={() => openEdit(tpl)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => handleDelete(tpl.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
@@ -674,7 +674,7 @@ function TemplatesTab() {
                 </div>
               </div>
 
-              <div className="bg-black/40 p-3 rounded-lg border border-border/30 flex-1">
+              <div className="bg-card p-3 rounded-lg border border-border/30 flex-1">
                 <p className="text-xs text-muted-foreground font-mono whitespace-pre-wrap line-clamp-4">{tpl.corpo}</p>
               </div>
 
@@ -689,11 +689,11 @@ function TemplatesTab() {
 
       {/* Template Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-xl bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
+          <div className="w-full max-w-xl bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold tracking-tight">{editingTemplate ? 'Editar Template' : 'Novo Template'}</h3>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -705,7 +705,7 @@ function TemplatesTab() {
                   <input
                     value={form.nome}
                     onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
-                    className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none"
+                    className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none"
                     placeholder="Ex: Reativação Leads Frios"
                   />
                 </div>
@@ -714,7 +714,7 @@ function TemplatesTab() {
                   <select
                     value={form.categoria}
                     onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}
-                    className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary outline-none"
+                    className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary outline-none"
                   >
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -736,13 +736,13 @@ function TemplatesTab() {
                   value={form.corpo}
                   onChange={e => setForm(f => ({ ...f, corpo: e.target.value }))}
                   rows={6}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none font-mono resize-none"
+                  className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none font-mono resize-none"
                   placeholder="Olá {primeiro_nome}, tudo bem?&#10;&#10;Vi que você demonstrou interesse em..."
                 />
               </div>
 
               {form.corpo && (
-                <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20">
+                <div className="p-3 rounded-xl bg-secondary border border-border/20">
                   <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                   <p className="text-xs text-foreground whitespace-pre-wrap">{getPreview(form.corpo)}</p>
                 </div>
@@ -750,7 +750,7 @@ function TemplatesTab() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-neutral-800">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted">
                 Cancelar
               </button>
               <button onClick={handleSave} className="flex-1 py-2 bg-primary text-black rounded-xl font-bold text-sm hover:shadow-lg transition-all">
@@ -886,7 +886,7 @@ function CadenciasTab() {
 
   if (loading) return (
     <div className="space-y-4">
-      {[1,2,3].map(i => <div key={i} className="h-32 bg-neutral-900/60 rounded-2xl animate-pulse" />)}
+      {[1,2,3].map(i => <div key={i} className="h-32 bg-secondary rounded-2xl animate-pulse" />)}
     </div>
   )
 
@@ -908,7 +908,7 @@ function CadenciasTab() {
           </div>
 
           {cadences.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-neutral-950/30">
+            <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
               <Workflow className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
               <h3 className="font-bold text-foreground mb-2">Nenhuma cadência criada</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">Cadências enviam sequências de mensagens automaticamente para nutrir seus leads.</p>
@@ -926,7 +926,7 @@ function CadenciasTab() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-bold text-foreground text-sm truncate">{cad.nome}</h3>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${cad.status === 'ATIVO' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-neutral-800 text-muted-foreground border-border'}`}>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${cad.status === 'ATIVO' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'}`}>
                           {cad.status}
                         </span>
                       </div>
@@ -939,11 +939,11 @@ function CadenciasTab() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => { setSelectedCadence(cad); setView('monitor') }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-xl transition-colors border border-border/50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-xl transition-colors border border-border/50"
                       >
                         <Eye className="w-3.5 h-3.5" /> Monitor
                       </button>
-                      <button onClick={() => openEdit(cad)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-primary transition-colors">
+                      <button onClick={() => openEdit(cad)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={() => handleDelete(cad.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
@@ -961,7 +961,7 @@ function CadenciasTab() {
       {view === 'builder' && (
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <button onClick={() => { resetBuilder(); setView('list') }} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+            <button onClick={() => { resetBuilder(); setView('list') }} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
@@ -975,13 +975,13 @@ function CadenciasTab() {
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Nome da Cadência *</label>
                 <input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 text-sm focus:border-primary outline-none"
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:border-primary outline-none"
                   placeholder="Ex: Follow-up pós-proposta" />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Tipo</label>
                 <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:border-primary outline-none">
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:border-primary outline-none">
                   <option value="REATIVACAO">Reativação</option>
                   <option value="FOLLOW_UP">Follow-up</option>
                   <option value="NUTRICAO">Nutrição</option>
@@ -991,7 +991,7 @@ function CadenciasTab() {
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Pipeline (opcional)</label>
                 <select value={form.pipelineId} onChange={e => setForm(f => ({ ...f, pipelineId: e.target.value }))}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:border-primary outline-none">
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:border-primary outline-none">
                   <option value="">Todos os pipelines</option>
                   {pipelines.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
                 </select>
@@ -999,7 +999,7 @@ function CadenciasTab() {
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Webhook URL (opcional)</label>
                 <input value={form.webhookUrl} onChange={e => setForm(f => ({ ...f, webhookUrl: e.target.value }))}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 text-sm focus:border-primary outline-none font-mono text-primary"
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:border-primary outline-none font-mono text-primary"
                   placeholder="https://n8n.empresa.com/webhook/..." />
               </div>
             </div>
@@ -1038,9 +1038,9 @@ function CadenciasTab() {
                       <div className="flex gap-1">
                         <input type="number" min={0} value={step.prazoValor}
                           onChange={e => updateStep(idx, { prazoValor: Number(e.target.value) })}
-                          className="w-16 bg-neutral-900 border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none" />
+                          className="w-16 bg-secondary border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none" />
                         <select value={step.prazoUnidade} onChange={e => updateStep(idx, { prazoUnidade: e.target.value })}
-                          className="flex-1 bg-neutral-900 border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none">
+                          className="flex-1 bg-secondary border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none">
                           <option value="horas">horas</option>
                           <option value="dias">dias</option>
                           <option value="semanas">semanas</option>
@@ -1053,7 +1053,7 @@ function CadenciasTab() {
                         templateId: e.target.value || null,
                         mensagem: e.target.value ? (templates.find(t => t.id === e.target.value)?.corpo || step.mensagem) : step.mensagem
                       })}
-                        className="w-full bg-neutral-900 border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none">
+                        className="w-full bg-secondary border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:border-primary outline-none">
                         <option value="">Mensagem personalizada</option>
                         {templates.map(t => <option key={t.id} value={t.id}>{t.nome}</option>)}
                       </select>
@@ -1070,7 +1070,7 @@ function CadenciasTab() {
                     <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">Mensagem *</label>
                     <textarea value={step.mensagem} onChange={e => updateStep(idx, { mensagem: e.target.value })}
                       rows={3}
-                      className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-xs focus:border-primary outline-none font-mono resize-none"
+                      className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-xs focus:border-primary outline-none font-mono resize-none"
                       placeholder="Olá {nome}, ainda posso ajudá-lo?" />
                   </div>
                 </div>
@@ -1080,7 +1080,7 @@ function CadenciasTab() {
 
           <div className="flex gap-3">
             <button onClick={() => { resetBuilder(); setView('list') }}
-              className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-neutral-800 transition-all">
+              className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-all">
               Cancelar
             </button>
             <button onClick={handleSave}
@@ -1094,7 +1094,7 @@ function CadenciasTab() {
       {view === 'monitor' && selectedCadence && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setView('list')} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+            <button onClick={() => setView('list')} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
@@ -1734,7 +1734,7 @@ export default function CaixaRapidoPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex flex-col h-full bg-black text-foreground overflow-y-auto scrollbar-thin">
+      <div className="flex flex-col h-full bg-card text-foreground overflow-y-auto scrollbar-thin">
         <div className="p-4 sm:p-6 md:p-8 space-y-6">
 
           {/* Header */}
@@ -1773,7 +1773,7 @@ export default function CaixaRapidoPage() {
 
           {/* Tabs */}
           <div
-            className="flex gap-1.5 p-1.5 bg-neutral-900/50 rounded-2xl border border-border/30 overflow-x-auto"
+            className="flex gap-1.5 p-1.5 bg-secondary rounded-2xl border border-border/30 overflow-x-auto"
             style={{ scrollbarWidth: 'none' } as React.CSSProperties}
           >
             {TABS.map(tab => {
@@ -1784,7 +1784,7 @@ export default function CaixaRapidoPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${
-                    active ? 'bg-primary text-black shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-neutral-800/60'
+                    active ? 'bg-primary text-black shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1832,7 +1832,7 @@ export default function CaixaRapidoPage() {
                               <div key={acao.id} className="ocr-card rounded-2xl overflow-hidden">
                                 {/* Header */}
                                 <div
-                                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-neutral-900/40 transition-colors"
+                                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-secondary transition-colors"
                                   onClick={() => setExpandedAcoes(prev => {
                                     const next = new Set(prev)
                                     if (next.has(acao.id)) next.delete(acao.id); else next.add(acao.id)
@@ -1846,7 +1846,7 @@ export default function CaixaRapidoPage() {
                                       <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md shrink-0 ${
                                         acao.status === 'ATIVA' ? 'bg-primary/20 text-primary border border-primary/30' :
                                         acao.status === 'CANCELADA' ? 'bg-destructive/20 text-destructive border border-destructive/30' :
-                                        'bg-neutral-800 text-muted-foreground border border-border'
+                                        'bg-muted text-muted-foreground border border-border'
                                       }`}>{acao.status}</span>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -1898,12 +1898,12 @@ export default function CaixaRapidoPage() {
                                         ATIVA: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
                                         EM_ANDAMENTO: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
                                         CONCLUIDA: 'bg-primary/20 text-primary border-primary/30',
-                                        CANCELADA: 'bg-neutral-800 text-neutral-500 border-neutral-700',
-                                        PAUSADA: 'bg-neutral-700/50 text-neutral-400 border-neutral-600',
+                                        CANCELADA: 'bg-muted text-muted-foreground border-border',
+                                        PAUSADA: 'bg-muted text-muted-foreground border-border',
                                       }
                                       return (
                                         <div key={lista.id} className={`flex items-center gap-3 px-4 py-3 ${idx < acao.listas.length - 1 ? 'border-b border-border/30' : ''}`}>
-                                          <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-border/50 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                                          <div className="w-7 h-7 rounded-lg bg-muted border border-border/50 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
                                             {lista.etapaNumero ?? idx + 1}
                                           </div>
                                           <div className="flex-1 min-w-0">
@@ -1918,7 +1918,7 @@ export default function CaixaRapidoPage() {
                                               <span className="text-[10px] text-muted-foreground">{lista.totalLeads} contatos</span>
                                             </div>
                                           </div>
-                                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border shrink-0 ${statusColors[lista.status] ?? 'bg-neutral-800 text-muted-foreground border-border'}`}>
+                                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border shrink-0 ${statusColors[lista.status] ?? 'bg-muted text-muted-foreground border-border'}`}>
                                             {lista.status.replace(/_/g, ' ')}
                                           </span>
                                           <div className="flex items-center gap-1 shrink-0">
@@ -1946,7 +1946,7 @@ export default function CaixaRapidoPage() {
                                               <>
                                                 <button
                                                   onClick={() => setEditingListContacts(lista)}
-                                                  className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-primary transition-colors"
+                                                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
                                                   title="Editar contatos"
                                                 >
                                                   <Users className="w-3.5 h-3.5" />
@@ -1996,12 +1996,12 @@ export default function CaixaRapidoPage() {
                                     <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md ${
                                       lista.status === 'EM_ANDAMENTO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
                                       lista.status === 'CONCLUIDA' ? 'bg-primary/20 text-primary border border-primary/30' :
-                                      'bg-neutral-800 text-muted-foreground border border-border'
+                                      'bg-muted text-muted-foreground border border-border'
                                     }`}>
                                       {lista.status.replace(/_/g, ' ')}
                                     </span>
                                     <button onClick={() => openEditListaMetaModal(lista)} title="Editar ação"
-                                      className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground hover:text-primary transition-colors">
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
                                       <Edit3 className="w-3.5 h-3.5" />
                                     </button>
                                     <button onClick={() => handleDeleteLista(lista)} title="Excluir ação"
@@ -2017,7 +2017,7 @@ export default function CaixaRapidoPage() {
                                     { label: 'Enviados', value: lista.enviados, color: 'text-primary' },
                                     { label: 'Erros', value: lista.erros, color: 'text-destructive' },
                                   ].map(stat => (
-                                    <div key={stat.label} className="bg-neutral-900/50 p-2 rounded-lg border border-border/50 text-center">
+                                    <div key={stat.label} className="bg-secondary p-2 rounded-lg border border-border/50 text-center">
                                       <p className="text-[10px] text-muted-foreground uppercase">{stat.label}</p>
                                       <p className={`font-bold ${stat.color}`}>{stat.value}</p>
                                     </div>
@@ -2031,12 +2031,12 @@ export default function CaixaRapidoPage() {
                                     Editar Template
                                   </button>
                                 )}
-                                <button className="flex-1 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold rounded-lg transition-colors border border-border/50">
+                                <button className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border/50">
                                   Pausar
                                 </button>
                                 <button
                                   onClick={() => openReutilizarModal(lista)}
-                                  className="flex items-center justify-center gap-1 flex-1 py-1.5 bg-neutral-800 hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30"
+                                  className="flex items-center justify-center gap-1 flex-1 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30"
                                 >
                                   <RefreshCw className="w-3 h-3" /> Reutilizar
                                 </button>
@@ -2085,7 +2085,7 @@ export default function CaixaRapidoPage() {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                         wizardStep === s.step ? 'bg-primary text-black shadow-[0_0_16px_hsl(var(--primary)/0.5)]' :
                         wizardStep > s.step ? 'bg-primary/20 text-primary border border-primary/50' :
-                        'bg-neutral-800 text-muted-foreground border border-border'
+                        'bg-muted text-muted-foreground border border-border'
                       }`}>
                         {wizardStep > s.step ? <CheckCircle className="w-4 h-4" /> : s.step}
                       </div>
@@ -2105,7 +2105,7 @@ export default function CaixaRapidoPage() {
                       <div>
                         <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Nome da Ação</label>
                         <input type="text" value={novaLista.nomeLista} onChange={e => setNovaLista({ ...novaLista, nomeLista: e.target.value })}
-                          className="w-full bg-neutral-900 border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
+                          className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 focus:border-primary outline-none text-sm"
                           placeholder="Ex: Recuperação Leads Frios — Maio" />
                       </div>
                       <div>
@@ -2116,7 +2116,7 @@ export default function CaixaRapidoPage() {
                             const noSeg = !novaLista.segmentosAplicados?.length
                             return (
                               <div onClick={() => setNovaLista({ ...novaLista, segmentosAplicados: [] })}
-                                className={`p-4 rounded-xl border cursor-pointer transition-all ${noSeg ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-border hover:border-primary/50'}`}>
+                                className={`p-4 rounded-xl border cursor-pointer transition-all ${noSeg ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
                                 <div className="flex items-start justify-between gap-2">
                                   <div>
                                     <span className={`font-bold text-sm leading-snug block ${noSeg ? 'text-primary' : 'text-foreground'}`}>Sem segmento</span>
@@ -2133,7 +2133,7 @@ export default function CaixaRapidoPage() {
                               <div key={seg.id} onClick={() => {
                                 setNovaLista({ ...novaLista, segmentosAplicados: [seg.id] })
                               }}
-                                className={`p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-border hover:border-primary/50'}`}>
+                                className={`p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
                                 <div className="flex items-start justify-between gap-2 mb-1">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
@@ -2189,10 +2189,10 @@ export default function CaixaRapidoPage() {
 
                     {loadingDeals ? (
                       <div className="space-y-2">
-                        {[1,2,3].map(i => <div key={i} className="h-14 bg-neutral-900/60 rounded-xl animate-pulse" />)}
+                        {[1,2,3].map(i => <div key={i} className="h-14 bg-secondary rounded-xl animate-pulse" />)}
                       </div>
                     ) : (dealsPreview.length === 0 && manualLeads.length === 0) ? (
-                      <div className="text-center py-12 border border-dashed border-border/50 rounded-2xl bg-neutral-950/30">
+                      <div className="text-center py-12 border border-dashed border-border/50 rounded-2xl bg-card">
                         <Users className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
                         <p className="text-sm font-semibold text-foreground">Nenhum lead encontrado</p>
                         <p className="text-xs text-muted-foreground mt-1">Adicione contatos/negócios manualmente abaixo ou altere o segmento.</p>
@@ -2233,9 +2233,9 @@ export default function CaixaRapidoPage() {
                                   }))
                                 }
                               }}
-                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-neutral-900/50 border-border/40 hover:border-primary/30'}`}
+                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
                             >
-                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-primary border-primary' : 'border-neutral-600'}`}>
+                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-primary border-primary' : 'border-border'}`}>
                                 {selected && <Check className="w-3 h-3 text-black" />}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -2264,7 +2264,7 @@ export default function CaixaRapidoPage() {
                           <Plus className="w-3.5 h-3.5" /> Adicionar Contato ou Negócio Manualmente
                         </button>
                       ) : (
-                        <div className="p-4 rounded-2xl border border-border bg-neutral-900/60 space-y-3 animate-scale-in">
+                        <div className="p-4 rounded-2xl border border-border bg-secondary space-y-3 animate-scale-in">
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-bold text-primary">Adicionar Lead Manualmente</span>
                             <button type="button" onClick={() => { setShowManualAddForm(false); setContactSearchQ(''); setDealSearchQ('') }} className="text-muted-foreground hover:text-foreground">
@@ -2278,7 +2278,7 @@ export default function CaixaRapidoPage() {
                               <select
                                 value={manualForm.sourceType}
                                 onChange={e => setManualForm(p => ({ ...p, sourceType: e.target.value as any }))}
-                                className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
+                                className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
                               >
                                 <option value="existing_contact">Contato Existente no Sistema</option>
                                 <option value="existing_deal">Negócio Existente no Sistema</option>
@@ -2296,10 +2296,10 @@ export default function CaixaRapidoPage() {
                                     value={contactSearchQ}
                                     onChange={e => setContactSearchQ(e.target.value)}
                                     placeholder="Nome ou telefone..."
-                                    className="w-full pl-8 pr-3 py-1.5 bg-neutral-900 border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
+                                    className="w-full pl-8 pr-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
-                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-neutral-950 divide-y divide-border/20">
+                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-card divide-y divide-border/20">
                                   {allSystemContacts
                                     .filter(c =>
                                       contactSearchQ === '' ||
@@ -2310,7 +2310,7 @@ export default function CaixaRapidoPage() {
                                     .map(c => (
                                       <button key={c.id} type="button"
                                         onClick={() => setManualForm(p => ({ ...p, selectedContactId: c.id }))}
-                                        className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-2 ${manualForm.selectedContactId === c.id ? 'bg-primary/10 text-primary' : 'hover:bg-neutral-800 text-foreground'}`}>
+                                        className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors flex items-center justify-between gap-2 ${manualForm.selectedContactId === c.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-foreground'}`}>
                                         <span className="font-semibold truncate">{c.nome}</span>
                                         <span className="text-muted-foreground shrink-0">{c.telefone}</span>
                                       </button>
@@ -2340,10 +2340,10 @@ export default function CaixaRapidoPage() {
                                     value={dealSearchQ}
                                     onChange={e => setDealSearchQ(e.target.value)}
                                     placeholder="Nome do negócio ou contato..."
-                                    className="w-full pl-8 pr-3 py-1.5 bg-neutral-900 border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
+                                    className="w-full pl-8 pr-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
-                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-neutral-950 divide-y divide-border/20">
+                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-card divide-y divide-border/20">
                                   {allSystemDeals
                                     .filter(d =>
                                       dealSearchQ === '' ||
@@ -2356,7 +2356,7 @@ export default function CaixaRapidoPage() {
                                     .map(d => (
                                       <button key={d.id} type="button"
                                         onClick={() => setManualForm(p => ({ ...p, selectedDealId: d.id }))}
-                                        className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors ${manualForm.selectedDealId === d.id ? 'bg-primary/10 text-primary' : 'hover:bg-neutral-800 text-foreground'}`}>
+                                        className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors ${manualForm.selectedDealId === d.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-foreground'}`}>
                                         <p className="font-semibold truncate">{d.titulo}</p>
                                         <p className="text-muted-foreground text-[10px]">{d.contact?.nome || 'Contato'} · {d.telefone || d.contact?.telefone || '—'}</p>
                                       </button>
@@ -2388,7 +2388,7 @@ export default function CaixaRapidoPage() {
                                     placeholder="Ex: Carlos Santos"
                                     value={manualForm.nome}
                                     onChange={e => setManualForm(p => ({ ...p, nome: e.target.value }))}
-                                    className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
+                                    className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
                                 <div className="col-span-2">
@@ -2398,7 +2398,7 @@ export default function CaixaRapidoPage() {
                                     placeholder="Ex: 5562999999999"
                                     value={manualForm.telefone}
                                     onChange={e => setManualForm(p => ({ ...p, telefone: e.target.value }))}
-                                    className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
+                                    className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
                               </>
@@ -2412,7 +2412,7 @@ export default function CaixaRapidoPage() {
                                   placeholder="Ex: Novo Negócio de Software"
                                   value={manualForm.tituloNegocio}
                                   onChange={e => setManualForm(p => ({ ...p, tituloNegocio: e.target.value }))}
-                                  className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
+                                  className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary outline-none"
                                 />
                               </div>
                             )}
@@ -2422,7 +2422,7 @@ export default function CaixaRapidoPage() {
                             <button
                               type="button"
                               onClick={() => { setShowManualAddForm(false); setContactSearchQ(''); setDealSearchQ('') }}
-                              className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-neutral-800"
+                              className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-muted"
                             >
                               Cancelar
                             </button>
@@ -2467,9 +2467,9 @@ export default function CaixaRapidoPage() {
                         {/* Option: skip cadence */}
                         <div
                           onClick={() => setNovaLista((p: any) => ({ ...p, selectedCadenceId: null }))}
-                          className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${!novaLista.selectedCadenceId ? 'bg-primary/5 border-primary/40' : 'bg-neutral-900/50 border-border/40 hover:border-primary/30'}`}
+                          className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${!novaLista.selectedCadenceId ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
                         >
-                          <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${!novaLista.selectedCadenceId ? 'border-primary' : 'border-neutral-600'}`}>
+                          <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${!novaLista.selectedCadenceId ? 'border-primary' : 'border-border'}`}>
                             {!novaLista.selectedCadenceId && <div className="w-2 h-2 rounded-full bg-primary" />}
                           </div>
                           <div>
@@ -2484,16 +2484,16 @@ export default function CaixaRapidoPage() {
                             <div
                               key={cad.id}
                               onClick={() => setNovaLista((p: any) => ({ ...p, selectedCadenceId: cad.id }))}
-                              className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-neutral-900/50 border-border/40 hover:border-primary/30'}`}
+                              className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
                             >
-                              <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-primary' : 'border-neutral-600'}`}>
+                              <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-primary' : 'border-border'}`}>
                                 {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">
                                   <p className="text-sm font-semibold text-foreground">{cad.nome}</p>
                                   {cad.tipoOrigem === 'template' && (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-neutral-800 text-muted-foreground rounded border border-border/50 uppercase">Template</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border/50 uppercase">Template</span>
                                   )}
                                 </div>
                                 <p className="text-[10px] text-muted-foreground">
@@ -2534,7 +2534,7 @@ export default function CaixaRapidoPage() {
                             <p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Sequência da cadência "{cad.nome}"</p>
                             <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                               {cad.etapas?.sort((a: any, b: any) => a.ordem - b.ordem).map((etapa: any) => (
-                                <div key={etapa.ordem} className="flex gap-3 p-3.5 rounded-xl bg-neutral-900 border border-border/40">
+                                <div key={etapa.ordem} className="flex gap-3 p-3.5 rounded-xl bg-secondary border border-border/40">
                                   <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">{etapa.ordem}</div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-[10px] text-muted-foreground mb-1">
@@ -2558,7 +2558,7 @@ export default function CaixaRapidoPage() {
                             {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                               <button key={v} type="button"
                                 onClick={() => setNovaLista((p: any) => ({ ...p, mensagemManual: (p.mensagemManual || '') + v, mensagemTemplateId: null }))}
-                                className="px-2 py-1 rounded-lg bg-neutral-900 border border-border/30 text-[10px] text-primary hover:bg-neutral-800 transition-colors font-mono">
+                                className="px-2 py-1 rounded-lg bg-secondary border border-border/30 text-[10px] text-primary hover:bg-muted transition-colors font-mono">
                                 {v}
                               </button>
                             ))}
@@ -2594,7 +2594,7 @@ export default function CaixaRapidoPage() {
                               {/* Opção: sem template */}
                               <div
                                 onClick={() => setNovaLista((p: any) => ({ ...p, mensagemTemplateId: null }))}
-                                className={`p-3 rounded-xl border cursor-pointer transition-all ${!novaLista.mensagemTemplateId ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-border hover:border-primary/50'}`}
+                                className={`p-3 rounded-xl border cursor-pointer transition-all ${!novaLista.mensagemTemplateId ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}
                               >
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-bold text-xs text-muted-foreground">Sem template</span>
@@ -2606,7 +2606,7 @@ export default function CaixaRapidoPage() {
                                 const sel = novaLista.mensagemTemplateId === tpl.id
                                 return (
                                   <div key={tpl.id} onClick={() => setNovaLista((p: any) => ({ ...p, mensagemTemplateId: tpl.id }))}
-                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-border hover:border-primary/50'}`}>
+                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="font-bold text-xs text-primary">{tpl.nome}</span>
                                       {sel && <CheckCircle className="w-3.5 h-3.5 text-primary" />}
@@ -2625,10 +2625,10 @@ export default function CaixaRapidoPage() {
                               onChange={e => setNovaLista((p: any) => ({ ...p, mensagemManual: e.target.value }))}
                               rows={7}
                               placeholder="Olá {nome}, tudo bem?&#10;&#10;Vi que você demonstrou interesse em nossos serviços..."
-                              className="w-full px-3 py-2.5 bg-neutral-900 border border-border/50 rounded-xl text-xs focus:outline-none focus:border-primary font-mono resize-none transition-colors"
+                              className="w-full px-3 py-2.5 bg-secondary border border-border/50 rounded-xl text-xs focus:outline-none focus:border-primary font-mono resize-none transition-colors"
                             />
                             {novaLista.mensagemManual?.trim() && (
-                              <div className="p-3 rounded-xl bg-neutral-900/50 border border-border/20">
+                              <div className="p-3 rounded-xl bg-secondary border border-border/20">
                                 <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                                 <p className="text-xs whitespace-pre-wrap text-foreground/80">
                                   {(novaLista.mensagemManual || '')
@@ -2661,8 +2661,8 @@ export default function CaixaRapidoPage() {
                           return (
                             <div key={opt.label}
                               onClick={() => setNovaLista({ ...novaLista, agendamento: opt.value ? { dataHoraInicio: fromSPLocalValue(suggestSPDateTime()) } : undefined })}
-                              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${active ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-border hover:border-primary/50'}`}>
-                              <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? 'border-primary' : 'border-neutral-600'}`}>
+                              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${active ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
+                              <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? 'border-primary' : 'border-border'}`}>
                                 {active && <div className="w-2 h-2 rounded-full bg-primary" />}
                               </div>
                               <div>
@@ -2673,13 +2673,13 @@ export default function CaixaRapidoPage() {
                           )
                         })}
                         {novaLista.agendamento && (
-                          <div className="p-3 rounded-xl bg-neutral-900 border border-primary/30 space-y-1">
+                          <div className="p-3 rounded-xl bg-secondary border border-primary/30 space-y-1">
                             <label className="text-[10px] font-bold uppercase text-muted-foreground block">Data e Hora (São Paulo — UTC-3)</label>
                             <input
                               type="datetime-local"
                               value={toSPLocalValue(novaLista.agendamento?.dataHoraInicio)}
                               onChange={e => setNovaLista({ ...novaLista, agendamento: { dataHoraInicio: fromSPLocalValue(e.target.value) } })}
-                              className="w-full bg-black border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none text-foreground"
+                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none text-foreground"
                             />
                             <p className="text-[9px] text-muted-foreground/60">Horário oficial de São Paulo (sem ajuste de verão)</p>
                           </div>
@@ -2689,7 +2689,7 @@ export default function CaixaRapidoPage() {
                       {/* Configurações */}
                       <div className="space-y-3">
                         <h4 className="text-sm font-bold text-primary flex items-center gap-2"><Settings className="w-4 h-4" /> Configurações</h4>
-                        <div className="p-4 rounded-xl border border-border bg-neutral-900 space-y-4">
+                        <div className="p-4 rounded-xl border border-border bg-secondary space-y-4">
                           {/* Horário Comercial */}
                           <div className="flex items-center justify-between">
                             <div>
@@ -2704,7 +2704,7 @@ export default function CaixaRapidoPage() {
                             <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Intervalo entre mensagens (seg)</label>
                             <input type="number" min="5" value={novaLista.configEnvio?.intervaloSegundos ?? 30}
                               onChange={e => setNovaLista({ ...novaLista, configEnvio: { ...novaLista.configEnvio, intervaloSegundos: Number(e.target.value) } })}
-                              className="w-full bg-black border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none" />
+                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none" />
                           </div>
 
                           {/* Webhook */}
@@ -2716,7 +2716,7 @@ export default function CaixaRapidoPage() {
                                 const selected = savedWebhooks.find((w: any) => w.url === e.target.value)
                                 setNovaLista({ ...novaLista, configEnvio: { ...novaLista.configEnvio, webhookUrl: e.target.value, webhookNome: selected?.nome || '' } })
                               }}
-                              className="w-full bg-black border border-border rounded-xl px-3 py-2 text-xs focus:border-primary outline-none text-foreground"
+                              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-xs focus:border-primary outline-none text-foreground"
                             >
                               <option value="">Padrão do perfil</option>
                               {savedWebhooks.map((w: any) => (
@@ -2729,18 +2729,18 @@ export default function CaixaRapidoPage() {
                                 + Cadastrar novo webhook
                               </button>
                             ) : (
-                              <div className="space-y-2 p-3 rounded-xl bg-neutral-950 border border-primary/20">
+                              <div className="space-y-2 p-3 rounded-xl bg-card border border-primary/20">
                                 <input type="text" placeholder="Nome (ex: Disparo Prospecção)"
                                   value={newWebhookForm.nome}
                                   onChange={e => setNewWebhookForm(f => ({ ...f, nome: e.target.value }))}
-                                  className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs focus:border-primary outline-none" />
+                                  className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs focus:border-primary outline-none" />
                                 <input type="url" placeholder="https://n8n.empresa.com/webhook/..."
                                   value={newWebhookForm.url}
                                   onChange={e => setNewWebhookForm(f => ({ ...f, url: e.target.value }))}
-                                  className="w-full bg-neutral-900 border border-border rounded-lg px-2.5 py-1.5 text-xs focus:border-primary outline-none font-mono" />
+                                  className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs focus:border-primary outline-none font-mono" />
                                 <div className="flex gap-2">
                                   <button type="button" onClick={() => { setShowNewWebhookForm(false); setNewWebhookForm({ nome: '', url: '' }) }}
-                                    className="flex-1 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-neutral-800">Cancelar</button>
+                                    className="flex-1 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-muted">Cancelar</button>
                                   <button type="button" onClick={async () => {
                                     try {
                                       const created = await crmActions.createWebhook(newWebhookForm)
@@ -2770,7 +2770,7 @@ export default function CaixaRapidoPage() {
                   const leadCount = novaLista.selectedDealIds?.length || dealsPreview.length
                   return (
                     <div className="space-y-5">
-                      <div className="p-6 bg-neutral-900/50 rounded-xl border border-primary/30 relative overflow-hidden">
+                      <div className="p-6 bg-secondary rounded-xl border border-primary/30 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" style={{ background: 'hsl(var(--primary) / 0.1)' }} />
                         <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
                           <Sparkles className="w-5 h-5 text-primary" /> Confirmar e Disparar
@@ -2805,7 +2805,7 @@ export default function CaixaRapidoPage() {
                                 const isNow = cumulativeMs === 0 || scheduledAt <= new Date()
                                 return (
                                   <div key={etapa.ordem} className="flex items-center gap-3">
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isNow ? 'bg-primary text-black' : 'bg-neutral-800 text-muted-foreground border border-border'}`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${isNow ? 'bg-primary text-black' : 'bg-muted text-muted-foreground border border-border'}`}>
                                       {etapa.ordem}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -2828,7 +2828,7 @@ export default function CaixaRapidoPage() {
                             <p className="text-xs font-bold text-primary flex items-center gap-2">
                               <Calendar className="w-3.5 h-3.5" /> Disparo Único
                             </p>
-                            <div className="p-3.5 rounded-xl bg-neutral-900 border border-border/40">
+                            <div className="p-3.5 rounded-xl bg-secondary border border-border/40">
                               <p className="text-xs text-foreground whitespace-pre-wrap">{msg}</p>
                             </div>
                           </div>
@@ -2866,7 +2866,7 @@ export default function CaixaRapidoPage() {
                     </div>
                   )}
                   <div className="flex justify-between items-center">
-                    <button onClick={handleWizardBack} className="px-6 py-2 rounded-xl font-semibold text-sm border border-border text-muted-foreground hover:bg-neutral-800 hover:text-foreground transition-all">
+                    <button onClick={handleWizardBack} className="px-6 py-2 rounded-xl font-semibold text-sm border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
                       {wizardStep === 1 ? 'Cancelar' : 'Voltar'}
                     </button>
                     {wizardStep < 6 ? (
@@ -2901,7 +2901,7 @@ export default function CaixaRapidoPage() {
             {activeTab === 'historico' && (
               <div className="animate-fade-in ocr-card rounded-2xl overflow-hidden">
                 {/* Header */}
-                <div className="px-5 py-3.5 border-b border-border/40 bg-neutral-900/60 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
+                <div className="px-5 py-3.5 border-b border-border/40 bg-secondary grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Ação / Lista</span>
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground text-right w-20">Enviados</span>
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground text-right w-28">Data Disparo</span>
@@ -2923,15 +2923,15 @@ export default function CaixaRapidoPage() {
                         ATIVA:        'bg-blue-500/10 text-blue-400 border-blue-500/20',
                         EM_ANDAMENTO: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
                         CONCLUIDA:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                        CANCELADA:    'bg-neutral-800 text-neutral-500 border-neutral-700',
-                        PAUSADA:      'bg-neutral-700/50 text-neutral-400 border-neutral-600',
+                        CANCELADA:    'bg-muted text-muted-foreground border-border',
+                        PAUSADA:      'bg-muted text-muted-foreground border-border',
                       }
                       const statusLabels: Record<string, string> = {
                         AGENDADA: 'Agendada', ATIVA: 'Ativa', EM_ANDAMENTO: 'Em andamento',
                         CONCLUIDA: 'Concluída', CANCELADA: 'Cancelada', PAUSADA: 'Pausada',
                       }
                       return (
-                        <div key={item.id ?? idx} className="px-5 py-3.5 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center hover:bg-neutral-900/30 transition-colors">
+                        <div key={item.id ?? idx} className="px-5 py-3.5 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center hover:bg-secondary transition-colors">
                           {/* Nome */}
                           <div className="min-w-0">
                             {item.acaoNome && (
@@ -2960,7 +2960,7 @@ export default function CaixaRapidoPage() {
 
                           {/* Status */}
                           <div className="text-right w-24">
-                            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${statusColors[item.status] ?? 'bg-neutral-800 text-muted-foreground border-border'}`}>
+                            <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${statusColors[item.status] ?? 'bg-muted text-muted-foreground border-border'}`}>
                               {statusLabels[item.status] ?? item.status}
                             </span>
                           </div>
@@ -2971,7 +2971,7 @@ export default function CaixaRapidoPage() {
                 )}
 
                 {historico.length > 0 && (
-                  <div className="px-5 py-3 border-t border-border/30 bg-neutral-950/30 flex items-center justify-between">
+                  <div className="px-5 py-3 border-t border-border/30 bg-card flex items-center justify-between">
                     <p className="text-[10px] text-muted-foreground">{historico.length} registro{historico.length !== 1 ? 's' : ''}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {historico.filter((h: any) => h.status === 'CONCLUIDA').length} concluído{historico.filter((h: any) => h.status === 'CONCLUIDA').length !== 1 ? 's' : ''} · {' '}
@@ -2987,11 +2987,11 @@ export default function CaixaRapidoPage() {
 
       {/* Editing template modal */}
       {editingListTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-lg bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
+          <div className="w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold">Editar Template da Ação</h3>
-              <button onClick={() => setEditingListTemplate(null)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+              <button onClick={() => setEditingListTemplate(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3001,7 +3001,7 @@ export default function CaixaRapidoPage() {
                 <div className="flex flex-wrap gap-2">
                   {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                     <button key={v} onClick={() => setTempTemplateText(p => p + v)}
-                      className="px-2 py-1 rounded bg-neutral-900 border border-border/20 text-xs text-primary hover:bg-neutral-800 transition-colors">
+                      className="px-2 py-1 rounded bg-secondary border border-border/20 text-xs text-primary hover:bg-muted transition-colors">
                       {v}
                     </button>
                   ))}
@@ -3010,15 +3010,15 @@ export default function CaixaRapidoPage() {
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1 block">Corpo</label>
                 <textarea value={tempTemplateText} onChange={e => setTempTemplateText(e.target.value)} rows={6}
-                  className="w-full px-3 py-2 bg-neutral-900 border border-border/30 rounded-xl text-xs focus:outline-none font-mono" />
+                  className="w-full px-3 py-2 bg-secondary border border-border/30 rounded-xl text-xs focus:outline-none font-mono" />
               </div>
-              <div className="p-3.5 rounded-xl bg-neutral-900/50 border border-border/20">
+              <div className="p-3.5 rounded-xl bg-secondary border border-border/20">
                 <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                 <p className="text-xs whitespace-pre-wrap">{getPreviewText(tempTemplateText) || 'Escreva algo...'}</p>
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setEditingListTemplate(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-neutral-400 hover:bg-neutral-800">Cancelar</button>
+              <button onClick={() => setEditingListTemplate(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
               <button onClick={handleSaveTemplateText} className="flex-1 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
             </div>
           </div>
@@ -3027,14 +3027,14 @@ export default function CaixaRapidoPage() {
 
       {/* Modal: editar contatos de lista agendada */}
       {editingListContacts && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-lg bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
+          <div className="w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-base font-extrabold">Contatos do Disparo</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{editingListContacts.nomeLista}</p>
               </div>
-              <button onClick={() => setEditingListContacts(null)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+              <button onClick={() => setEditingListContacts(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3043,7 +3043,7 @@ export default function CaixaRapidoPage() {
                 <div className="text-center py-10 text-sm text-muted-foreground">Nenhum contato nesta lista.</div>
               ) : (
                 (editingListContacts.leads ?? []).map((lead: any) => (
-                  <div key={lead.id} className="flex items-center gap-3 p-3 rounded-xl bg-neutral-900 border border-border/40">
+                  <div key={lead.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border/40">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{lead.nomeSnapshot}</p>
                       <p className="text-xs text-muted-foreground">{lead.telefoneSnapshot}</p>
@@ -3051,7 +3051,7 @@ export default function CaixaRapidoPage() {
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       lead.statusEnvio === 'PENDENTE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                       lead.statusEnvio === 'ENVIADO' ? 'bg-primary/10 text-primary border-primary/20' :
-                      'bg-neutral-800 text-muted-foreground border-border'
+                      'bg-muted text-muted-foreground border-border'
                     }`}>{lead.statusEnvio}</span>
                     {lead.statusEnvio === 'PENDENTE' && (
                       <button
@@ -3078,7 +3078,7 @@ export default function CaixaRapidoPage() {
             </div>
             <div className="pt-2 border-t border-border/40 shrink-0">
               <button onClick={() => setEditingListContacts(null)}
-                className="w-full py-2 rounded-xl border border-border text-xs font-semibold text-neutral-400 hover:bg-neutral-800">
+                className="w-full py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">
                 Fechar
               </button>
             </div>
@@ -3088,11 +3088,11 @@ export default function CaixaRapidoPage() {
 
       {/* Edit lista meta modal */}
       {editingListaMeta && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-neutral-950 border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
+          <div className="w-full max-w-md bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold">Editar Ação</h3>
-              <button onClick={() => setEditingListaMeta(null)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+              <button onClick={() => setEditingListaMeta(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3102,7 +3102,7 @@ export default function CaixaRapidoPage() {
                 <input
                   value={editListaMetaForm.nomeLista}
                   onChange={e => setEditListaMetaForm(f => ({ ...f, nomeLista: e.target.value }))}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none"
+                  className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none"
                   placeholder="Nome da ação"
                 />
               </div>
@@ -3112,13 +3112,13 @@ export default function CaixaRapidoPage() {
                   value={editListaMetaForm.descricao}
                   onChange={e => setEditListaMetaForm(f => ({ ...f, descricao: e.target.value }))}
                   rows={3}
-                  className="w-full bg-neutral-900 border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none resize-none"
+                  className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm focus:border-primary outline-none resize-none"
                   placeholder="Descrição opcional..."
                 />
               </div>
             </div>
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setEditingListaMeta(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-neutral-400 hover:bg-neutral-800">Cancelar</button>
+              <button onClick={() => setEditingListaMeta(null)} className="flex-1 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
               <button onClick={handleSaveListaMeta} className="flex-1 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:shadow-lg transition-all">Salvar</button>
             </div>
           </div>
@@ -3127,21 +3127,21 @@ export default function CaixaRapidoPage() {
 
       {/* Modal Reutilizar */}
       {reutilizarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-neutral-950 rounded-2xl border border-border/40 p-6 space-y-5 shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-card backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg bg-card rounded-2xl border border-border/40 p-6 space-y-5 shadow-2xl animate-scale-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-extrabold text-foreground">Reutilizar Disparo</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">Confirme ou ajuste os parâmetros antes de reenviar</p>
               </div>
-              <button onClick={() => setReutilizarModal(null)} className="p-1.5 rounded-lg hover:bg-neutral-800 text-muted-foreground">
+              <button onClick={() => setReutilizarModal(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Leads info */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-900/60 border border-border/30">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border/30">
               <Users className="w-4 h-4 text-muted-foreground shrink-0" />
               <p className="text-xs text-muted-foreground">
                 <span className="font-bold text-foreground">{reutilizarModal.lista.leads?.length ?? reutilizarModal.lista.totalLeads ?? 0} leads</span>
@@ -3156,7 +3156,7 @@ export default function CaixaRapidoPage() {
                 type="text"
                 value={reutilizarForm.nomeLista}
                 onChange={e => setReutilizarForm(f => ({ ...f, nomeLista: e.target.value }))}
-                className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all"
+                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all"
               />
             </div>
 
@@ -3167,7 +3167,7 @@ export default function CaixaRapidoPage() {
                 rows={4}
                 value={reutilizarForm.mensagemTemplate}
                 onChange={e => setReutilizarForm(f => ({ ...f, mensagemTemplate: e.target.value }))}
-                className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all resize-none font-mono"
+                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all resize-none font-mono"
               />
               <p className="text-[10px] text-muted-foreground">Variáveis: {'{nome}'} {'{primeiro_nome}'} {'{ramo}'}</p>
             </div>
@@ -3181,14 +3181,14 @@ export default function CaixaRapidoPage() {
                   min={5}
                   value={reutilizarForm.intervaloSegundos}
                   onChange={e => setReutilizarForm(f => ({ ...f, intervaloSegundos: Number(e.target.value) }))}
-                  className="w-full bg-black border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-primary outline-none transition-all"
+                  className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary outline-none transition-all"
                 />
               </div>
               <div className="flex items-end pb-2.5">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <div
                     onClick={() => setReutilizarForm(f => ({ ...f, horarioComercial: !f.horarioComercial }))}
-                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer shrink-0 ${reutilizarForm.horarioComercial ? 'bg-primary' : 'bg-neutral-700'}`}
+                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer shrink-0 ${reutilizarForm.horarioComercial ? 'bg-primary' : 'bg-muted'}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${reutilizarForm.horarioComercial ? 'translate-x-4' : ''}`} />
                   </div>
@@ -3201,7 +3201,7 @@ export default function CaixaRapidoPage() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setReutilizarModal(null)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-neutral-400 hover:bg-neutral-800 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
@@ -3223,20 +3223,20 @@ export default function CaixaRapidoPage() {
 
       {/* Relatórios Modal */}
       {selectedRelatorioLista && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-3xl bg-neutral-950 rounded-2xl border border-primary/30 p-6 flex flex-col max-h-[90vh] animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-card backdrop-blur-sm p-4">
+          <div className="w-full max-w-3xl bg-card rounded-2xl border border-primary/30 p-6 flex flex-col max-h-[90vh] animate-scale-in">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-xl font-black text-foreground">Relatório da Lista</h2>
                 <p className="text-sm text-muted-foreground">{selectedRelatorioLista.nomeLista}</p>
               </div>
-              <button onClick={() => setSelectedRelatorioLista(null)} className="p-2 bg-neutral-900 rounded-full hover:bg-neutral-800 transition-colors text-muted-foreground hover:text-foreground">
+              <button onClick={() => setSelectedRelatorioLista(null)} className="p-2 bg-secondary rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-neutral-900/80 p-4 rounded-xl border border-border/50 flex flex-col items-center">
+              <div className="bg-secondary p-4 rounded-xl border border-border/50 flex flex-col items-center">
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Total Alvos</span>
                 <span className="text-2xl font-black">{selectedRelatorioLista.totalLeads}</span>
               </div>
@@ -3248,15 +3248,15 @@ export default function CaixaRapidoPage() {
                 <span className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-1">Erros</span>
                 <span className="text-2xl font-black text-rose-500">{selectedRelatorioLista.erros || selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'ERRO').length || 0}</span>
               </div>
-              <div className="bg-neutral-900/80 p-4 rounded-xl border border-border/50 flex flex-col items-center">
+              <div className="bg-secondary p-4 rounded-xl border border-border/50 flex flex-col items-center">
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Pendentes</span>
                 <span className="text-2xl font-black">{selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'PENDENTE').length || 0}</span>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto rounded-xl border border-border/50 bg-black/40">
+            <div className="flex-1 overflow-auto rounded-xl border border-border/50 bg-card">
               <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-neutral-900/80 text-[10px] text-muted-foreground font-bold tracking-widest uppercase sticky top-0">
+                <thead className="bg-secondary text-[10px] text-muted-foreground font-bold tracking-widest uppercase sticky top-0">
                   <tr>
                     <th className="p-4">Lead / Telefone</th>
                     <th className="p-4 text-center">Status</th>
@@ -3265,7 +3265,7 @@ export default function CaixaRapidoPage() {
                 </thead>
                 <tbody className="divide-y divide-border/30">
                   {selectedRelatorioLista.leads?.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-neutral-900/30 transition-colors">
+                    <tr key={lead.id} className="hover:bg-secondary transition-colors">
                       <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-foreground">{lead.nomeSnapshot}</span>
@@ -3280,7 +3280,7 @@ export default function CaixaRapidoPage() {
                           lead.statusEnvio === 'ENVIADO' ? 'bg-primary/20 text-primary' :
                           lead.statusEnvio === 'ERRO' ? 'bg-rose-500/20 text-rose-500' :
                           lead.statusEnvio === 'ENVIANDO' ? 'bg-amber-500/20 text-amber-500' :
-                          'bg-neutral-800 text-muted-foreground'
+                          'bg-muted text-muted-foreground'
                         }`}>
                           {lead.statusEnvio}
                         </span>

@@ -244,17 +244,17 @@ export default function BussolaPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex flex-col h-full min-h-screen bg-black text-foreground select-none">
+      <div className="flex flex-col h-full min-h-screen bg-card text-foreground select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────────── */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border/20 bg-black/30 backdrop-blur-md sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border/20 bg-card backdrop-blur-md sticky top-0 z-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
                 <Compass className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-white">Bússola</h1>
+                <h1 className="text-xl font-bold tracking-tight text-primary-foreground">Bússola</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">Atribuição de fontes · Insights IA · Relatórios precisos</p>
               </div>
               <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full shrink-0">
@@ -282,7 +282,7 @@ export default function BussolaPage() {
 
           {/* Tab switcher — scrollable on mobile */}
           <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-neutral-900/60 border border-border/30 w-max min-w-full sm:w-fit sm:min-w-0">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary border border-border/30 w-max min-w-full sm:w-fit sm:min-w-0">
               {TABS.map(tab => {
                 const Icon = tab.icon
                 const active = activeTab === tab.id
@@ -293,7 +293,7 @@ export default function BussolaPage() {
                     className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0 ${
                       active
                         ? 'bg-primary/15 text-primary border border-primary/30 shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-neutral-800/60'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -316,7 +316,7 @@ export default function BussolaPage() {
 
               {/* Source cards */}
               <div>
-                <h2 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-bold text-primary-foreground mb-3 flex items-center gap-2">
                   <Globe className="w-4 h-4 text-primary" /> Origem dos Leads
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
@@ -339,7 +339,7 @@ export default function BussolaPage() {
                         <p className="text-xs font-semibold text-foreground mb-0.5">{src.label}</p>
                         <p className="text-2xl font-bold" style={{ color: src.color }}>{src.leads}</p>
                         <p className="text-[10px] text-muted-foreground mb-2">leads captados</p>
-                        <div className="w-full bg-neutral-800 rounded-full h-1 mb-3">
+                        <div className="w-full bg-muted rounded-full h-1 mb-3">
                           <div className="h-1 rounded-full transition-all" style={{ width: `${pct}%`, background: src.color }} />
                         </div>
                         <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -391,7 +391,7 @@ export default function BussolaPage() {
                         <span className="text-right">Receita</span>
                       </div>
                       {utmSources.map(src => (
-                        <div key={src.id} className="grid grid-cols-6 gap-1 px-2 py-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                        <div key={src.id} className="grid grid-cols-6 gap-1 px-2 py-2.5 rounded-xl hover:bg-secondary transition-colors">
                           <div className="col-span-2 flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: src.color }} />
                             <span className="text-xs font-medium text-foreground truncate">{src.label}</span>
@@ -449,10 +449,10 @@ export default function BussolaPage() {
                 {/* Pipeline */}
                 <div className="relative">
                   <button onClick={() => setShowPipelineDD(!showPipelineDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-black/40 text-xs font-semibold text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    <Target className="w-4 h-4 text-neutral-400" />
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    <Target className="w-4 h-4 text-muted-foreground" />
                     <span>Pipeline: {activePipelineName}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                   {showPipelineDD && (
                     <>
@@ -460,7 +460,7 @@ export default function BussolaPage() {
                       <div className="absolute left-0 mt-2 w-56 rounded-xl border border-border/30 bg-[#0c101b] p-2 shadow-xl z-40 animate-scale-in">
                         {pipelines.map(p => (
                           <button key={p.id} onClick={() => { setActivePipelineId(p.id); setShowPipelineDD(false) }}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePipelineId === p.id ? 'bg-primary/10 text-primary' : 'text-neutral-400 hover:bg-neutral-900 hover:text-white'}`}>
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePipelineId === p.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-primary-foreground'}`}>
                             {p.nome}
                           </button>
                         ))}
@@ -472,10 +472,10 @@ export default function BussolaPage() {
                 {/* Period */}
                 <div className="relative">
                   <button onClick={() => setShowPeriodDD(!showPeriodDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-black/40 text-xs font-semibold text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    <Calendar className="w-4 h-4 text-neutral-400" />
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>Período: {periodLabel}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                   {showPeriodDD && (
                     <>
@@ -487,7 +487,7 @@ export default function BussolaPage() {
                           ['este_mes', 'Este mês'], ['mes_passado', 'Mês passado'], ['customizado', 'Personalizado']
                         ].map(([value, label]) => (
                           <button key={value} onClick={() => { setPreset(value); setShowPeriodDD(false) }}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${preset === value ? 'bg-primary/10 text-primary' : 'text-neutral-400 hover:bg-neutral-900 hover:text-white'}`}>
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${preset === value ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-primary-foreground'}`}>
                             {label}
                             {preset === value && <Check className="w-3.5 h-3.5" />}
                           </button>
@@ -495,9 +495,9 @@ export default function BussolaPage() {
                         {preset === 'customizado' && (
                           <div className="flex gap-2 mt-2 px-2">
                             <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
-                              className="flex-1 bg-neutral-900 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
                             <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
-                              className="flex-1 bg-neutral-900 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground" />
                           </div>
                         )}
                       </div>
@@ -508,21 +508,21 @@ export default function BussolaPage() {
                 {/* Sellers */}
                 <div className="relative">
                   <button onClick={() => setShowSellersDD(!showSellersDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-black/40 text-xs font-semibold text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    <Users className="w-4 h-4 text-neutral-400" />
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/30 bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    <Users className="w-4 h-4 text-muted-foreground" />
                     <span>Vendedores: {ownerIds.length === 0 ? 'Todos' : ownerIds.length + ' sel.'}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                   {showSellersDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowSellersDD(false)} />
                       <div className="absolute left-0 mt-2 w-52 rounded-xl border border-border/30 bg-[#0c101b] p-2 shadow-xl z-40 animate-scale-in">
-                        <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white flex items-center justify-between">
+                        <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
                           Todos os vendedores {ownerIds.length === 0 && <Check className="w-3.5 h-3.5 text-primary" />}
                         </button>
                         {sellersList.map(s => (
                           <button key={s.id} onClick={() => toggleSeller(s.id)}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white flex items-center justify-between">
+                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
                             {s.name}
                             {ownerIds.includes(s.id) && <Check className="w-3.5 h-3.5 text-primary" />}
                           </button>
@@ -555,7 +555,7 @@ export default function BussolaPage() {
                     { label: 'Pipeline', value: activePipelineName, icon: BarChart3, color: 'text-purple-400' },
                   ].map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="ocr-card card-padding">
-                      <div className={`p-2 rounded-xl bg-neutral-900/60 border border-border/50 ${color} w-fit mb-2`}>
+                      <div className={`p-2 rounded-xl bg-secondary border border-border/50 ${color} w-fit mb-2`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">{label}</p>
@@ -612,7 +612,7 @@ export default function BussolaPage() {
                         <span className="text-right">Tempo Méd.</span>
                       </div>
                       {funnelData.map(s => (
-                        <div key={s.stageId} className="grid grid-cols-5 gap-1 px-2 py-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                        <div key={s.stageId} className="grid grid-cols-5 gap-1 px-2 py-2.5 rounded-xl hover:bg-secondary transition-colors">
                           <div className="col-span-2 flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.cor || '#00E676' }} />
                             <span className="text-xs font-medium text-foreground truncate">{s.stageNome}</span>
@@ -638,7 +638,7 @@ export default function BussolaPage() {
                         <span className="text-right">Conv.</span>
                       </div>
                       {sellersData.map(s => (
-                        <div key={s.sellerId} className="grid grid-cols-5 gap-1 px-2 py-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                        <div key={s.sellerId} className="grid grid-cols-5 gap-1 px-2 py-2.5 rounded-xl hover:bg-secondary transition-colors">
                           <div className="col-span-2 flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] flex items-center justify-center font-bold shrink-0">
                               {s.sellerNome.split(' ').map((w: string) => w[0]).join('').slice(0, 2)}
@@ -668,7 +668,7 @@ export default function BussolaPage() {
                       <span className="text-right">Tempo Atrib.</span>
                     </div>
                     {assignmentData.map((p, i) => (
-                      <div key={p.pipelineId} className="grid grid-cols-4 gap-1 px-2 py-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                      <div key={p.pipelineId} className="grid grid-cols-4 gap-1 px-2 py-2.5 rounded-xl hover:bg-secondary transition-colors">
                         <div className="col-span-2 flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
                           <span className="text-xs font-medium text-foreground">{p.pipelineNome}</span>

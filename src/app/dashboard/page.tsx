@@ -29,7 +29,7 @@ const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
   BAIXA: { label: 'LEAD AP', color: 'text-emerald-400' },
   MEDIA: { label: 'ZONA CINZA', color: 'text-amber-400' },
   ALTA: { label: 'DESQUALIFICADA', color: 'text-rose-400' },
-  NAO_RESPONDEU: { label: 'NÃO RESPONDEU', color: 'text-neutral-400' },
+  NAO_RESPONDEU: { label: 'NÃO RESPONDEU', color: 'text-muted-foreground' },
 }
 
 type DashboardDeal = { id: string; titulo: string; status: string; valorEstimado: number; prioridade?: string; pipelineId?: string; stageId?: string; contactId?: string; ownerUserId?: string; origem?: string | null; createdAt: string }
@@ -227,27 +227,27 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-6 lg:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-2">
-              <div className="h-7 w-52 rounded-xl bg-neutral-800/50 animate-pulse" />
-              <div className="h-4 w-72 rounded-lg bg-neutral-800/40 animate-pulse" />
+              <div className="h-7 w-52 rounded-xl bg-muted animate-pulse" />
+              <div className="h-4 w-72 rounded-lg bg-muted animate-pulse" />
             </div>
-            <div className="h-9 w-36 rounded-xl bg-neutral-800/40 animate-pulse" />
+            <div className="h-9 w-36 rounded-xl bg-muted animate-pulse" />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border/30 bg-neutral-900/30 p-5 space-y-4">
+              <div key={i} className="rounded-2xl border border-border/30 bg-secondary p-5 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="h-9 w-9 rounded-xl bg-neutral-800/60 animate-pulse" />
-                  <div className="h-4 w-10 rounded-lg bg-neutral-800/40 animate-pulse" />
+                  <div className="h-9 w-9 rounded-xl bg-muted animate-pulse" />
+                  <div className="h-4 w-10 rounded-lg bg-muted animate-pulse" />
                 </div>
-                <div className="h-3 w-24 rounded bg-neutral-800/40 animate-pulse" />
-                <div className="h-8 w-20 rounded-lg bg-neutral-800/50 animate-pulse" />
-                <div className="h-3 w-32 rounded bg-neutral-800/30 animate-pulse" />
+                <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+                <div className="h-8 w-20 rounded-lg bg-muted animate-pulse" />
+                <div className="h-3 w-32 rounded bg-muted animate-pulse" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className={`rounded-2xl border border-border/30 bg-neutral-900/30 p-5 h-48 animate-pulse ${i === 0 ? '' : 'lg:col-span-1'}`} />
+              <div key={i} className={`rounded-2xl border border-border/30 bg-secondary p-5 h-48 animate-pulse ${i === 0 ? '' : 'lg:col-span-1'}`} />
             ))}
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Comercial</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-primary-foreground">Dashboard Comercial</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Visão executiva consolidada da sua operação de vendas
             </p>
@@ -274,14 +274,14 @@ export default function DashboardPage() {
             <select
               value={selectedPipelineId}
               onChange={e => setSelectedPipelineId(e.target.value)}
-              className="text-xs bg-neutral-900/60 border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
+              className="text-xs bg-secondary border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
             >
               <option value="all">Todos os produtos</option>
               {pipelines.map(p => (
                 <option key={p.id} value={p.id}>{p.nome}</option>
               ))}
             </select>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-neutral-900/40 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-secondary text-xs text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Ao vivo
             </div>
@@ -531,7 +531,7 @@ export default function DashboardPage() {
                   type="month"
                   value={timelineMonth}
                   onChange={e => { setTimelineMonth(e.target.value); setTimelineDay('') }}
-                  className="px-2 py-1 rounded-lg border border-border bg-neutral-900 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  className="px-2 py-1 rounded-lg border border-border bg-secondary text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -571,9 +571,9 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               {topSellers.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-neutral-900/40 transition-colors">
+                <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors">
                   {/* Rank */}
-                  <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-neutral-300' : 'text-amber-700'}`}>
+                  <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-muted-foreground' : 'text-amber-700'}`}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
                   </span>
                   {/* Avatar */}

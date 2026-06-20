@@ -265,7 +265,7 @@ export default function BuscarLeadsTab() {
     if (!showBulkModal) return null
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-card backdrop-blur-sm px-4">
         <div className="w-full max-w-md bg-popover rounded-2xl border border-border p-6 space-y-4 animate-scale-in">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground">
@@ -284,7 +284,7 @@ export default function BuscarLeadsTab() {
                 <select
                   value={targetLista}
                   onChange={e => setTargetLista(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground cursor-pointer"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground cursor-pointer"
                 >
                   <option value="">-- Escolha uma lista existente --</option>
                   {Array.isArray(listas) && listas.map((l: any) => (
@@ -329,7 +329,7 @@ export default function BuscarLeadsTab() {
               <select
                 value={targetPipeline}
                 onChange={e => setTargetPipeline(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
               >
                 <option value="">-- Escolha um funil --</option>
                 {Array.isArray(pipelines) && pipelines.map((p: any) => (
@@ -342,7 +342,7 @@ export default function BuscarLeadsTab() {
                 value={targetStage}
                 onChange={e => setTargetStage(e.target.value)}
                 disabled={!targetPipeline || pipelineStages.length === 0}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground disabled:opacity-50"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground disabled:opacity-50"
               >
                 <option value="">-- Escolha uma etapa --</option>
                 {Array.isArray(pipelineStages) && pipelineStages.map((s: any) => (
@@ -355,7 +355,7 @@ export default function BuscarLeadsTab() {
           <div className="flex justify-end gap-2 pt-4 border-t border-border/20">
             <button
               onClick={() => setShowBulkModal(null)}
-              className="px-4 py-2 rounded-xl border border-border text-muted-foreground hover:bg-neutral-900 text-xs font-bold transition-all"
+              className="px-4 py-2 rounded-xl border border-border text-muted-foreground hover:bg-secondary text-xs font-bold transition-all"
             >
               Cancelar
             </button>
@@ -375,7 +375,7 @@ export default function BuscarLeadsTab() {
     <div className="space-y-6 animate-fade-in relative">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl border border-border/30 bg-[#0d0d11]/80 backdrop-blur-md flex flex-col gap-1">
+        <div className="p-4 rounded-2xl border border-border/30 bg-card backdrop-blur-md flex flex-col gap-1">
           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Total Minerados</span>
           <span className="text-2xl font-black text-foreground">{leadsData?.kpis?.total || 0}</span>
         </div>
@@ -383,11 +383,11 @@ export default function BuscarLeadsTab() {
           <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Novos</span>
           <span className="text-2xl font-black text-primary">{leadsData?.kpis?.novos || 0}</span>
         </div>
-        <div className="p-4 rounded-2xl border border-border/30 bg-[#0d0d11]/80 flex flex-col gap-1">
+        <div className="p-4 rounded-2xl border border-border/30 bg-card flex flex-col gap-1">
           <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">Importados CRM</span>
           <span className="text-2xl font-black text-emerald-400">{leadsData?.kpis?.importados || 0}</span>
         </div>
-        <div className="p-4 rounded-2xl border border-border/30 bg-[#0d0d11]/80 flex flex-col gap-1">
+        <div className="p-4 rounded-2xl border border-border/30 bg-card flex flex-col gap-1">
           <span className="text-[10px] uppercase font-bold text-rose-500 tracking-wider">Descartados</span>
           <span className="text-2xl font-black text-rose-400">{leadsData?.kpis?.descartados || 0}</span>
         </div>
@@ -405,7 +405,7 @@ export default function BuscarLeadsTab() {
             <select
               value={selectedNiche}
               onChange={e => setSelectedNiche(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer"
             >
               <option value="">Selecione...</option>
               {activeNiches.map((n: any) => (
@@ -419,7 +419,7 @@ export default function BuscarLeadsTab() {
             <select
               value={selectedUf}
               onChange={e => setSelectedUf(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer"
             >
               <option value="">Selecione...</option>
               {ufs.map((u: any) => (
@@ -437,7 +437,7 @@ export default function BuscarLeadsTab() {
                 if (e.target.value === 'manual') setCityName('')
               }}
               disabled={!selectedUf || loadingCities}
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer disabled:opacity-50"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground cursor-pointer disabled:opacity-50"
             >
               <option value="">{loadingCities ? 'Carregando...' : 'Selecione a cidade...'}</option>
               {Array.isArray(cities) && cities.map((c: any) => (
@@ -451,7 +451,7 @@ export default function BuscarLeadsTab() {
                 placeholder="Digite a cidade..."
                 value={cityName}
                 onChange={e => setCityName(e.target.value)}
-                className="w-full mt-2 px-3 py-2.5 rounded-xl border border-border bg-neutral-900 text-xs focus:outline-none text-foreground"
+                className="w-full mt-2 px-3 py-2.5 rounded-xl border border-border bg-secondary text-xs focus:outline-none text-foreground"
               />
             )}
           </div>
@@ -464,7 +464,7 @@ export default function BuscarLeadsTab() {
                 triggerSuccess 
                   ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' 
                   : isTriggering 
-                    ? 'bg-neutral-800 text-muted-foreground' 
+                    ? 'bg-muted text-muted-foreground' 
                     : 'bg-primary text-black hover:shadow-primary/20'
               }`}
             >
@@ -512,7 +512,7 @@ export default function BuscarLeadsTab() {
             <select
               value={timeFilter}
               onChange={e => setTimeFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-border bg-neutral-900/50 text-xs focus:outline-none text-foreground"
+              className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs focus:outline-none text-foreground"
             >
               <option value="todos">Todo período</option>
               <option value="hoje">Hoje</option>
@@ -523,7 +523,7 @@ export default function BuscarLeadsTab() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-border bg-neutral-900/50 text-xs focus:outline-none text-foreground"
+              className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs focus:outline-none text-foreground"
             >
               <option value="TODOS">Todos Status</option>
               <option value="NOVO">Novos</option>
@@ -538,7 +538,7 @@ export default function BuscarLeadsTab() {
                 placeholder="Buscar lead..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-lg border border-border bg-neutral-900/50 text-xs focus:outline-none text-foreground w-48"
+                className="pl-8 pr-3 py-1.5 rounded-lg border border-border bg-secondary text-xs focus:outline-none text-foreground w-48"
               />
             </div>
           </div>
@@ -546,7 +546,7 @@ export default function BuscarLeadsTab() {
 
         {/* Selected Context Bar — flutuante no topo */}
         {selectedLeads.size > 0 && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-neutral-950/95 backdrop-blur-xl border border-primary/30 rounded-2xl px-5 py-3.5 flex items-center gap-4 shadow-[0_8px_40px_rgba(0,230,118,0.20)] animate-slide-down" style={{ maxWidth: 'calc(100vw - 32px)' }}>
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-card backdrop-blur-xl border border-primary/30 rounded-2xl px-5 py-3.5 flex items-center gap-4 shadow-[0_8px_40px_rgba(0,230,118,0.20)] animate-slide-down" style={{ maxWidth: 'calc(100vw - 32px)' }}>
             {/* Count badge */}
             <div className="flex items-center gap-2 shrink-0">
               <span className="w-7 h-7 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-black text-sm">
@@ -568,16 +568,16 @@ export default function BuscarLeadsTab() {
                 </svg>
                 Criar Ação
               </button>
-              <button onClick={() => setShowBulkModal('lista')} className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold transition-colors whitespace-nowrap shrink-0">
+              <button onClick={() => setShowBulkModal('lista')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap shrink-0">
                 + Lista
               </button>
-              <button onClick={() => setShowBulkModal('deals')} className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold transition-colors whitespace-nowrap shrink-0">
+              <button onClick={() => setShowBulkModal('deals')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap shrink-0">
                 + Negócios
               </button>
-              <button onClick={() => executeBulkAction('importar')} className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold transition-colors whitespace-nowrap text-emerald-400 shrink-0">
+              <button onClick={() => executeBulkAction('importar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-emerald-400 shrink-0">
                 CRM
               </button>
-              <button onClick={() => executeBulkAction('descartar')} className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold transition-colors whitespace-nowrap text-amber-400 shrink-0">
+              <button onClick={() => executeBulkAction('descartar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-amber-400 shrink-0">
                 Descartar
               </button>
               <button onClick={() => executeBulkAction('delete')} className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors shrink-0" title="Excluir Definitivo">
@@ -585,7 +585,7 @@ export default function BuscarLeadsTab() {
               </button>
             </div>
             {/* Close */}
-            <button onClick={() => setSelectedLeads(new Set())} className="p-1.5 rounded-xl hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-1">
+            <button onClick={() => setSelectedLeads(new Set())} className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 ml-1">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -640,7 +640,7 @@ export default function BuscarLeadsTab() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[10px] bg-neutral-900 flex items-center justify-center font-black text-white text-lg shrink-0 border border-border/50">
+                        <div className="w-10 h-10 rounded-[10px] bg-secondary flex items-center justify-center font-black text-primary-foreground text-lg shrink-0 border border-border/50">
                           {(lead.nome || lead.empresa || 'S').charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
@@ -731,7 +731,7 @@ export default function BuscarLeadsTab() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-border bg-neutral-900 text-xs disabled:opacity-50 font-semibold"
+                className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs disabled:opacity-50 font-semibold"
               >
                 Anterior
               </button>
@@ -741,7 +741,7 @@ export default function BuscarLeadsTab() {
               <button
                 disabled={page === (leadsData?.totalPages ?? 1)}
                 onClick={() => setPage(p => Math.min(leadsData?.totalPages ?? 1, p + 1))}
-                className="px-3 py-1.5 rounded-lg border border-border bg-neutral-900 text-xs disabled:opacity-50 font-semibold"
+                className="px-3 py-1.5 rounded-lg border border-border bg-secondary text-xs disabled:opacity-50 font-semibold"
               >
                 Próxima
               </button>
