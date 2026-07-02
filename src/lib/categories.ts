@@ -5,16 +5,17 @@ import { useState, useEffect, useCallback } from 'react'
 // ─── Default values ─────────────────────────────────────────────────────────
 
 export const DEFAULT_PRODUCTS = [
-  'Sistema/CRM',
-  'Automação Comercial',
-  'Consultoria',
+  'Saia Luiza',
+  'Vestido Midi',
+  'Blusa Clara',
+  'Calça Alfaiataria',
 ]
 
 export const DEFAULT_ORIGINS = [
-  'Meta Ads',
-  'Google',
-  'WhatsApp Orgânico',
+  'Instagram',
+  'WhatsApp',
   'Indicação',
+  'Loja Física',
 ]
 
 export const DEFAULT_TAGS = [
@@ -38,7 +39,7 @@ export interface Categories {
   tags: TagCategory[]
 }
 
-const STORAGE_KEY = 'ocr_categories'
+const STORAGE_KEY = 'doce_lilium_categories'
 
 function loadFromStorage(): Categories {
   if (typeof window === 'undefined') {

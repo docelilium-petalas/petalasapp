@@ -46,15 +46,48 @@ export async function getCurrentUser() {
   const auth = await requireAuth()
   const user = await prisma.user.findUnique({
     where: { id: auth.userId },
-    include: { roles: true }
+    include: { roles: true, profile: true, teamMembers: { include: { team: true } } }
   })
   if (!user) throw new Error('Usuário não encontrado')
+  
+  const teamName = user.teamMembers?.[0]?.team?.nome || 'Sem Equipe'
+
   return {
     id: user.id,
     email: user.email,
+    nome: user.profile?.nome || 'Usuário',
+    sobrenome: user.profile?.sobrenome || '',
+    teamName,
     roles: user.roles.map(r => r.role),
     isAdmin: user.roles.some(r => r.role === 'ADMIN')
   }
+}
+
+export async function getTeamSellers() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  
+  const users = await prisma.user.findMany({
+    where: { id: { in: scope } },
+    select: {
+      id: true,
+      profile: {
+        select: {
+          nome: true,
+          sobrenome: true
+        }
+      }
+    }
+  })
+  
+  return users.map(u => {
+    const fullName = `${u.profile?.nome || ''} ${u.profile?.sobrenome || ''}`.trim() || 'Usuário'
+    return {
+      id: u.id,
+      nome: fullName,
+      initial: fullName.substring(0, 2).toUpperCase()
+    }
+  })
 }
 
 // ─── Helper: serialise Prisma Contact → MockContact-compatible plain object ───

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { AppLayout } from '@/components/AppLayout'
+import { useRouter } from 'next/navigation'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import * as crmActions from '@/app/actions/crm'
 import { MockDeal, MockContact, MockUser } from '@/lib/mockData'
@@ -19,6 +20,7 @@ type StatusTab = 'all' | 'WON' | 'LOST' | 'EXCLUIDO'
 
 export default function ArquivadosPage() {
   const isMobile = useIsMobile()
+  const router = useRouter()
   const categoriesStore = useCategories()
 
   const [deals, setDeals] = useState<MockDeal[]>([])
@@ -340,7 +342,11 @@ export default function ArquivadosPage() {
                       const isWon = deal.status === 'WON'
 
                       return (
-                        <tr key={deal.id} className="hover:bg-muted transition-colors group">
+                        <tr 
+                          key={deal.id} 
+                          className="hover:bg-muted transition-colors group cursor-pointer"
+                          onClick={() => router.push(`/pipeline?dealId=${deal.id}`)}
+                        >
                           <td className="p-4">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               isWon
@@ -412,7 +418,8 @@ export default function ArquivadosPage() {
                   return (
                     <div
                       key={deal.id}
-                      className="p-4.5 rounded-2xl border border-border/20 bg-secondary space-y-3"
+                      className="p-4.5 rounded-2xl border border-border/20 bg-secondary space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
+                      onClick={() => router.push(`/pipeline?dealId=${deal.id}`)}
                     >
                       <div className="flex justify-between items-start gap-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-extrabold ${

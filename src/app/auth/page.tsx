@@ -84,7 +84,7 @@ export default function AuthPage() {
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-sm uppercase">Operação Caixa Rápido</span>
+            <span className="font-bold tracking-tight text-sm uppercase">Operação Doce LILiUM</span>
             <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] -mt-0.5">Máquina de Vendas</span>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function AuthPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-xs uppercase tracking-wider">Caixa Rápido</span>
+            <span className="font-bold text-xs uppercase tracking-wider">Doce LILiUM</span>
           </div>
 
           {/* Mode toggle */}

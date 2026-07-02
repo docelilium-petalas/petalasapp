@@ -23,6 +23,7 @@ import {
   Workflow
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import * as crmActions from '@/app/actions/crm'
 
 
 interface SidebarItem {
@@ -38,7 +39,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Contatos', href: '/contacts', icon: Users },
   { name: 'Atividades', href: '/activities', icon: Calendar },
   { name: 'Busca de Leads', href: '/lead-search', icon: Search },
-  { name: 'Caixa Rápido', href: '/caixa-rapido', icon: Zap },
+  { name: 'Doce LILiUM', href: '/caixa-rapido', icon: Zap },
   { name: 'Cadências', href: '/cadencias', icon: Workflow },
   { name: 'Bússola', href: '/bussola', icon: Compass },
   { name: 'Configurações', href: '/settings', icon: Settings }
@@ -82,10 +83,10 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
           <div className="absolute inset-0 bg-primary/20 blur-md scale-150 animate-pulse mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent blur-sm" />
           
-          <img src="/logo.png" alt="Logo Caixa Rápido" className="w-full h-full object-cover relative z-10" />
+          <img src="/logo.png" alt="Logo Doce LILiUM" className="w-full h-full object-cover relative z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Caixa Rápido</span>
+          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Doce LILiUM</span>
           <span className="text-[9px] text-sidebar-foreground/60 font-semibold uppercase tracking-[0.2em]">Operação CRM</span>
         </div>
       </div>
@@ -123,7 +124,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
       <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/30">
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-sidebar-border bg-sidebar-accent/50">
           <div className="w-8 h-8 rounded-lg bg-sidebar flex items-center justify-center font-bold text-xs text-sidebar-primary border border-sidebar-primary/20">
-            {user.nome[0]}{user.sobrenome[0]}
+            {user.nome?.[0] || '?'}{user.sobrenome?.[0] || ''}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-sidebar-foreground truncate">{user.nome} {user.sobrenome}</p>
@@ -161,12 +162,23 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   // Track scroll position per pathname
   const scrollPositions = useRef<Record<string, number>>({})
 
-  const user = {
-    nome: 'Diretor',
-    sobrenome: 'Comercial',
-    email: 'admin@caixarapido.com.br',
-    teamName: 'Time Vendas Alfa'
-  }
+  const [user, setUser] = useState<{ nome: string; sobrenome: string; email: string; teamName: string }>({
+    nome: '',
+    sobrenome: '',
+    email: '',
+    teamName: ''
+  })
+
+  useEffect(() => {
+    crmActions.getCurrentUser().then(u => {
+      setUser({
+        nome: u.nome || 'Usuário',
+        sobrenome: u.sobrenome || '',
+        email: u.email,
+        teamName: u.teamName
+      })
+    }).catch(console.error)
+  }, [])
 
   // Keyboard shortcut (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -260,10 +272,10 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   // Get Page Title
   const getPageTitle = () => {
-    if (pathname === '/') return 'Caixa Rápido'
+    if (pathname === '/') return 'Doce LILiUM'
     const name = pathname?.split('/')[1]
     if (name === 'dashboard') return 'Home'
-    return name?.replace('-', ' ') || 'Caixa Rápido'
+    return name?.replace('-', ' ') || 'Doce LILiUM'
   }
 
   // Handle mobile header context actions
@@ -475,7 +487,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <div className="grid grid-cols-2 gap-3.5 py-2">
               {[
-                { name: 'Caixa Rápido', href: '/caixa-rapido', icon: Zap },
+                { name: 'Doce LILiUM', href: '/caixa-rapido', icon: Zap },
                 { name: 'Busca de Leads', href: '/lead-search', icon: Search },
                 { name: 'Cadências', href: '/cadencias', icon: Workflow },
                 { name: 'Arquivados', href: '/arquivados', icon: Archive },

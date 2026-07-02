@@ -48,14 +48,7 @@ const ACTIVITY_TYPE_ICON: Record<string, React.ComponentType<{ className?: strin
   email: Activity,
 }
 
-// ─── Seller mock data ─────────────────────────────────────────────────────────
-const SELLERS = [
-  { id: 'usr-admin-123', nome: 'Diretor Comercial', initial: 'DC' },
-  { id: 'usr-seller-1', nome: 'Aline Ferreira', initial: 'AF' },
-  { id: 'usr-seller-2', nome: 'Bruno Gomes', initial: 'BG' },
-]
-
-// ─────────────────────────────────────────────────────────────────────────────
+type DashboardSeller = { id: string; nome: string; initial: string }
 export default function DashboardPage() {
   const router = useRouter()
 
@@ -66,6 +59,7 @@ export default function DashboardPage() {
   const [topCampaigns, setTopCampaigns] = useState<DashboardCampaign[]>([])
   const [stageCounts, setStageCounts] = useState<DashboardStageCount[]>([])
   const [stages, setStages] = useState<any[]>([])
+  const [sellers, setSellers] = useState<DashboardSeller[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>('all')
   // Timeline filters
@@ -84,13 +78,15 @@ export default function DashboardPage() {
         crmActions.getDashboardKpis('30d'),
         crmActions.getActivities(),
         crmActions.getAllStages(),
-      ]).then(([pipes, allDeals, allContacts, kpis, acts, allStages]) => {
+        crmActions.getTeamSellers(),
+      ]).then(([pipes, allDeals, allContacts, kpis, acts, allStages, teamSellers]) => {
         setPipelines((pipes || []) as DashboardPipeline[])
         setAllDealsRaw((allDeals || []) as unknown as DashboardDeal[])
         setContacts((allContacts || []) as DashboardContact[])
         setTopCampaigns((kpis?.topCampaigns || []) as DashboardCampaign[])
         setStageCounts((kpis?.stageCounts || []) as DashboardStageCount[])
         setStages((allStages || []) as any[])
+        setSellers((teamSellers || []) as DashboardSeller[])
         const todayStr = new Date().toISOString().split('T')[0]
         const todayActs = ((acts || []) as DashboardActivity[]).filter(a => {
           if (a.status !== 'OPEN') return false
@@ -210,7 +206,7 @@ export default function DashboardPage() {
 
   // ── Top sellers ranking ────────────────────────────────────────────────────
   const topSellers = useMemo(() => {
-    return SELLERS.map(s => {
+    return sellers.map(s => {
       const sWon = allDealsRaw.filter(d => d.ownerUserId === s.id && d.status === 'WON')
       return {
         ...s,
@@ -218,7 +214,7 @@ export default function DashboardPage() {
         receita: sWon.reduce((sum, d) => sum + (d.valorEstimado ?? 0), 0)
       }
     }).sort((a, b) => b.receita - a.receita)
-  }, [allDealsRaw])
+  }, [allDealsRaw, sellers])
 
   // ─── LOADING ───────────────────────────────────────────────────────────────
   if (loading) {

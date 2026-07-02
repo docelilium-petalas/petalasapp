@@ -1106,7 +1106,7 @@ export default function ContactsPage() {
                     
                     {/* Informações Pessoais & Endereço */}
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <UserCheck className="w-3.5 h-3.5 text-primary" /> Informações Pessoais
                         </h4>
@@ -1126,7 +1126,7 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-primary" /> Endereço Completo
                         </h4>
@@ -1149,7 +1149,7 @@ export default function ContactsPage() {
                     </div>
 
                     {/* Marketing & UTM info */}
-                    <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                    <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                       <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-primary" /> Atribuição de Marketing (UTMs)
                       </h4>
@@ -1184,7 +1184,7 @@ export default function ContactsPage() {
                     {/* Tags e Campos Customizados */}
                     <div className="grid md:grid-cols-2 gap-6">
                       
-                      <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5 text-primary" /> Tags Comerciais
                         </h4>
@@ -1200,7 +1200,7 @@ export default function ContactsPage() {
                         </div>
                       </div>
 
-                      <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Settings className="w-3.5 h-3.5 text-primary" /> Campos Customizados
                         </h4>
@@ -1222,7 +1222,7 @@ export default function ContactsPage() {
 
                     {/* Webhook Meta fbMetadata */}
                     {selectedContact.fbMetadata && Object.keys(selectedContact.fbMetadata).length > 0 && (
-                      <div className="p-5 rounded-2xl border border-border/10 bg-background space-y-4">
+                      <div className="p-5 rounded-2xl border border-border/10 bg-card space-y-4">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Globe className="w-3.5 h-3.5 text-primary" /> Metadata Lead Ads (Facebook Ads Integration)
                         </h4>

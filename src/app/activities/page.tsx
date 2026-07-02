@@ -12,6 +12,7 @@ import {
   MessageSquare, Video, FileText, CheckCircle2, Sparkles
 } from 'lucide-react'
 import { crmService } from '@/lib/services'
+import * as crmActions from '@/app/actions/crm'
 import {
   useActivities,
   useCreateActivity,
@@ -93,8 +94,8 @@ function ActivitiesContent() {
   // Load select options
   useEffect(() => {
     Promise.all([
-      crmService.getContacts(),
-      crmService.getAllDeals()
+      crmActions.getContacts(),
+      crmActions.getAllDeals()
     ]).then(([cList, dList]) => {
       setContacts(cList as ActivityContact[])
       setDeals(dList as ActivityDeal[])

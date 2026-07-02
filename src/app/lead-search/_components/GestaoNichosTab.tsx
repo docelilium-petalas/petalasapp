@@ -13,7 +13,7 @@ export default function GestaoNichosTab() {
   
   const [formData, setFormData] = useState({
     nome: '',
-    promptN8n: '',
+    descricao: '',
     status: 'ativo'
   })
 
@@ -80,14 +80,14 @@ export default function GestaoNichosTab() {
       setEditingId(niche.id)
       setFormData({
         nome: niche.nome,
-        promptN8n: niche.promptN8n || '',
+        descricao: niche.descricao || '',
         status: niche.status
       })
     } else {
       setEditingId(null)
       setFormData({
         nome: '',
-        promptN8n: '',
+        descricao: '',
         status: 'ativo'
       })
     }
@@ -172,8 +172,8 @@ export default function GestaoNichosTab() {
               <label className="ocr-label mb-1.5 block">Prompt / Regras para Mineração N8N (Opcional)</label>
               <textarea
                 placeholder="Ex: Buscar apenas clínicas que tenham implantes no site, ignorar dentistas autônomos..."
-                value={formData.promptN8n}
-                onChange={e => setFormData(p => ({ ...p, promptN8n: e.target.value }))}
+                value={formData.descricao}
+                onChange={e => setFormData(p => ({ ...p, descricao: e.target.value }))}
                 className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground min-h-[100px] resize-y"
               />
             </div>
@@ -230,9 +230,9 @@ export default function GestaoNichosTab() {
                     {niche.status}
                   </span>
                 </div>
-                {niche.promptN8n && (
+                {niche.descricao && (
                   <p className="text-[11px] text-muted-foreground mt-2 line-clamp-2 pr-4">
-                    <strong className="text-muted-foreground">Prompt:</strong> {niche.promptN8n}
+                    <strong className="text-muted-foreground">Prompt:</strong> {niche.descricao}
                   </p>
                 )}
                 <div className="text-[10px] text-muted-foreground mt-2">

@@ -53,6 +53,54 @@ export async function POST(request: Request) {
       )
     )
 
+    // Create or find default team "petalas"
+    let defaultTeam = await prisma.team.findFirst({
+      where: { nome: 'petalas' }
+    })
+    
+    if (!defaultTeam) {
+      defaultTeam = await prisma.team.create({
+        data: { nome: 'petalas' }
+      })
+    }
+
+    await prisma.teamMember.create({
+      data: {
+        teamId: defaultTeam.id,
+        userId: newUser.id,
+        role: 'ADMIN'
+      }
+    })
+
+    // Ensure a default pipeline exists for the user
+    const defaultPipeline = await prisma.pipeline.create({
+      data: {
+        userId: newUser.id,
+        teamId: defaultTeam.id,
+        nome: 'Funil Principal',
+        isDefault: true,
+        ordem: 0,
+        ativo: true
+      }
+    })
+
+    // Create standard stages
+    const defaultStages = [
+      { nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 24, ordem: 1 },
+      { nome: 'Contato Feito', cor: '#39FF88', probabilidade: 30, slaHours: 24, ordem: 2 },
+      { nome: 'Apresentação', cor: '#2979FF', probabilidade: 50, slaHours: 48, ordem: 3 },
+      { nome: 'Negociação', cor: '#FF9100', probabilidade: 80, slaHours: 72, ordem: 4 },
+      { nome: 'Ganho', cor: '#00E676', probabilidade: 100, slaHours: 0, ordem: 5 },
+      { nome: 'Perdido', cor: '#E91E63', probabilidade: 0, slaHours: 0, ordem: 6 }
+    ]
+
+    await prisma.stage.createMany({
+      data: defaultStages.map(stage => ({
+        ...stage,
+        pipelineId: defaultPipeline.id
+      }))
+    })
+
     const token = await signToken({ userId: newUser.id, email: normalizedEmail, role: 'ADMIN' })
 
     const user = { id: newUser.id, email: normalizedEmail, nome: nome.trim(), sobrenome: '', role: 'ADMIN' }
@@ -66,7 +114,8 @@ export async function POST(request: Request) {
     })
 
     return response
-  } catch {
+  } catch (err: any) {
+    console.error('Erro no registro:', err)
     return NextResponse.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 })
   }
 }
