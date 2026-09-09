@@ -1081,3 +1081,47 @@ model DesafioChallenge {
   @@index([userId, status])
   @@map("desafio_challenges")
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REVISÃO DOS TEMPLATES — a leitura da dona da marca, antes da Meta
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// O catálogo em `catalogo-templates.ts` é o texto que NÓS escrevemos. Esta
+// tabela guarda o que a dona da marca decidiu sobre cada um: aprovou, pediu
+// ajuste, ou reescreveu.
+//
+// Fica separado do catálogo de propósito. O catálogo é código — versionado,
+// revisado, com o porquê de cada escolha ao lado. A revisão é DADO, muda pela
+// tela e não deveria exigir deploy. Misturar os dois faria toda correção de
+// vírgula virar um push.
+//
+// A chave é o NOME do template, e não um id: é ele que a Meta usa, é ele que
+// não pode mudar depois de aprovado, e é por ele que a submissão vai procurar
+// o texto final.
+
+model MvTemplateRevisao {
+  /// O mesmo nome do catálogo (`dl_carrinho_lembrete_v1`).
+  nome String @id
+
+  /// PENDENTE | APROVADO | AJUSTAR
+  status String @default("PENDENTE")
+
+  /// O texto reescrito por ela. NULL = vale o do catálogo.
+  ///
+  /// Guardar o texto novo em vez de sobrescrever o catálogo preserva a
+  /// comparação: dá para mostrar lado a lado o que mudou, e voltar atrás é
+  /// apagar uma linha.
+  corpoRevisado String? @map("corpo_revisado") @db.Text
+
+  /// O que ela quis dizer sobre a mensagem — dúvida, motivo do ajuste.
+  comentario String? @db.Text
+
+  revisadoPor String?   @map("revisado_por")
+  revisadoEm  DateTime? @map("revisado_em")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("maquina_vendas_template_revisao")
+}

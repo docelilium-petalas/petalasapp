@@ -1,7 +1,8 @@
--- Modulos Maquina de Vendas e Desafios, mais as tabelas que o schema ja
--- declarava e nunca chegaram a producao (system_settings, google_leads, niches).
+-- Maquina de Vendas, Desafios e revisao de templates, mais as tabelas que o
+-- schema ja declarava e nunca chegaram a producao (system_settings,
+-- google_leads, niches).
 -- ADITIVA: nenhuma tabela ou coluna existente e apagada.
--- O DROP CONSTRAINT em UserConfig foi deixado de fora de proposito: muda
+-- O DROP CONSTRAINT em UserConfig ficou de fora de proposito: muda
 -- integridade referencial e merece decisao propria, nao carona em feature.
 
 -- CreateEnum
@@ -257,6 +258,20 @@ CREATE TABLE "desafio_challenges" (
     CONSTRAINT "desafio_challenges_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "maquina_vendas_template_revisao" (
+    "nome" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDENTE',
+    "corpo_revisado" TEXT,
+    "comentario" TEXT,
+    "revisado_por" TEXT,
+    "revisado_em" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "maquina_vendas_template_revisao_pkey" PRIMARY KEY ("nome")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "system_settings_chave_key" ON "system_settings"("chave");
 
@@ -331,6 +346,9 @@ CREATE UNIQUE INDEX "desafio_metas_userId_periodo_metrica_ownerUserId_key" ON "d
 
 -- CreateIndex
 CREATE INDEX "desafio_challenges_userId_status_idx" ON "desafio_challenges"("userId", "status");
+
+-- CreateIndex
+CREATE INDEX "maquina_vendas_template_revisao_status_idx" ON "maquina_vendas_template_revisao"("status");
 
 -- AddForeignKey
 ALTER TABLE "google_leads" ADD CONSTRAINT "google_leads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
