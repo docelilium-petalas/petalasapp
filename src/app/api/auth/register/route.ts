@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import * as bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { signToken } from '@/lib/auth'
+import { CORES_ETAPA_PADRAO } from '@/lib/cores-etapa'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,13 +86,15 @@ export async function POST(request: Request) {
     })
 
     // Create standard stages
+    // As cores vinham em neon do tema escuro da OCR (#00E676, #2979FF...), e
+    // todo funil novo nascia fora da identidade da marca.
     const defaultStages = [
-      { nome: 'Novo Lead', cor: '#00E676', probabilidade: 10, slaHours: 24, ordem: 1 },
-      { nome: 'Contato Feito', cor: '#39FF88', probabilidade: 30, slaHours: 24, ordem: 2 },
-      { nome: 'Apresentação', cor: '#2979FF', probabilidade: 50, slaHours: 48, ordem: 3 },
-      { nome: 'Negociação', cor: '#FF9100', probabilidade: 80, slaHours: 72, ordem: 4 },
-      { nome: 'Ganho', cor: '#00E676', probabilidade: 100, slaHours: 0, ordem: 5 },
-      { nome: 'Perdido', cor: '#E91E63', probabilidade: 0, slaHours: 0, ordem: 6 }
+      { nome: 'Novo Lead', cor: CORES_ETAPA_PADRAO.novo, probabilidade: 10, slaHours: 24, ordem: 1 },
+      { nome: 'Contato Feito', cor: CORES_ETAPA_PADRAO.contato, probabilidade: 30, slaHours: 24, ordem: 2 },
+      { nome: 'Apresentação', cor: CORES_ETAPA_PADRAO.apresentacao, probabilidade: 50, slaHours: 48, ordem: 3 },
+      { nome: 'Negociação', cor: CORES_ETAPA_PADRAO.negociacao, probabilidade: 80, slaHours: 72, ordem: 4 },
+      { nome: 'Ganho', cor: CORES_ETAPA_PADRAO.ganho, probabilidade: 100, slaHours: 0, ordem: 5 },
+      { nome: 'Perdido', cor: CORES_ETAPA_PADRAO.perdido, probabilidade: 0, slaHours: 0, ordem: 6 }
     ]
 
     await prisma.stage.createMany({

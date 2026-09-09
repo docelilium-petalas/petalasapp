@@ -10,6 +10,7 @@ import {
   Save, Settings2, Tag,
   Activity, AlertCircle, Copy, CheckSquare, Square, CheckCircle2, Send, Star, FileText
 } from 'lucide-react'
+import { harmonizarCorEtapa } from '@/lib/cores-etapa'
 import * as crmActions from '@/app/actions/crm'
 import { useCategories } from '@/lib/categories'
 import { toast, Toaster } from 'sonner'
@@ -128,9 +129,11 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
           <GripVertical className="w-4.5 h-4.5" />
         </button>
 
+        {/* Mostra a cor HARMONIZADA, nao a crua: e ela que o pipeline desenha.
+            Exibir o neon aqui prometeria um resultado que a outra tela nao entrega. */}
         <div
-          className="w-3.5 h-3.5 rounded-full border border-black/30 shrink-0"
-          style={{ backgroundColor: stage.cor }}
+          className="w-3.5 h-3.5 rounded-full border border-border-strong/50 shrink-0"
+          style={{ backgroundColor: harmonizarCorEtapa(stage.cor) }}
         />
 
         <div className="min-w-0">

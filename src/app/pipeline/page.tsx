@@ -12,6 +12,7 @@ import {
   ArrowRight, Archive, TrendingUp,
   Phone, Info, Send, ChevronLeft, ChevronRight, Check, FileText
 } from 'lucide-react'
+import { harmonizarCorEtapa } from '@/lib/cores-etapa'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
 
@@ -448,7 +449,7 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col w-72 shrink-0 rounded-2xl border transition-all duration-300 ${
+      className={`flex flex-col w-72 shrink-0 rounded-2xl border overflow-hidden transition-all duration-300 ${
         isOver
           ? 'border-primary/80 bg-primary/5 shadow-inner'
           : 'border-border bg-card'
@@ -457,7 +458,7 @@ function DroppableColumn({
       {/* Stage Header */}
       <div
         className="group px-4 py-3.5 border-b border-border-subtle flex flex-col gap-1.5"
-        style={{ borderTop: `3px solid ${stage.cor}` }}
+        style={{ borderTop: `3px solid ${harmonizarCorEtapa(stage.cor)}` }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -547,11 +548,11 @@ function DroppableColumn({
         })}
 
         {deals.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 text-center opacity-30 border border-dashed border-border-subtle rounded-xl">
-            <div className="w-8 h-8 rounded-full border border-dashed border-border-subtle mb-2 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-10 text-center border border-dashed border-border rounded-xl bg-muted/30">
+            <div className="w-8 h-8 rounded-full border border-dashed border-border mb-2 flex items-center justify-center">
               <Plus className="w-4 h-4 text-muted-foreground" />
             </div>
-            <p className="text-[11px] text-muted-foreground">Arraste negócios aqui</p>
+            <p className="text-xs text-muted-foreground">Arraste negócios aqui</p>
           </div>
         )}
       </div>
@@ -1634,7 +1635,7 @@ return sum + d.valorEstimado * (prob / 100)
                           ? 'border-transparent text-primary-foreground shadow-md'
                           : 'border-border-subtle bg-muted/60 text-muted-foreground'
                       }`}
-                      style={isActive ? { backgroundColor: stage.cor } : {}}
+                      style={isActive ? { backgroundColor: harmonizarCorEtapa(stage.cor) } : {}}
                     >
                       {stage.nome}
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-card text-primary-foreground' : 'bg-background text-muted-foreground'}`}>
@@ -1654,7 +1655,7 @@ return sum + d.valorEstimado * (prob / 100)
               return (
                 <div className="flex items-center justify-between px-4 py-2 border-t border-border-subtle">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: st.cor }} />
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: harmonizarCorEtapa(st.cor) }} />
                     <span className="text-xs font-bold text-foreground">{st.nome}</span>
                     {st.slaHours > 0 && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/20 font-extrabold uppercase tracking-wider">
@@ -1746,7 +1747,7 @@ return sum + d.valorEstimado * (prob / 100)
                         pulsingDeals={pulsingDeals}
                         onActivateSelectionMode={() => setIsSelectionMode(true)}
                         stageName={stage.nome}
-                        stageColor={stage.cor}
+                        stageColor={harmonizarCorEtapa(stage.cor)}
                         pendingTasksCount={pendingTasksCount}
                       />
                     )
