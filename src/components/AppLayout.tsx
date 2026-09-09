@@ -21,6 +21,8 @@ import {
   Archive,
   Filter,
   Workflow
+,
+  Rocket, Trophy, Radar as RadarIcon, TrendingUp
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import * as crmActions from '@/app/actions/crm'
@@ -35,13 +37,16 @@ interface SidebarItem {
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Pipeline', href: '/pipeline', icon: Kanban },
-  { name: 'Arquivados', href: '/arquivados', icon: Archive },
+  { name: 'Máquina de Vendas', href: '/maquina-vendas', icon: Rocket },
+  { name: 'Resultados', href: '/resultados', icon: TrendingUp },
+  { name: 'Desafios', href: '/desafios', icon: Trophy },
+  { name: 'Radar', href: '/radar', icon: RadarIcon },
+  { name: 'Bússola', href: '/bussola', icon: Compass },
   { name: 'Contatos', href: '/contacts', icon: Users },
   { name: 'Atividades', href: '/activities', icon: Calendar },
-  { name: 'Busca de Leads', href: '/lead-search', icon: Search },
   { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
   { name: 'Cadências', href: '/cadencias', icon: Workflow },
-  { name: 'Bússola', href: '/bussola', icon: Compass },
+  { name: 'Arquivados', href: '/arquivados', icon: Archive },
   { name: 'Configurações', href: '/settings', icon: Settings }
 ]
 
@@ -487,11 +492,14 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <div className="grid grid-cols-2 gap-3.5 py-2">
               {[
+                { name: 'Máquina de Vendas', href: '/maquina-vendas', icon: Rocket },
+                { name: 'Resultados', href: '/resultados', icon: TrendingUp },
+                { name: 'Desafios', href: '/desafios', icon: Trophy },
+                { name: 'Radar', href: '/radar', icon: RadarIcon },
                 { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
-                { name: 'Busca de Leads', href: '/lead-search', icon: Search },
                 { name: 'Cadências', href: '/cadencias', icon: Workflow },
-                { name: 'Arquivados', href: '/arquivados', icon: Archive },
                 { name: 'Atividades', href: '/activities', icon: Calendar },
+                { name: 'Arquivados', href: '/arquivados', icon: Archive },
                 { name: 'Configurações', href: '/settings', icon: Settings }
               ].map((item) => {
                 const Icon = item.icon

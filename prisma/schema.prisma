@@ -87,6 +87,9 @@ model User {
   permissions  UserFeaturePermission[]
   teamMembers  TeamMember[]
   pipelines    Pipeline[]
+  desafioCustos     DesafioCusto[]
+  desafioMetas      DesafioMeta[]
+  desafioChallenges DesafioChallenge[]
   contacts     Contact[]          @relation("UserContacts")
   ownedContacts Contact[]         @relation("OwnerContacts")
   deals        Deal[]             @relation("UserDeals")
@@ -745,4 +748,336 @@ model N8nChatHistory {
 
   @@index([sessionId])
   @@map("n8n_chat_histories")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MÁQUINA DE VENDAS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Desenho mesclado a partir de duas implementações que já rodaram em produção
+// — a da OCR e a da CarBoss — e adaptado para e-commerce de moda.
+// O que veio de cada uma está em docs/n8n/REFERENCIA-MAQUINA-VENDAS.md.
+//
+// Os três conflitos que precisaram de decisão:
+//
+//   1. `reuniaoEm` na CarBoss servia de âncora E de desfecho, e escrever o
+//      desfecho sobrescrevia a âncora — a copy passava a citar a data errada.
+//      Aqui são campos separados: `ancoraEm` nunca é reescrito.
+//   2. Nomenclatura do erro da Meta: vale a da OCR (`codigoErro`,
+//      `naturezaFalha`), com o `falhaMotivo` da CarBoss entrando ao lado.
+//   3. Ajustes operacionais: a OCR guardava em `system_settings`, a CarBoss
+//      numa tabela própria com tela. Fica a tabela — é o que a tela edita.
+//
+// ── A ADAPTAÇÃO QUE MUDA O MÓDULO ─────────────────────────────────────────
+// Nas duas origens a Máquina dispara por "card parado na coluna X" — venda
+// consultiva B2B. A Doce Lilium vende roupa: o gatilho natural é carrinho
+// abandonado, pedido pago, entrega e recompra. Por isso a inscrição não é
+// mais só de um Deal — ela tem ORIGEM e referência externa.
+
+model MvCadencia {
+  id      String @id @default(uuid())
+  nome    String
+  /// carrinho_abandonado | pedido_pago | pos_entrega | reativacao | nao_agendou
+  gatilho String
+
+  /// Só para o gatilho de funil (`nao_agendou`). Nulo nos gatilhos de loja,
+  /// que não têm coluna nenhuma para observar.
+  pipelineId String? @map("pipeline_id")
+  stageId    String? @map("stage_id")
+
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  etapas     MvCadenciaEtapa[]
+  inscricoes MvInscricao[]
+
+  @@unique([gatilho, pipelineId, stageId])
+  @@index([ativo, gatilho])
+  @@map("maquina_vendas_cadencias")
+}
+
+model MvCadenciaEtapa {
+  id         String @id @default(uuid())
+  cadenciaId String @map("cadencia_id")
+  ordem      Int
+
+  /// Minutos após a ÂNCORA. Para carrinho abandonado o relógio conta do
+  /// `created_at` do checkout na Nuvemshop, nunca do instante em que a
+  /// varredura o encontrou — o registro pode demorar até 6h para aparecer.
+  delayMinutos Int    @map("delay_minutos")
+  /// gatilho | entrega — de onde o relógio conta.
+  ancoradaEm   String @default("gatilho") @map("ancorada_em")
+
+  /// Esqueleto com {{primeiro_nome}}, {{peca}}, {{pedido}}, {{cupom}}...
+  templateBase String  @map("template_base")
+  /// Nome do template aprovado na Meta, quando o envio sai por template.
+  /// Nulo = texto livre, só válido dentro da janela de 24h.
+  templateNome String? @map("template_nome")
+  /// A última se anuncia como última. Sem isso a régua vira perseguição.
+  ehUltima     Boolean @default(false) @map("eh_ultima")
+
+  cadencia MvCadencia @relation(fields: [cadenciaId], references: [id], onDelete: Cascade)
+
+  @@unique([cadenciaId, ordem])
+  @@map("maquina_vendas_cadencia_etapas")
+}
+
+model MvInscricao {
+  id         String @id @default(uuid())
+  cadenciaId String @map("cadencia_id")
+
+  /// De onde veio: `carrinho` | `pedido` | `pipeline`.
+  origem String
+  /// A chave no sistema de origem — token do checkout, id do pedido, ou o
+  /// dealId. Sem FK de propósito: carrinho e pedido vivem na Nuvemshop.
+  refExterna String  @map("ref_externa")
+  dealId     String? @map("deal_id")
+  contactId  String? @map("contact_id")
+
+  nomeSnapshot String @map("nome_snapshot")
+  telefoneE164 String @map("telefone_e164")
+  /// Últimos 8 dígitos. É a chave que casa loja, CRM e conversa do WhatsApp —
+  /// medido: 36 dos 56 contatos têm 12 dígitos, sem o 9º.
+  telefoneKey  String @map("telefone_key")
+
+  /// Menor sai primeiro. 0 = já comprou alguma vez; 1 = primeira interação.
+  prioridade Int @default(1)
+
+  /// ATIVA | PAUSADA | CONCLUIDA | RESPONDEU | CONVERTEU | CANCELADA | ERRO
+  /// | OPT_OUT | NUMERO_INVALIDO | BLOQUEADA_META
+  status       String  @default("ATIVA")
+  motivoParada String? @map("motivo_parada")
+  tentativas   Int     @default(0)
+
+  /// ── ÂNCORA (entrada) ───────────────────────────────────────────────────
+  /// O instante do evento que originou a inscrição, no relógio da FONTE.
+  /// Nunca sobrescrever: é dele que todas as etapas contam.
+  ancoraEm DateTime @map("ancora_em")
+  /// Retrato do que estava no carrinho ou no pedido, para a copy citar sem
+  /// consultar a loja de novo — e para o texto não mudar se o carrinho mudar.
+  contexto Json?
+
+  /// ── DESFECHOS (saída) ──────────────────────────────────────────────────
+  /// Instante da última fala do lead depois do nosso envio. Substitui
+  /// `status = 'RESPONDEU'` como fonte: o status só é escrito quando responder
+  /// ENCERRA a cadência, e no dia em que passar a só adiar o contador congela
+  /// em zero sem avisar. Foi o defeito medido nos dois projetos de origem.
+  respondeuEm DateTime? @map("respondeu_em")
+  respostas   Int       @default(0)
+  /// Um humano do time entrou na conversa. Fica NULL até haver fonte que
+  /// distinga agente de pessoa — o webhook da Meta não distingue.
+  humanoFalouEm DateTime? @map("humano_falou_em")
+  /// O carrinho virou pedido, ou o pedido foi pago, dentro da janela.
+  converteuEm     DateTime? @map("converteu_em")
+  valorConvertido Decimal?  @map("valor_convertido") @db.Decimal(12, 2)
+
+  /// Marcação manual do operador: CONTATO_ERRADO | DESCONSIDERAR. Ganha de
+  /// todos os sinais automáticos — quem abriu a conversa sabe mais que a
+  /// heurística. Desfazer é gravar NULL nos três.
+  resultadoManual    String?   @map("resultado_manual")
+  resultadoManualEm  DateTime? @map("resultado_manual_em")
+  resultadoManualPor String?   @map("resultado_manual_por")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cadencia  MvCadencia   @relation(fields: [cadenciaId], references: [id])
+  mensagens MvMensagem[]
+
+  /// Idempotência da inscrição: o mesmo carrinho não entra duas vezes na mesma
+  /// cadência. É o que torna a varredura segura para reprocessar — e a
+  /// varredura é obrigatória, porque a Nuvemshop não publica webhook de carrinho.
+  @@unique([cadenciaId, origem, refExterna])
+  @@index([status])
+  @@index([telefoneKey])
+  @@index([respondeuEm])
+  @@map("maquina_vendas_inscricoes")
+}
+
+model MvMensagem {
+  id          String @id @default(uuid())
+  inscricaoId String @map("inscricao_id")
+  etapaOrdem  Int    @map("etapa_ordem")
+
+  /// A copy final, congelada na semeadura. A tabela mostra exatamente o texto
+  /// que sai — por isso nenhum LLM reescreve nada no caminho do disparo.
+  mensagemFinal String   @map("mensagem_final")
+  agendadaPara  DateTime @map("agendada_para")
+
+  /// AGENDADA | ENVIADA | CANCELADA | PULADA | VETADA | ERRO
+  status          String    @default("AGENDADA")
+  enviadaEm       DateTime? @map("enviada_em")
+  erro            String?
+  tentativasEnvio Int       @default(0) @map("tentativas_envio")
+  payloadEnvio    String?   @map("payload_envio")
+
+  /// ── Confirmação do canal ───────────────────────────────────────────────
+  /// `enviadaEm` sempre significou "a API aceitou e devolveu um id", nunca
+  /// "chegou". Os campos abaixo é que dizem.
+  idExterno  String?   @map("id_externo")
+  entregueEm DateTime? @map("entregue_em")
+  lidaEm     DateTime? @map("lida_em")
+  /// Código numérico da Meta (131026, 131047, 132001...). Número, e não texto:
+  /// número não tem sinônimo, e é ele que decide re-tentar × desistir.
+  codigoErro Int?      @map("codigo_erro")
+  falhaMotivo String?  @map("falha_motivo")
+  /// NUMERO_INVALIDO | BLOQUEADA_META | JANELA_FECHADA | CANAL_FORA |
+  /// CONFIGURACAO | DESCONHECIDA. Gravado no momento da falha porque a tabela
+  /// de códigos muda: reclassificar o passado com a tabela de hoje reescreveria
+  /// a história.
+  naturezaFalha String? @map("natureza_falha")
+  templateNome  String? @map("template_nome")
+  /// `oficial` (Meta/Datafy) ou `nao_oficial` (uazapi). Mantido para o
+  /// histórico anterior a uma migração de canal não virar mentira retroativa.
+  canal         String  @default("nao_oficial")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  inscricao MvInscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+
+  @@index([status, agendadaPara])
+  @@index([idExterno])
+  @@map("maquina_vendas_mensagens")
+}
+
+model MvCursor {
+  id        String   @id @default(uuid())
+  chave     String   @unique
+  valor     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("maquina_vendas_cursor")
+}
+
+model MvResposta {
+  /// Sufixo de 8 dígitos do telefone. O `session_id` do WhatsApp às vezes vem
+  /// sem o 9º dígito, então igualdade exata perderia a resposta de quem
+  /// respondeu — e enviar para quem já respondeu é como se queima um número.
+  telefoneKey  String   @id @map("telefone_key")
+  telefoneE164 String?  @map("telefone_e164")
+  /// Instante da última mensagem escrita PELO LEAD — nunca o eco do disparo.
+  respondidoEm DateTime @map("respondido_em")
+  ultimasMsgs  Json?    @map("ultimas_msgs")
+  origem       String   @default("n8n")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([respondidoEm])
+  @@map("maquina_vendas_respostas")
+}
+
+model MvOptOut {
+  /// Mesma chave de 8 dígitos, pelo mesmo motivo.
+  telefoneKey  String    @id @map("telefone_key")
+  telefoneE164 String?   @map("telefone_e164")
+  /// `botao` | `texto` | `manual` | `meta` — de onde veio a negativa.
+  origem       String    @default("texto")
+  /// A frase exata que a pessoa escreveu. É o que permite auditar um falso
+  /// positivo do detector sem abrir a conversa.
+  trecho       String?
+  despedidaEm  DateTime? @map("despedida_em")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("maquina_vendas_opt_out")
+}
+
+model MvAjustes {
+  /// Linha única. Os números que a operação muda olhando o relógio — sem deploy,
+  /// porque um parâmetro ajustado às 9h de um dia de disparo não pode custar
+  /// um deploy manual no EasyPanel.
+  id String @id @default("unico")
+
+  tetoDiario          Int @default(40) @map("teto_diario")
+  intervaloMinMinutos Int @default(3) @map("intervalo_min_minutos")
+  intervaloMaxMinutos Int @default(12) @map("intervalo_max_minutos")
+  /// Janela de envio na parede de São Paulo, em "HH:mm".
+  janelaInicio String @default("09:00") @map("janela_inicio")
+  janelaFim    String @default("20:00") @map("janela_fim")
+  /// Desligar sem apagar cadência. NASCE PAUSADO de propósito: a Máquina não
+  /// deve começar a falar com cliente real por causa de um deploy.
+  envioPausado Boolean @default(true) @map("envio_pausado")
+
+  atualizadoEm  DateTime @updatedAt @map("atualizado_em")
+  atualizadoPor String?  @map("atualizado_por")
+
+  @@map("maquina_vendas_ajustes")
+}
+
+model LogEvento {
+  id     String @id @default(uuid())
+  /// Nome do workflow n8n, ou "crm".
+  origem String
+  /// INFO | AVISO | ERRO — só existe nível que a tela filtra.
+  nivel  String @default("INFO")
+  /// Slug estável para agrupar: envio_falhou, orcamento, carrinho_novo...
+  tipo   String
+
+  titulo  String
+  detalhe String? @db.Text
+  dados   String? @db.Text
+
+  lidoEm    DateTime? @map("lido_em")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([nivel, createdAt])
+  @@map("logs_eventos")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DESAFIOS — metas e campanhas
+// ═══════════════════════════════════════════════════════════════════════════
+// Portado da OCR. Numa loja de roupa a meta e o coracao da operacao de
+// vendas: e o que transforma "vendemos" em "vendemos o suficiente".
+
+model DesafioCusto {
+  id        String   @id @default(uuid())
+  userId    String
+  mesAno    String
+  valor     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mesAno])
+  @@map("desafio_custos")
+}
+
+model DesafioMeta {
+  id          String   @id @default(uuid())
+  userId      String
+  periodo     String
+  metrica     String
+  alvo        Float
+  tipo        String   @default("MAIOR_MELHOR")
+  ownerUserId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodo, metrica, ownerUserId])
+  @@index([userId, periodo])
+  @@map("desafio_metas")
+}
+
+model DesafioChallenge {
+  id          String   @id @default(uuid())
+  userId      String
+  titulo      String
+  descricao   String?
+  metrica     String
+  alvo        Float
+  inicio      DateTime
+  fim         DateTime
+  recompensa  String?
+  ownerUserId String?
+  status      String   @default("ATIVO")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("desafio_challenges")
 }
