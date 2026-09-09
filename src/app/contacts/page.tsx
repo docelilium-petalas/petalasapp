@@ -623,7 +623,7 @@ export default function ContactsPage() {
                 className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
                   categoryFilter === 'all'
                     ? 'bg-muted border-border border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
-                    : 'bg-card border border-border-subtle hover:bg-neutral-850/50 hover:border-border'
+                    : 'bg-card border border-border-subtle hover:bg-card/50 hover:border-border'
                 }`}
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total</span>
@@ -668,7 +668,7 @@ export default function ContactsPage() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-primary-foreground flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                   Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{filteredContacts.length}</span>
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Base unificada de leads NetLife</p>
@@ -760,7 +760,7 @@ export default function ContactsPage() {
             {isSelectionMode && (
               <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-2xl animate-scale-in">
                 <div className="flex items-center gap-2">
-                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-primary-foreground">
+                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-foreground">
                     {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                   </button>
                   <span className="text-xs text-muted-foreground font-semibold">{checkedCount} selecionados</span>
@@ -784,7 +784,7 @@ export default function ContactsPage() {
               <div className="grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 px-5 py-3 border-b border-border-subtle text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-background backdrop-blur-md z-10 rounded-t-xl mt-2">
                 <div className="w-5 flex items-center justify-center">
                   {isSelectionMode && (
-                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-primary-foreground">
+                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-foreground">
                       {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   )}
@@ -833,7 +833,7 @@ export default function ContactsPage() {
                       <div className="w-5 flex items-center justify-center">
                         <button 
                           onClick={(e) => { e.stopPropagation(); toggleChecked(c.id, e); }} 
-                          className="shrink-0 p-0.5 rounded text-muted-foreground hover:text-primary-foreground"
+                          className="shrink-0 p-0.5 rounded text-muted-foreground hover:text-foreground"
                         >
                           {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                         </button>
@@ -896,14 +896,14 @@ export default function ContactsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); }}
-                          className="p-2 rounded-xl text-muted-foreground hover:text-primary-foreground hover:bg-muted transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                           title="Ver Detalhes"
                         >
                           <Info className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); openEditModal(c); }}
-                          className="p-2 rounded-xl text-muted-foreground hover:text-primary-foreground hover:bg-muted transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                           title="Editar"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -982,14 +982,14 @@ export default function ContactsPage() {
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <button
                     onClick={() => setShowMergeModal(true)}
-                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     title="Mesclar Contato"
                   >
                     <Merge className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openEditModal(selectedContact)}
-                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors"
+                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     title="Editar Contato"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -1069,7 +1069,7 @@ export default function ContactsPage() {
                         {stat.icon()}
                       </div>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                      <p className="text-xl font-bold text-primary-foreground mt-1">{stat.value}</p>
+                      <p className="text-xl font-bold text-foreground mt-1">{stat.value}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{stat.desc}</p>
                     </div>
                   ))}
@@ -1250,7 +1250,7 @@ export default function ContactsPage() {
                               <ShoppingBag className="w-4 h-4 text-success" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-primary-foreground">{deal.titulo}</p>
+                              <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
                               <p className="text-[10px] text-muted-foreground mt-0.5">
                                 Fechado em: {deal.fechadoEm ? new Date(deal.fechadoEm).toLocaleDateString('pt-BR') : new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
                               </p>
@@ -1281,7 +1281,7 @@ export default function ContactsPage() {
                       selectedContactDeals.map(deal => (
                         <div key={deal.id} className="p-4 rounded-2xl border border-border-subtle bg-background space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-primary-foreground">{deal.titulo}</p>
+                            <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                               deal.status === 'WON' 
                                 ? 'bg-success/20 text-success border border-success/30' 
@@ -1365,8 +1365,8 @@ export default function ContactsPage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-primary-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
-              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors">
+              <h3 className="text-lg font-bold text-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
+              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1401,7 +1401,7 @@ export default function ContactsPage() {
                     value={formData.nome}
                     onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
                     placeholder="João"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1410,7 +1410,7 @@ export default function ContactsPage() {
                     value={formData.sobrenome}
                     onChange={e => setFormData(p => ({ ...p, sobrenome: e.target.value }))}
                     placeholder="Silva"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1419,7 +1419,7 @@ export default function ContactsPage() {
                     value={formData.telefone}
                     onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
                     placeholder="5562999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1428,7 +1428,7 @@ export default function ContactsPage() {
                     value={formData.email}
                     onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                     placeholder="joao@empresa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1437,7 +1437,7 @@ export default function ContactsPage() {
                     value={formData.documento}
                     onChange={e => setFormData(p => ({ ...p, documento: e.target.value }))}
                     placeholder="123.456.789-00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1446,7 +1446,7 @@ export default function ContactsPage() {
                     value={formData.dataNascimento}
                     onChange={e => setFormData(p => ({ ...p, dataNascimento: e.target.value }))}
                     type="date"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 flex items-center gap-2 pt-2">
@@ -1471,7 +1471,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cep}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cep: e.target.value } }))}
                     placeholder="74000-000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2">
@@ -1480,7 +1480,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.rua}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, rua: e.target.value } }))}
                     placeholder="Av. Anhanguera"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1489,7 +1489,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.numero}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, numero: e.target.value } }))}
                     placeholder="100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1498,7 +1498,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.complemento}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, complemento: e.target.value } }))}
                     placeholder="Quadra 12"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1507,7 +1507,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.bairro}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, bairro: e.target.value } }))}
                     placeholder="Setor Central"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1516,7 +1516,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.cidade}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cidade: e.target.value }, cidade: e.target.value }))}
                     placeholder="Goiânia"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -1525,7 +1525,7 @@ export default function ContactsPage() {
                     value={formData.enderecoCompleto.estado}
                     onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, estado: e.target.value }, estado: e.target.value }))}
                     placeholder="GO"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
               </div>
@@ -1540,7 +1540,7 @@ export default function ContactsPage() {
                     value={formData.origem}
                     onChange={e => setFormData(p => ({ ...p, origem: e.target.value }))}
                     placeholder="Meta Ads"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                   />
                 </div>
 
@@ -1553,7 +1553,7 @@ export default function ContactsPage() {
                       onChange={e => setNewTagInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
                       placeholder="Nova tag"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-primary-foreground"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
                     />
                     <button
                       type="button"
@@ -1567,7 +1567,7 @@ export default function ContactsPage() {
                     {formData.tags.map(tag => (
                       <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-border flex items-center gap-1">
                         {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-primary-foreground font-bold ml-0.5">×</button>
+                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-foreground font-bold ml-0.5">×</button>
                       </span>
                     ))}
                   </div>
@@ -1581,18 +1581,18 @@ export default function ContactsPage() {
                       value={customFieldKey}
                       onChange={e => setCustomFieldKey(e.target.value)}
                       placeholder="Nome do campo (ex: Ramo)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-primary-foreground focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-foreground focus:outline-none"
                     />
                     <input
                       value={customFieldValue}
                       onChange={e => setCustomFieldValue(e.target.value)}
                       placeholder="Valor"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-primary-foreground focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-foreground focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={addCustomField}
-                      className="px-3 rounded-xl bg-muted hover:bg-muted text-primary-foreground font-semibold text-xs"
+                      className="px-3 rounded-xl bg-muted hover:bg-muted text-foreground font-semibold text-xs"
                     >
                       Adicionar
                     </button>
@@ -1602,7 +1602,7 @@ export default function ContactsPage() {
                       <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-background border border-border-subtle text-xs">
                         <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-primary-foreground font-semibold">{val}</span>
+                          <span className="text-foreground font-semibold">{val}</span>
                           <button type="button" onClick={() => removeCustomField(key)} className="text-destructive hover:text-destructive font-bold">×</button>
                         </div>
                       </div>
@@ -1642,10 +1642,10 @@ export default function ContactsPage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-primary-foreground flex items-center gap-2">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Merge className="w-5 h-5 text-primary" /> Mesclar Contatos
               </h3>
-              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-primary-foreground transition-colors">
+              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1654,7 +1654,7 @@ export default function ContactsPage() {
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-warning" />
               <div>
                 <span className="font-extrabold block">Instrução importante:</span>
-                O contato principal será mantido: <span className="font-extrabold text-primary-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
+                O contato principal será mantido: <span className="font-extrabold text-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
               </div>
             </div>
 

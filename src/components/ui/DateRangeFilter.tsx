@@ -81,7 +81,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
             active === val
               ? 'bg-primary/15 text-primary border border-primary/30'
-              : 'bg-neutral-800 text-muted-foreground hover:bg-neutral-700 hover:text-foreground'
+              : 'bg-card text-muted-foreground hover:bg-card hover:text-foreground'
           }`}
         >
           {label}

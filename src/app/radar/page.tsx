@@ -130,9 +130,9 @@ function waLink(telefone: string): string | null {
 
 const SITUACAO_META: Record<string, { label: string; cls: string }> = {
   pipeline: { label: 'Na pipeline', cls: 'text-primary bg-primary/10 border-primary/25' },
-  ganho: { label: 'Ganho', cls: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
-  perdido: { label: 'Perdido', cls: 'text-rose-400 bg-rose-500/10 border-rose-500/25' },
-  sem_negocio: { label: 'Sem negócio', cls: 'text-neutral-400 bg-neutral-500/10 border-neutral-500/20' },
+  ganho: { label: 'Ganho', cls: 'text-success bg-success/10 border-success/25' },
+  perdido: { label: 'Perdido', cls: 'text-destructive bg-destructive/10 border-destructive/25' },
+  sem_negocio: { label: 'Sem negócio', cls: 'text-muted-foreground bg-muted/10 border-border/20' },
 }
 
 export default function RadarPage() {
@@ -478,13 +478,13 @@ export default function RadarPage() {
         <div className="p-4 sm:p-6 md:p-8 space-y-4 animate-fade-in">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-2">
-              <div className="h-7 w-40 rounded-lg bg-neutral-800/50 animate-pulse" />
-              <div className="h-4 w-72 rounded-lg bg-neutral-800/40 animate-pulse" />
+              <div className="h-7 w-40 rounded-lg bg-card/50 animate-pulse" />
+              <div className="h-4 w-72 rounded-lg bg-card/40 animate-pulse" />
             </div>
-            <div className="h-9 w-full md:w-72 rounded-xl bg-neutral-800/40 animate-pulse" />
+            <div className="h-9 w-full md:w-72 rounded-xl bg-card/40 animate-pulse" />
           </div>
-          <div className="h-14 rounded-2xl bg-neutral-900/30 border border-border/30 animate-pulse" />
-          <div className="h-[600px] rounded-3xl bg-neutral-950/60 border border-border/30 animate-pulse" />
+          <div className="h-14 rounded-2xl bg-card/30 border border-border/30 animate-pulse" />
+          <div className="h-[600px] rounded-3xl bg-card/60 border border-border/30 animate-pulse" />
         </div>
       </AppLayout>
     )
@@ -516,7 +516,7 @@ export default function RadarPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent flex items-center gap-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent flex items-center gap-2">
               <RadarIcon className="w-6 h-6 text-primary" /> Radar
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Distribuição geográfica da sua base de contatos, por DDD.</p>
@@ -524,7 +524,7 @@ export default function RadarPage() {
 
           {/* Busca rápida */}
           <div className="relative w-full md:w-72">
-            <div className="flex items-center gap-2 bg-neutral-900/50 border border-border/50 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-2">
               <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               <input
                 value={searchQuery}
@@ -540,12 +540,12 @@ export default function RadarPage() {
               )}
             </div>
             {searchOpen && searchResults.length > 0 && (
-              <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-border/50 bg-neutral-950 shadow-2xl overflow-hidden animate-scale-in origin-top">
+              <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-border/50 bg-card shadow-2xl overflow-hidden animate-scale-in origin-top">
                 {searchResults.map((r, i) => (
                   <button
                     key={i}
                     onClick={() => { r.onSelect(); setSearchQuery(''); setSearchOpen(false) }}
-                    className="w-full px-3 py-2.5 text-left hover:bg-neutral-900 transition-colors"
+                    className="w-full px-3 py-2.5 text-left hover:bg-card transition-colors"
                   >
                     <p className="text-sm font-medium text-foreground">{r.label}</p>
                     <p className="text-[11px] text-muted-foreground">{r.sub}</p>
@@ -557,7 +557,7 @@ export default function RadarPage() {
         </div>
 
         {/* Filtros — uma linha, acima do conteúdo, escopando tudo abaixo */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-neutral-900/30 p-3 rounded-2xl border border-border/30 mb-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-card/30 p-3 rounded-2xl border border-border/30 mb-4">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 bg-black border border-border/50 rounded-lg px-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
@@ -584,7 +584,7 @@ export default function RadarPage() {
           <div className="flex items-center gap-2">
             {breadcrumb}
             {level !== 'brasil' && (
-              <button onClick={goBack} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold hover:bg-neutral-700 transition-colors">
+              <button onClick={goBack} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card text-xs font-semibold hover:bg-card transition-colors">
                 <ArrowLeft className="w-3.5 h-3.5" /> Voltar (Esc)
               </button>
             )}
@@ -596,8 +596,8 @@ export default function RadarPage() {
 
         {/* Card "Não identificados" */}
         {overview && overview.naoIdentificados > 0 && level === 'brasil' && (
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-amber-500/25 bg-amber-500/5 mb-4 w-fit animate-fade-in">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-warning/25 bg-warning/5 mb-4 w-fit animate-fade-in">
+            <div className="w-9 h-9 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning shrink-0">
               <MapPinOff className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -608,7 +608,7 @@ export default function RadarPage() {
         )}
 
         {/* Mapa */}
-        <div className="relative shrink-0 bg-neutral-950/60 rounded-3xl border border-border/30 overflow-hidden">
+        <div className="relative shrink-0 bg-card/60 rounded-3xl border border-border/30 overflow-hidden">
           {/* Dim contínuo durante refetch (sem animação própria, evita conflitar com o fill-mode do zoom abaixo) */}
           <div className={`relative transition-opacity duration-300 ${refetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           {/* Remonta e reproduz o "zoom" apenas em navegação de nível (chave muda) */}
@@ -713,7 +713,7 @@ export default function RadarPage() {
             {/* Tooltip */}
             {hover && (
               <div
-                className="absolute z-10 pointer-events-none bg-neutral-950/95 border border-border/60 rounded-xl px-3 py-2 shadow-2xl animate-scale-in"
+                className="absolute z-10 pointer-events-none bg-card/95 border border-border/60 rounded-xl px-3 py-2 shadow-2xl animate-scale-in"
                 style={{ left: Math.min(hover.x + 14, hover.containerWidth - 180), top: Math.max(hover.y - 46, 8) }}
               >
                 <p className="text-sm font-bold text-foreground whitespace-nowrap">{hover.titulo}</p>
@@ -723,14 +723,14 @@ export default function RadarPage() {
 
             {/* Top 5 estados com mais contatos (canto superior esquerdo, nível Brasil) */}
             {level === 'brasil' && overview && topEstados.length > 0 && (
-              <div className="relative w-full mt-3 md:mt-0 md:absolute md:left-4 md:top-4 md:w-52 z-10 bg-neutral-950/90 backdrop-blur-md border border-border/50 rounded-2xl p-3 shadow-2xl">
+              <div className="relative w-full mt-3 md:mt-0 md:absolute md:left-4 md:top-4 md:w-52 z-10 bg-card/90 backdrop-blur-md border border-border/50 rounded-2xl p-3 shadow-2xl">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Trophy className="w-3.5 h-3.5 text-warning shrink-0" />
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Top 5 estados</p>
                 </div>
                 <div className="space-y-1.5">
                   {topEstados.map((e, i) => {
-                    const rankColor = i === 0 ? 'text-amber-400' : i === 1 ? 'text-neutral-300' : i === 2 ? 'text-amber-700' : 'text-muted-foreground'
+                    const rankColor = i === 0 ? 'text-warning' : i === 1 ? 'text-foreground' : i === 2 ? 'text-warning' : 'text-muted-foreground'
                     const barPct = topEstados[0].total > 0 ? (e.total / topEstados[0].total) * 100 : 0
                     return (
                       <button key={e.uf} onClick={() => enterEstado(e.uf)}
@@ -742,8 +742,8 @@ export default function RadarPage() {
                           <span className="text-[11px] font-bold text-foreground truncate flex-1 group-hover:text-primary transition-colors">{e.estado}</span>
                           <span className="text-[11px] font-bold text-foreground shrink-0">{fmtCount(e.total)}</span>
                         </div>
-                        <div className="ml-[18px] mt-0.5 h-1 rounded-full bg-neutral-800 overflow-hidden">
-                          <div className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-400" style={{ width: `${Math.max(barPct, 4)}%` }} />
+                        <div className="ml-[18px] mt-0.5 h-1 rounded-full bg-card overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-primary to-success" style={{ width: `${Math.max(barPct, 4)}%` }} />
                         </div>
                       </button>
                     )
@@ -754,7 +754,7 @@ export default function RadarPage() {
 
             {/* Painel flutuante (canto inferior esquerdo) */}
             {panel && (
-              <div className="relative w-full mt-3 md:mt-0 md:absolute md:left-4 md:bottom-4 md:w-72 z-10 bg-neutral-950/90 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-2xl">
+              <div className="relative w-full mt-3 md:mt-0 md:absolute md:left-4 md:bottom-4 md:w-72 z-10 bg-card/90 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-2xl">
                 <p className="text-sm font-extrabold text-foreground truncate">{panel.titulo}</p>
                 <p className="text-xs text-muted-foreground">{fmtCount(panel.total)} contatos totais</p>
                 {(regiaoFilter !== 'all' || origemFilter !== 'all' || periodoFilter) && (
@@ -795,7 +795,7 @@ export default function RadarPage() {
 
             {/* Contador de posição total (canto superior direito, nível estado) */}
             {level !== 'brasil' && estadoDetalhe && (
-              <div className="relative w-full mt-3 md:mt-0 md:absolute md:right-4 md:top-4 md:w-auto z-10 bg-neutral-950/90 border border-border/50 rounded-xl px-3 py-2 text-right">
+              <div className="relative w-full mt-3 md:mt-0 md:absolute md:right-4 md:top-4 md:w-auto z-10 bg-card/90 border border-border/50 rounded-xl px-3 py-2 text-right">
                 <p className="text-sm font-bold text-foreground">{fmtCount(estadoDetalhe.total)} contatos</p>
                 <p className="text-[10px] text-muted-foreground mb-2">{estadoDetalhe.porDdd.filter(d => d.total > 0).length} DDD(s) com contatos</p>
                 <button onClick={() => selectedUf && openContatos(selectedUf)}
@@ -807,7 +807,7 @@ export default function RadarPage() {
 
             {/* Dica no nível Brasil */}
             {level === 'brasil' && (
-              <div className="hidden md:block absolute right-4 top-4 z-10 bg-neutral-950/80 border border-border/40 rounded-xl px-3 py-2 max-w-[220px]">
+              <div className="hidden md:block absolute right-4 top-4 z-10 bg-card/80 border border-border/40 rounded-xl px-3 py-2 max-w-[220px]">
                 <p className="text-[11px] text-muted-foreground">Clique em um estado para dar zoom nos DDDs. De lá, veja a lista de contatos e a situação de cada um.</p>
               </div>
             )}
@@ -817,8 +817,8 @@ export default function RadarPage() {
 
         {/* Nível DDD: breakdown por cidade (quando houver dado de cidade informado) */}
         {level === 'ddd' && dddDetalhe && (
-          <div key={selectedDdd} className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30 mt-4 animate-fade-in">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-1">
+          <div key={selectedDdd} className="bg-card/20 rounded-3xl p-6 border border-border/30 mt-4 animate-fade-in">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-1">
               <Users className="text-primary w-5 h-5" /> DDD {dddDetalhe.ddd} · {dddDetalhe.cidadeRef}
             </h3>
             <div className="flex items-center justify-between gap-3 mb-6">
@@ -831,7 +831,7 @@ export default function RadarPage() {
 
             {!dddDetalhe.temDadosDeCidade ? (
               <div className="text-center py-8">
-                <MapPinOff className="w-9 h-9 text-neutral-700 mx-auto mb-3" />
+                <MapPinOff className="w-9 h-9 text-foreground mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">Nenhum contato deste DDD tem a cidade informada no cadastro.</p>
               </div>
             ) : (
@@ -841,7 +841,7 @@ export default function RadarPage() {
                   return (
                     <div key={c.cidade} className="flex items-center gap-3">
                       <div className="w-40 shrink-0"><p className="text-xs font-bold truncate">{c.cidade}</p></div>
-                      <div className="flex-1 h-7 bg-neutral-900/60 rounded-lg overflow-hidden relative">
+                      <div className="flex-1 h-7 bg-card/60 rounded-lg overflow-hidden relative">
                         <div className="h-full rounded-lg bg-gradient-to-r from-primary/40 to-primary/10 transition-all duration-500" style={{ width: `${Math.max((c.total / max) * 100, 4)}%` }} />
                         <span className="absolute inset-y-0 left-3 flex items-center text-[11px] font-bold text-foreground">{c.total} · {c.pct}%</span>
                       </div>
@@ -859,7 +859,7 @@ export default function RadarPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" onClick={closeContatos}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <div
-            className="relative w-full sm:max-w-2xl max-h-[88vh] sm:max-h-[82vh] flex flex-col bg-neutral-950 border border-border/60 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-in origin-bottom sm:origin-center"
+            className="relative w-full sm:max-w-2xl max-h-[88vh] sm:max-h-[82vh] flex flex-col bg-card border border-border/60 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-in origin-bottom sm:origin-center"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -876,17 +876,17 @@ export default function RadarPage() {
               <div className="flex items-center gap-2 shrink-0">
                 {modalDdd && (
                   <button onClick={() => setModalDdd(null)}
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold hover:bg-neutral-700 transition-colors">
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card text-xs font-semibold hover:bg-card transition-colors">
                     <Users className="w-3.5 h-3.5" /> Ver todo o estado
                   </button>
                 )}
                 {!modalDdd && (
                   <button onClick={() => { const uf = modalUf; closeContatos(); if (uf) enterEstado(uf) }}
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold hover:bg-neutral-700 transition-colors">
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card text-xs font-semibold hover:bg-card transition-colors">
                     <MapIcon className="w-3.5 h-3.5" /> Explorar DDDs
                   </button>
                 )}
-                <button onClick={closeContatos} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-neutral-900 transition-colors">
+                <button onClick={closeContatos} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -900,7 +900,7 @@ export default function RadarPage() {
                 </div>
               ) : modalContatos.length === 0 ? (
                 <div className="text-center py-16">
-                  <MapPinOff className="w-9 h-9 text-neutral-700 mx-auto mb-3" />
+                  <MapPinOff className="w-9 h-9 text-foreground mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground">Nenhum contato identificado {modalDdd ? 'nesta localidade' : 'neste estado'} no recorte de filtros atual.</p>
                 </div>
               ) : (
@@ -910,7 +910,7 @@ export default function RadarPage() {
                     const wa = waLink(c.telefone)
                     const SitIcon = c.situacao === 'ganho' ? Trophy : c.situacao === 'perdido' ? Ban : c.situacao === 'pipeline' ? GitBranch : Users
                     return (
-                      <div key={c.id} className="flex items-center gap-3 p-3 rounded-2xl bg-neutral-900/40 border border-border/30 hover:border-border/60 transition-colors">
+                      <div key={c.id} className="flex items-center gap-3 p-3 rounded-2xl bg-card/40 border border-border/30 hover:border-border/60 transition-colors">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-foreground truncate">{c.nome}</p>
                           <div className="flex flex-wrap items-center gap-1.5 mt-1">
@@ -930,7 +930,7 @@ export default function RadarPage() {
                         </div>
                         {wa ? (
                           <a href={wa} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-xs font-semibold hover:bg-emerald-500/20 transition-colors shrink-0">
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/10 text-success border border-success/25 text-xs font-semibold hover:bg-success/20 transition-colors shrink-0">
                             <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
                           </a>
                         ) : (

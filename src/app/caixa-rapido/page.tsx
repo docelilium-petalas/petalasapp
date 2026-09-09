@@ -3154,7 +3154,7 @@ export default function CaixaRapidoPage() {
                 type="text"
                 value={reutilizarForm.nomeLista}
                 onChange={e => setReutilizarForm(f => ({ ...f, nomeLista: e.target.value }))}
-                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all"
+                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all"
               />
             </div>
 
@@ -3165,7 +3165,7 @@ export default function CaixaRapidoPage() {
                 rows={4}
                 value={reutilizarForm.mensagemTemplate}
                 onChange={e => setReutilizarForm(f => ({ ...f, mensagemTemplate: e.target.value }))}
-                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all resize-none font-mono"
+                className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all resize-none font-mono"
               />
               <p className="text-[10px] text-muted-foreground">Variáveis: {'{nome}'} {'{primeiro_nome}'} {'{ramo}'}</p>
             </div>
@@ -3179,7 +3179,7 @@ export default function CaixaRapidoPage() {
                   min={5}
                   value={reutilizarForm.intervaloSegundos}
                   onChange={e => setReutilizarForm(f => ({ ...f, intervaloSegundos: Number(e.target.value) }))}
-                  className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-primary-foreground focus:border-primary outline-none transition-all"
+                  className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground focus:border-primary outline-none transition-all"
                 />
               </div>
               <div className="flex items-end pb-2.5">

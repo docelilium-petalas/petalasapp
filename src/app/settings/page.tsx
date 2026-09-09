@@ -2372,7 +2372,7 @@ function SettingsContent() {
                                   navigator.clipboard.writeText(chan.urlWebhook)
                                   toast.success('URL do webhook copiada!')
                                 }}
-                                className="p-2 rounded-xl hover:bg-neutral-805 text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-2 rounded-xl hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
                                 title="Copiar URL"
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -3042,7 +3042,7 @@ function SettingsContent() {
                   <div key={tpl.id} className="p-5 rounded-3xl border border-border-subtle bg-secondary flex flex-col justify-between hover:border-border transition-all">
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-sm text-neutral-250 truncate max-w-[180px]">{tpl.nome}</span>
+                        <span className="font-bold text-sm text-foreground truncate max-w-[180px]">{tpl.nome}</span>
                         <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-border">
                           {tpl.categoria}
                         </span>

@@ -254,7 +254,7 @@ export default function BussolaPage() {
                 <Compass className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-primary-foreground">Bússola</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">Bússola</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">Atribuição de fontes · Insights IA · Relatórios precisos</p>
               </div>
               <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-border px-2.5 py-1 rounded-full shrink-0">
@@ -316,7 +316,7 @@ export default function BussolaPage() {
 
               {/* Source cards */}
               <div>
-                <h2 className="text-sm font-bold text-primary-foreground mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                   <Globe className="w-4 h-4 text-primary" /> Origem dos Leads
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
@@ -517,12 +517,12 @@ export default function BussolaPage() {
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowSellersDD(false)} />
                       <div className="absolute left-0 mt-2 w-52 rounded-xl border border-border bg-secondary p-2 shadow-xl z-40 animate-scale-in">
-                        <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
+                        <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center justify-between">
                           Todos os vendedores {ownerIds.length === 0 && <Check className="w-3.5 h-3.5 text-primary" />}
                         </button>
                         {sellersList.map(s => (
                           <button key={s.id} onClick={() => toggleSeller(s.id)}
-                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
+                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground flex items-center justify-between">
                             {s.name}
                             {ownerIds.includes(s.id) && <Check className="w-3.5 h-3.5 text-primary" />}
                           </button>

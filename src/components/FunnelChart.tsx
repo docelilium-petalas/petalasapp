@@ -77,7 +77,7 @@ export function FunnelChart({ stages, bottleneckKey, bandHeight = 66, footer }: 
                 <span className="text-[10px] text-muted-foreground">{totalPct}% · topo</span>
               ) : (
                 <div className="flex flex-col leading-tight">
-                  <span className={`text-sm font-black ${isBottleneck ? 'text-rose-400' : 'text-foreground'}`}>
+                  <span className={`text-sm font-black ${isBottleneck ? 'text-destructive' : 'text-foreground'}`}>
                     {stepPct}%
                   </span>
                   <span className="text-[10px] text-muted-foreground">

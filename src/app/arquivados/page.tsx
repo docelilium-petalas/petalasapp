@@ -160,7 +160,7 @@ export default function ArquivadosPage() {
                 <Archive className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-primary-foreground">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                   Negócios Arquivados
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Histórico de oportunidades ganhas ou perdidas</p>
@@ -482,7 +482,7 @@ export default function ArquivadosPage() {
                             </span>
                           )}
                           {deal.origem && (
-                            <span className="text-[9px] bg-muted text-neutral-350 border border-border px-1.5 py-0.5 rounded-md">
+                            <span className="text-[9px] bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-md">
                               {deal.origem}
                             </span>
                           )}

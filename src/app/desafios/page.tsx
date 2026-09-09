@@ -57,14 +57,14 @@ const fmtMetric = (key: string, v: number) => {
 // ─── Small UI pieces ──────────────────────────────────────────────────────────
 function DeltaBadge({ value, invert = false }: { value: number; invert?: boolean }) {
   if (value === 0) return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-neutral-500">
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-muted-foreground">
       <Minus className="w-3 h-3" /> 0%
     </span>
   )
   const good = invert ? value < 0 : value > 0
   const Icon = value > 0 ? TrendingUp : TrendingDown
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${good ? 'text-emerald-400' : 'text-rose-400'}`}>
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${good ? 'text-success' : 'text-destructive'}`}>
       <Icon className="w-3 h-3" /> {value > 0 ? '+' : ''}{value}%
     </span>
   )
@@ -503,7 +503,7 @@ export default function DesafiosPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent flex items-center gap-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent flex items-center gap-2">
               <Trophy className="w-6 h-6 text-primary" /> Desafios
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -511,7 +511,7 @@ export default function DesafiosPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-neutral-900/50 p-1.5 rounded-xl border border-border/50">
+          <div className="flex items-center gap-2 bg-card/50 p-1.5 rounded-xl border border-border/50">
             {[
               { id: 'central', label: 'Central', icon: TrendingUp },
               { id: 'metas', label: 'Metas', icon: Target },
@@ -526,7 +526,7 @@ export default function DesafiosPage() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeTab === t.id
                     ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                    : 'text-muted-foreground hover:bg-neutral-800 hover:text-foreground'
+                    : 'text-muted-foreground hover:bg-card hover:text-foreground'
                 }`}
               >
                 <t.icon className="w-4 h-4" />
@@ -541,7 +541,7 @@ export default function DesafiosPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Filters bar */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-neutral-900/30 p-3 rounded-2xl border border-border/30">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-card/30 p-3 rounded-2xl border border-border/30">
               <DateRangeFilter
                 value={dateRange}
                 onChange={(range) => setDateRange(range)}
@@ -572,10 +572,10 @@ export default function DesafiosPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {insights.slice(0, 3).map((ins, i) => {
                   const style = {
-                    positivo: { icon: Zap, cls: 'border-emerald-500/30 bg-emerald-500/5', ic: 'text-emerald-400' },
-                    alerta: { icon: AlertTriangle, cls: 'border-amber-500/30 bg-amber-500/5', ic: 'text-amber-400' },
-                    critico: { icon: AlertTriangle, cls: 'border-rose-500/30 bg-rose-500/5', ic: 'text-rose-400' },
-                    info: { icon: Lightbulb, cls: 'border-border/40 bg-neutral-900/40', ic: 'text-neutral-400' },
+                    positivo: { icon: Zap, cls: 'border-success/30 bg-success/5', ic: 'text-success' },
+                    alerta: { icon: AlertTriangle, cls: 'border-warning/30 bg-warning/5', ic: 'text-warning' },
+                    critico: { icon: AlertTriangle, cls: 'border-destructive/30 bg-destructive/5', ic: 'text-destructive' },
+                    info: { icon: Lightbulb, cls: 'border-border/40 bg-card/40', ic: 'text-muted-foreground' },
                   }[ins.tipo]
                   const Icon = style.icon
                   return (
@@ -600,7 +600,7 @@ export default function DesafiosPage() {
                 { key: 'conversas', accent: 'neutral' },
                 { key: 'respostas', accent: 'sky' },
               ] as { key: MetricKey; accent: string }[]).map(({ key }) => (
-                <div key={key} className="bg-neutral-900/40 p-5 rounded-2xl border border-border/30 hover:border-primary/30 transition-all flex flex-col items-center justify-center relative overflow-hidden group">
+                <div key={key} className="bg-card/40 p-5 rounded-2xl border border-border/30 hover:border-primary/30 transition-all flex flex-col items-center justify-center relative overflow-hidden group">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-1 text-center">{METRIC_META[key].label}</span>
                   <span className="text-4xl font-black" style={{ color: METRIC_META[key].color }}>{m?.[key] ?? 0}</span>
                   <div className="mt-1"><DeltaBadge value={deltas[key] ?? 0} /></div>
@@ -611,28 +611,28 @@ export default function DesafiosPage() {
             {/* Derived rates + CPA/CPL */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               {(['taxaResposta', 'taxaComparecimento', 'taxaFechamento'] as MetricKey[]).map(key => (
-                <div key={key} className="bg-neutral-900/40 p-4 rounded-2xl border border-border/30 flex flex-col items-center justify-center">
+                <div key={key} className="bg-card/40 p-4 rounded-2xl border border-border/30 flex flex-col items-center justify-center">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1 text-center">{METRIC_META[key].label}</span>
                   <span className="text-2xl font-black" style={{ color: METRIC_META[key].color }}>{m?.[key] ?? 0}%</span>
                   <div className="mt-1"><DeltaBadge value={deltas[key] ?? 0} /></div>
                 </div>
               ))}
-              <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/20 flex flex-col items-center justify-center">
-                <span className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-wide mb-1">CPA (Custo/Venda)</span>
-                <span className="text-2xl font-black text-emerald-400">{BRL(metasProgress?.cpa ?? 0)}</span>
+              <div className="bg-success/5 p-4 rounded-2xl border border-success/20 flex flex-col items-center justify-center">
+                <span className="text-[10px] font-bold text-success/70 uppercase tracking-wide mb-1">CPA (Custo/Venda)</span>
+                <span className="text-2xl font-black text-success">{BRL(metasProgress?.cpa ?? 0)}</span>
                 {(metasProgress?.custoValor ?? 0) === 0 && <span className="text-[9px] text-muted-foreground mt-1">Sem custo no mês</span>}
               </div>
-              <div className="bg-amber-500/5 p-4 rounded-2xl border border-amber-500/20 flex flex-col items-center justify-center">
-                <span className="text-[10px] font-bold text-amber-500/70 uppercase tracking-wide mb-1">CPL (Custo/Agend.)</span>
-                <span className="text-2xl font-black text-amber-400">{BRL(metasProgress?.cpl ?? 0)}</span>
+              <div className="bg-warning/5 p-4 rounded-2xl border border-warning/20 flex flex-col items-center justify-center">
+                <span className="text-[10px] font-bold text-warning/70 uppercase tracking-wide mb-1">CPL (Custo/Agend.)</span>
+                <span className="text-2xl font-black text-warning">{BRL(metasProgress?.cpl ?? 0)}</span>
                 {(metasProgress?.custoValor ?? 0) === 0 && <span className="text-[9px] text-muted-foreground mt-1">Sem custo no mês</span>}
               </div>
             </div>
 
             {/* Metas do mês (gauges + projeção) */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200">
+                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
                   <Target className="text-primary w-5 h-5" /> Metas de {periodo} · {ownerLabel}
                 </h3>
                 <button onClick={() => openMetasModal({ periodo, owner: ownerFilter === 'all' ? null : ownerFilter, label: ownerLabel, existing: metasProgress?.progresso || [] })} className="flex items-center gap-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
@@ -642,7 +642,7 @@ export default function DesafiosPage() {
 
               {(!metasProgress?.progresso || metasProgress.progresso.length === 0) ? (
                 <div className="text-center py-10">
-                  <Target className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+                  <Target className="w-10 h-10 text-foreground mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground mb-4">Nenhuma meta definida para {ownerLabel} em {periodo}.</p>
                   <button onClick={() => openMetasModal({ periodo, owner: ownerFilter === 'all' ? null : ownerFilter, label: ownerLabel, existing: metasProgress?.progresso || [] })} className="bg-primary text-black font-bold px-5 py-2 rounded-xl hover:brightness-110 transition-all inline-flex items-center gap-2">
                     <Plus className="w-4 h-4" /> Definir metas do mês
@@ -653,7 +653,7 @@ export default function DesafiosPage() {
                   {metasProgress.progresso.map((p: any) => {
                     const meta = METRIC_META[p.metrica as MetricKey]
                     return (
-                      <div key={p.id} className="flex items-center gap-4 bg-neutral-900/50 p-4 rounded-2xl border border-border/20">
+                      <div key={p.id} className="flex items-center gap-4 bg-card/50 p-4 rounded-2xl border border-border/20">
                         <MetaGauge pct={p.pctAtingido} color={meta?.color || '#00E676'} noRitmo={p.noRitmo} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground truncate">{meta?.label || p.metrica}</p>
@@ -662,11 +662,11 @@ export default function DesafiosPage() {
                             <span className="text-sm font-medium text-muted-foreground"> / {fmtMetric(p.metrica, p.alvo)}</span>
                           </p>
                           {p.tipo !== 'MENOR_MELHOR' && p.necessarioPorDia > 0 ? (
-                            <p className="text-[11px] mt-1 text-amber-400/90 font-semibold">
+                            <p className="text-[11px] mt-1 text-warning/90 font-semibold">
                               faltam {fmtMetric(p.metrica, p.restante)} · {p.necessarioPorDia}/dia
                             </p>
                           ) : (
-                            <p className={`text-[11px] mt-1 font-semibold ${p.noRitmo ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            <p className={`text-[11px] mt-1 font-semibold ${p.noRitmo ? 'text-success' : 'text-warning'}`}>
                               {p.noRitmo ? '✓ no ritmo' : 'atenção ao ritmo'}
                               {p.tipo !== 'MENOR_MELHOR' && p.projecao != null ? ` · projeção ${fmtMetric(p.metrica, p.projecao)}` : ''}
                             </p>
@@ -680,13 +680,13 @@ export default function DesafiosPage() {
             </div>
 
             {/* Funil de conversão */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200">
-                  <Flame className="text-amber-500 w-5 h-5" /> Funil de Conversão
+                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+                  <Flame className="text-warning w-5 h-5" /> Funil de Conversão
                 </h3>
                 {funnel?.gargalo && (
-                  <span className="text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-lg">
+                  <span className="text-[11px] font-bold text-destructive bg-destructive/10 border border-destructive/20 px-3 py-1 rounded-lg">
                     Gargalo: {funnel.gargalo.label} ({funnel.gargalo.taxaDaAnterior}%)
                   </span>
                 )}
@@ -699,9 +699,9 @@ export default function DesafiosPage() {
                   return (
                     <div key={step.key} className="flex items-center gap-3">
                       <div className="w-32 shrink-0 text-right">
-                        <span className="text-xs font-bold text-neutral-300">{step.label}</span>
+                        <span className="text-xs font-bold text-foreground">{step.label}</span>
                       </div>
-                      <div className="flex-1 h-9 bg-neutral-900/60 rounded-lg overflow-hidden relative">
+                      <div className="flex-1 h-9 bg-card/60 rounded-lg overflow-hidden relative">
                         <div
                           className="h-full rounded-lg flex items-center px-3 transition-all duration-500"
                           style={{ width: `${width}%`, background: isGargalo ? 'linear-gradient(90deg,#f43f5e33,#f43f5e11)' : 'linear-gradient(90deg,#00E67633,#00E67611)', borderRight: `2px solid ${isGargalo ? '#f43f5e' : '#00E676'}` }}
@@ -711,7 +711,7 @@ export default function DesafiosPage() {
                       </div>
                       <div className="w-16 shrink-0">
                         {idx > 0 && (
-                          <span className={`text-xs font-bold ${isGargalo ? 'text-rose-400' : 'text-neutral-400'}`}>
+                          <span className={`text-xs font-bold ${isGargalo ? 'text-destructive' : 'text-muted-foreground'}`}>
                             {step.taxaDaAnterior}%
                           </span>
                         )}
@@ -730,7 +730,7 @@ export default function DesafiosPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-neutral-900/30 p-3 rounded-2xl border border-border/30">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-card/30 p-3 rounded-2xl border border-border/30">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <input type="month" value={metasPeriodo} onChange={e => setMetasPeriodo(e.target.value)}
@@ -752,16 +752,16 @@ export default function DesafiosPage() {
 
             {/* Streak */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-5 rounded-2xl border border-amber-500/20 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/15 flex items-center justify-center">
-                  <Flame className="w-7 h-7 text-amber-400" />
+              <div className="bg-gradient-to-br from-warning/10 to-warning/5 p-5 rounded-2xl border border-warning/20 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-warning/15 flex items-center justify-center">
+                  <Flame className="w-7 h-7 text-warning" />
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-amber-400">{streak?.atual ?? 0} <span className="text-sm font-bold text-muted-foreground">dias</span></p>
+                  <p className="text-3xl font-black text-warning">{streak?.atual ?? 0} <span className="text-sm font-bold text-muted-foreground">dias</span></p>
                   <p className="text-xs text-muted-foreground">Sequência atual de vendas {streak?.hojeTemVenda ? '· 🔥 hoje!' : ''}</p>
                 </div>
               </div>
-              <div className="bg-neutral-900/40 p-5 rounded-2xl border border-border/30 flex items-center gap-4">
+              <div className="bg-card/40 p-5 rounded-2xl border border-border/30 flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <Award className="w-7 h-7 text-primary" />
                 </div>
@@ -770,12 +770,12 @@ export default function DesafiosPage() {
                   <p className="text-xs text-muted-foreground">Recorde (últimos 90 dias)</p>
                 </div>
               </div>
-              <div className="bg-neutral-900/40 p-5 rounded-2xl border border-border/30 flex flex-col justify-center">
+              <div className="bg-card/40 p-5 rounded-2xl border border-border/30 flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-2">Últimos 30 dias</p>
                 <div className="flex gap-0.5 flex-wrap">
                   {(streak?.ultimosDias || []).map((d, i) => (
                     <div key={i} title={`${d.data}: ${d.vendas} venda(s)`}
-                      className={`w-2.5 h-5 rounded-sm ${d.vendas > 0 ? 'bg-amber-400' : 'bg-neutral-800'}`}
+                      className={`w-2.5 h-5 rounded-sm ${d.vendas > 0 ? 'bg-warning' : 'bg-card'}`}
                       style={{ opacity: d.vendas > 0 ? Math.min(0.4 + d.vendas * 0.2, 1) : 1 }} />
                   ))}
                 </div>
@@ -783,13 +783,13 @@ export default function DesafiosPage() {
             </div>
 
             {/* Metas grid */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-6">
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-6">
                 <Target className="text-primary w-5 h-5" /> Metas de {metasPeriodo}
               </h3>
               {(!metasTab?.progresso || metasTab.progresso.length === 0) ? (
                 <div className="text-center py-10">
-                  <Target className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+                  <Target className="w-10 h-10 text-foreground mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground mb-4">Nenhuma meta definida neste período.</p>
                   <button onClick={() => openMetasModal({ periodo: metasPeriodo, owner: metasOwner === 'all' ? null : metasOwner, label: metasOwner === 'all' ? 'Operação' : (vendedores.find(v => v.id === metasOwner)?.nome || ''), existing: [] })}
                     className="bg-primary text-black font-bold px-5 py-2 rounded-xl hover:brightness-110 transition-all inline-flex items-center gap-2">
@@ -801,7 +801,7 @@ export default function DesafiosPage() {
                   {metasTab.progresso.map((p: any) => {
                     const meta = METRIC_META[p.metrica as MetricKey]
                     return (
-                      <div key={p.id} className="flex items-center gap-4 bg-neutral-900/50 p-4 rounded-2xl border border-border/20">
+                      <div key={p.id} className="flex items-center gap-4 bg-card/50 p-4 rounded-2xl border border-border/20">
                         <MetaGauge pct={p.pctAtingido} color={meta?.color || '#00E676'} noRitmo={p.noRitmo} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground truncate">{meta?.label || p.metrica}</p>
@@ -810,9 +810,9 @@ export default function DesafiosPage() {
                             <span className="text-sm font-medium text-muted-foreground"> / {fmtMetric(p.metrica, p.alvo)}</span>
                           </p>
                           {p.tipo !== 'MENOR_MELHOR' && p.necessarioPorDia > 0 ? (
-                            <p className="text-[11px] mt-1 text-amber-400/90 font-semibold">faltam {fmtMetric(p.metrica, p.restante)} · {p.necessarioPorDia}/dia</p>
+                            <p className="text-[11px] mt-1 text-warning/90 font-semibold">faltam {fmtMetric(p.metrica, p.restante)} · {p.necessarioPorDia}/dia</p>
                           ) : (
-                            <p className={`text-[11px] mt-1 font-semibold ${p.noRitmo ? 'text-emerald-400' : 'text-amber-400'}`}>{p.noRitmo ? '✓ no ritmo' : 'atenção ao ritmo'}</p>
+                            <p className={`text-[11px] mt-1 font-semibold ${p.noRitmo ? 'text-success' : 'text-warning'}`}>{p.noRitmo ? '✓ no ritmo' : 'atenção ao ritmo'}</p>
                           )}
                         </div>
                       </div>
@@ -823,10 +823,10 @@ export default function DesafiosPage() {
             </div>
 
             {/* Desafios */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200">
-                  <Trophy className="text-amber-400 w-5 h-5" /> Desafios
+                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+                  <Trophy className="text-warning w-5 h-5" /> Desafios
                 </h3>
                 <button onClick={() => openChModal()} className="flex items-center gap-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Novo desafio
@@ -843,39 +843,39 @@ export default function DesafiosPage() {
                   const pctClamp = Math.min(c.pctAtingido, 100)
                   const vendedor = c.ownerUserId ? vendedores.find(v => v.id === c.ownerUserId)?.nome : null
                   return (
-                    <div key={c.id} className="bg-neutral-900/50 p-5 rounded-2xl border border-border/30">
+                    <div key={c.id} className="bg-card/50 p-5 rounded-2xl border border-border/30">
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="min-w-0">
                           <p className="font-bold text-base truncate">{c.titulo}</p>
                           {c.descricao && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{c.descricao}</p>}
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-300">{meta?.label || c.metrica}</span>
-                            {vendedor && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 flex items-center gap-1"><Users className="w-2.5 h-2.5" />{vendedor}</span>}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${c.diasRestantes <= 3 ? 'bg-rose-500/10 text-rose-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-card text-foreground">{meta?.label || c.metrica}</span>
+                            {vendedor && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-info/10 text-info flex items-center gap-1"><Users className="w-2.5 h-2.5" />{vendedor}</span>}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${c.diasRestantes <= 3 ? 'bg-destructive/10 text-destructive' : 'bg-card text-muted-foreground'}`}>
                               <Clock className="w-2.5 h-2.5" />{c.diasRestantes}d restantes
                             </span>
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <button onClick={() => openChModal(c)} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-neutral-800 rounded-lg"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDeleteChallenge(c.id)} className="p-1.5 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => openChModal(c)} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-card rounded-lg"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteChallenge(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-xs mb-1.5">
                         <span className="font-bold">{fmtMetric(c.metrica, c.realizado)} <span className="text-muted-foreground font-medium">/ {fmtMetric(c.metrica, c.alvo)}</span></span>
-                        <span className={`font-black ${c.concluido ? 'text-emerald-400' : 'text-amber-400'}`}>{c.pctAtingido}%</span>
+                        <span className={`font-black ${c.concluido ? 'text-success' : 'text-warning'}`}>{c.pctAtingido}%</span>
                       </div>
-                      <div className="h-2.5 bg-neutral-800 rounded-full overflow-hidden">
+                      <div className="h-2.5 bg-card rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pctClamp}%`, background: c.concluido ? '#00E676' : '#FFB300' }} />
                       </div>
                       {c.recompensa && (
-                        <p className="text-[11px] text-emerald-400/90 font-semibold mt-2 flex items-center gap-1"><Gift className="w-3 h-3" /> {c.recompensa}</p>
+                        <p className="text-[11px] text-success/90 font-semibold mt-2 flex items-center gap-1"><Gift className="w-3 h-3" /> {c.recompensa}</p>
                       )}
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => handleChStatus(c.id, 'CONCLUIDO')} className="flex-1 text-xs font-bold py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors flex items-center justify-center gap-1">
+                        <button onClick={() => handleChStatus(c.id, 'CONCLUIDO')} className="flex-1 text-xs font-bold py-1.5 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors flex items-center justify-center gap-1">
                           <CheckCircle className="w-3.5 h-3.5" /> Concluir
                         </button>
-                        <button onClick={() => handleChStatus(c.id, 'FALHOU')} className="flex-1 text-xs font-bold py-1.5 rounded-lg bg-neutral-800 text-muted-foreground hover:text-rose-400 transition-colors">
+                        <button onClick={() => handleChStatus(c.id, 'FALHOU')} className="flex-1 text-xs font-bold py-1.5 rounded-lg bg-card text-muted-foreground hover:text-destructive transition-colors">
                           Encerrar
                         </button>
                       </div>
@@ -890,15 +890,15 @@ export default function DesafiosPage() {
                   <h4 className="text-sm font-bold text-muted-foreground flex items-center gap-2 mb-3"><Medal className="w-4 h-4" /> Mural de conquistas</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {challenges.filter(c => c.status !== 'ATIVO').map(c => (
-                      <div key={c.id} className={`p-4 rounded-2xl border flex items-center gap-3 ${c.status === 'CONCLUIDO' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/30 bg-neutral-900/40'}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${c.status === 'CONCLUIDO' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-neutral-800 text-neutral-500'}`}>
+                      <div key={c.id} className={`p-4 rounded-2xl border flex items-center gap-3 ${c.status === 'CONCLUIDO' ? 'border-success/20 bg-success/5' : 'border-border/30 bg-card/40'}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${c.status === 'CONCLUIDO' ? 'bg-success/15 text-success' : 'bg-card text-muted-foreground'}`}>
                           {c.status === 'CONCLUIDO' ? <Trophy className="w-5 h-5" /> : <X className="w-5 h-5" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold truncate">{c.titulo}</p>
                           <p className="text-[11px] text-muted-foreground">{c.status === 'CONCLUIDO' ? 'Concluído' : 'Encerrado'} · {c.recompensa || (METRIC_META[c.metrica as MetricKey]?.label || c.metrica)}</p>
                         </div>
-                        <button onClick={() => handleDeleteChallenge(c.id)} className="p-1.5 text-muted-foreground hover:text-rose-500 rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteChallenge(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     ))}
                   </div>
@@ -914,7 +914,7 @@ export default function DesafiosPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Filters bar (reaproveita filtros da Central) */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-neutral-900/30 p-3 rounded-2xl border border-border/30">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-card/30 p-3 rounded-2xl border border-border/30">
               <DateRangeFilter
                 value={dateRange}
                 onChange={(range) => setDateRange(range)}
@@ -940,10 +940,10 @@ export default function DesafiosPage() {
 
             {/* Gargalo banner */}
             {funilConv?.gargalo && (
-              <div className="flex gap-3 p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5">
-                <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="flex gap-3 p-4 rounded-2xl border border-destructive/30 bg-destructive/5">
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-bold">Maior gargalo: entrada em <span className="text-rose-400">{funilConv.gargalo.label}</span></p>
+                  <p className="text-sm font-bold">Maior gargalo: entrada em <span className="text-destructive">{funilConv.gargalo.label}</span></p>
                   <p className="text-xs text-muted-foreground mt-0.5">Apenas {funilConv.gargalo.taxaDaAnterior}% avançam da etapa anterior para esta. É onde você mais perde oportunidades — priorize ações aqui.</p>
                 </div>
               </div>
@@ -956,18 +956,18 @@ export default function DesafiosPage() {
               const bottomVal = steps.length ? steps[steps.length - 1].valor : 0
               const convTotal = topVal > 0 ? Math.round((bottomVal / topVal) * 1000) / 10 : 0
               return (
-                <div className="bg-gradient-to-b from-neutral-900/40 to-neutral-900/10 rounded-3xl p-6 border border-border/30">
+                <div className="bg-gradient-to-b from-card/40 to-card/10 rounded-3xl p-6 border border-border/30">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-                    <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
                       <Activity className="text-primary w-5 h-5" /> Funil de Conversão
                     </h3>
                     {topVal > 0 && (
                       <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-neutral-400" />
+                          <span className="w-2 h-2 rounded-full bg-muted" />
                           <span className="text-muted-foreground">{topVal} conversas</span>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-neutral-600" />
+                        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
                         <div className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-primary" />
                           <span className="text-muted-foreground">{bottomVal} vendas</span>
@@ -979,7 +979,7 @@ export default function DesafiosPage() {
 
                   {topVal === 0 ? (
                     <div className="text-center py-12">
-                      <Activity className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+                      <Activity className="w-10 h-10 text-foreground mx-auto mb-3" />
                       <p className="text-sm text-muted-foreground">Nenhuma conversa iniciada no período selecionado.</p>
                     </div>
                   ) : (
@@ -994,7 +994,7 @@ export default function DesafiosPage() {
                       footer={
                         <div className="grid grid-cols-2 gap-4 text-center">
                           <div>
-                            <p className="text-2xl sm:text-3xl font-black text-neutral-200">{topVal}</p>
+                            <p className="text-2xl sm:text-3xl font-black text-foreground">{topVal}</p>
                             <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Conversas (topo)</p>
                           </div>
                           <div>
@@ -1018,23 +1018,23 @@ export default function DesafiosPage() {
               ] as { key: MetricKey; hint: string }[]).map(({ key, hint }) => {
                 const val = funilConv?.metrics?.[key] ?? 0
                 return (
-                  <div key={key} className="relative bg-neutral-900/40 p-5 rounded-2xl border border-border/30 overflow-hidden group">
+                  <div key={key} className="relative bg-card/40 p-5 rounded-2xl border border-border/30 overflow-hidden group">
                     <div className="absolute inset-x-0 bottom-0 h-1 transition-all" style={{ width: `${Math.min(val, 100)}%`, background: METRIC_META[key].color, opacity: 0.7 }} />
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{METRIC_META[key].label}</span>
                     <div className="flex items-end gap-1 mt-1">
                       <span className="text-3xl font-black leading-none" style={{ color: METRIC_META[key].color }}>{val}</span>
                       <span className="text-sm font-bold text-muted-foreground mb-0.5">%</span>
                     </div>
-                    <p className="text-[10px] text-neutral-500 mt-1.5">{hint}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">{hint}</p>
                   </div>
                 )
               })}
             </div>
 
             {/* Velocidade do funil */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-1">
-                <Timer className="text-blue-400 w-5 h-5" /> Velocidade do Funil
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-1">
+                <Timer className="text-info w-5 h-5" /> Velocidade do Funil
               </h3>
               <p className="text-xs text-muted-foreground mb-6">Tempo médio de percurso dos leads criados no período.</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1043,10 +1043,10 @@ export default function DesafiosPage() {
                   { label: 'Agendamento → Comparecimento', val: funilTiming?.agendamentoToComparecimento, n: funilTiming?.amostras.comparecimento, color: '#a855f7' },
                   { label: 'Lead → Venda', val: funilTiming?.leadToVenda, n: funilTiming?.amostras.venda, color: '#00E676' },
                 ].map(t => (
-                  <div key={t.label} className="bg-neutral-900/50 p-5 rounded-2xl border border-border/20 flex flex-col items-center text-center">
+                  <div key={t.label} className="bg-card/50 p-5 rounded-2xl border border-border/20 flex flex-col items-center text-center">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2 h-8 flex items-center">{t.label}</span>
                     <span className="text-3xl font-black" style={{ color: t.color }}>{fmtDur(t.val ?? null)}</span>
-                    <span className="text-[10px] text-neutral-600 mt-1">{t.n || 0} amostra(s)</span>
+                    <span className="text-[10px] text-muted-foreground mt-1">{t.n || 0} amostra(s)</span>
                   </div>
                 ))}
               </div>
@@ -1060,7 +1060,7 @@ export default function DesafiosPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Filters */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-neutral-900/30 p-3 rounded-2xl border border-border/30">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-card/30 p-3 rounded-2xl border border-border/30">
               <DateRangeFilter
                 value={dateRange}
                 onChange={(range) => setDateRange(range)}
@@ -1068,7 +1068,7 @@ export default function DesafiosPage() {
               />
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1.5 bg-black border border-border/50 rounded-lg px-2">
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+                  <Crown className="w-3.5 h-3.5 text-warning" />
                   <select value={rankMetric} onChange={e => setRankMetric(e.target.value as RankMetric)} className="bg-black py-1.5 text-sm outline-none cursor-pointer">
                     {RANK_METRICS.map(rm => <option key={rm.key} value={rm.key}>{rm.label}</option>)}
                   </select>
@@ -1084,28 +1084,28 @@ export default function DesafiosPage() {
             </div>
 
             {rankedList.length === 0 ? (
-              <div className="text-center py-16 bg-neutral-900/20 rounded-3xl border border-border/30">
-                <Crown className="w-12 h-12 text-neutral-700 mx-auto mb-3" />
+              <div className="text-center py-16 bg-card/20 rounded-3xl border border-border/30">
+                <Crown className="w-12 h-12 text-foreground mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">Nenhum dado de vendedores no período.</p>
               </div>
             ) : (
               <>
                 {/* Pódio */}
-                <div className="bg-gradient-to-b from-neutral-900/40 to-neutral-900/10 rounded-3xl p-6 border border-border/30">
-                  <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-6 justify-center">
-                    <Crown className="text-amber-400 w-5 h-5" /> Pódio · {RANK_METRICS.find(r => r.key === rankMetric)?.label}
+                <div className="bg-gradient-to-b from-card/40 to-card/10 rounded-3xl p-6 border border-border/30">
+                  <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-6 justify-center">
+                    <Crown className="text-warning w-5 h-5" /> Pódio · {RANK_METRICS.find(r => r.key === rankMetric)?.label}
                   </h3>
                   <div className="flex items-end justify-center gap-3 sm:gap-6">
                     {[1, 0, 2].map(pos => {
                       const v = rankedList[pos]
                       if (!v) return <div key={pos} className="w-24" />
                       const isFirst = pos === 0
-                      const medal = pos === 0 ? { c: '#FFD700', h: 'h-32', ring: 'ring-amber-400', bg: 'from-amber-500/20' } : pos === 1 ? { c: '#D1D5DB', h: 'h-24', ring: 'ring-neutral-400', bg: 'from-neutral-500/20' } : { c: '#CD7F32', h: 'h-20', ring: 'ring-orange-700', bg: 'from-orange-700/20' }
+                      const medal = pos === 0 ? { c: '#FFD700', h: 'h-32', ring: 'ring-warning', bg: 'from-warning/20' } : pos === 1 ? { c: '#D1D5DB', h: 'h-24', ring: 'ring-border', bg: 'from-muted/20' } : { c: '#CD7F32', h: 'h-20', ring: 'ring-warning', bg: 'from-warning/20' }
                       return (
                         <div key={pos} className="flex flex-col items-center">
-                          <div className={`relative w-16 h-16 rounded-full bg-neutral-800 ring-2 ${medal.ring} flex items-center justify-center mb-2`}>
-                            <span className="text-lg font-black text-neutral-200">{v.initial}</span>
-                            {isFirst && <Crown className="w-6 h-6 text-amber-400 absolute -top-4 left-1/2 -translate-x-1/2" fill="#FFD700" />}
+                          <div className={`relative w-16 h-16 rounded-full bg-card ring-2 ${medal.ring} flex items-center justify-center mb-2`}>
+                            <span className="text-lg font-black text-foreground">{v.initial}</span>
+                            {isFirst && <Crown className="w-6 h-6 text-warning absolute -top-4 left-1/2 -translate-x-1/2" fill="#FFD700" />}
                           </div>
                           <p className="text-xs font-bold text-center max-w-[90px] truncate">{v.nome}</p>
                           <p className="text-lg font-black" style={{ color: medal.c }}>{fmtRank(rankMetric, (v as any)[rankMetric] ?? 0)}</p>
@@ -1119,17 +1119,17 @@ export default function DesafiosPage() {
                 </div>
 
                 {/* Lista completa */}
-                <div className="bg-neutral-900/20 rounded-3xl p-4 sm:p-6 border border-border/30">
+                <div className="bg-card/20 rounded-3xl p-4 sm:p-6 border border-border/30">
                   <div className="space-y-2">
                     {rankedList.map((v, idx) => {
                       const medalColor = idx === 0 ? '#FFD700' : idx === 1 ? '#D1D5DB' : idx === 2 ? '#CD7F32' : '#525252'
                       return (
-                        <div key={v.id} className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border transition-colors ${idx < 3 ? 'bg-neutral-900/50 border-border/40' : 'bg-neutral-900/30 border-border/20'}`}>
+                        <div key={v.id} className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl border transition-colors ${idx < 3 ? 'bg-card/50 border-border/40' : 'bg-card/30 border-border/20'}`}>
                           <div className="w-8 text-center shrink-0">
-                            {idx < 3 ? <Medal className="w-5 h-5 mx-auto" style={{ color: medalColor }} /> : <span className="text-sm font-bold text-neutral-500">{idx + 1}º</span>}
+                            {idx < 3 ? <Medal className="w-5 h-5 mx-auto" style={{ color: medalColor }} /> : <span className="text-sm font-bold text-muted-foreground">{idx + 1}º</span>}
                           </div>
-                          <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center shrink-0">
-                            <span className="text-sm font-black text-neutral-300">{v.initial}</span>
+                          <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center shrink-0">
+                            <span className="text-sm font-black text-foreground">{v.initial}</span>
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold truncate">{v.nome}</p>
@@ -1158,7 +1158,7 @@ export default function DesafiosPage() {
         {/* TAB: CUSTOS */}
         {activeTab === 'custos' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-neutral-900/40 p-6 rounded-2xl border border-border/50 max-w-xl">
+            <div className="bg-card/40 p-6 rounded-2xl border border-border/50 max-w-xl">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4"><DollarSign className="w-5 h-5 text-primary" /> Adicionar Custo Mensal</h2>
               <p className="text-sm text-muted-foreground mb-6">Insira o valor total investido na operação (tráfego, ferramentas, etc) para o mês. Ele será usado para calcular o CPA e CPL.</p>
               <form onSubmit={handleSaveCusto} className="flex flex-col sm:flex-row flex-wrap gap-3">
@@ -1173,7 +1173,7 @@ export default function DesafiosPage() {
             </div>
 
             {/* Teto de CPA */}
-            <div className="bg-neutral-900/40 p-6 rounded-2xl border border-border/50 max-w-xl">
+            <div className="bg-card/40 p-6 rounded-2xl border border-border/50 max-w-xl">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-2"><Target className="w-5 h-5 text-primary" /> Teto de CPA · {nowMonth}</h2>
               <p className="text-sm text-muted-foreground mb-4">Custo máximo aceitável por venda no mês. Você é alertado ao ultrapassar.</p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3">
@@ -1189,16 +1189,16 @@ export default function DesafiosPage() {
               <div className="flex flex-wrap items-center justify-between gap-2 mt-4 pt-4 border-t border-border/30">
                 <span className="text-sm text-muted-foreground">CPA atual do mês</span>
                 <div className="flex items-center flex-wrap gap-2">
-                  <span className={`text-xl font-black ${tetoExceeded ? 'text-rose-400' : currentCpa > 0 ? 'text-emerald-400' : 'text-neutral-400'}`}>{BRL(currentCpa)}</span>
-                  {tetoExceeded && <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-md flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Acima do teto</span>}
-                  {!tetoExceeded && cpaTeto && currentCpa > 0 && <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md">Dentro do teto</span>}
+                  <span className={`text-xl font-black ${tetoExceeded ? 'text-destructive' : currentCpa > 0 ? 'text-success' : 'text-muted-foreground'}`}>{BRL(currentCpa)}</span>
+                  {tetoExceeded && <span className="text-[10px] font-bold text-destructive bg-destructive/10 border border-destructive/20 px-2 py-1 rounded-md flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Acima do teto</span>}
+                  {!tetoExceeded && cpaTeto && currentCpa > 0 && <span className="text-[10px] font-bold text-success bg-success/10 border border-success/20 px-2 py-1 rounded-md">Dentro do teto</span>}
                 </div>
               </div>
             </div>
 
             {/* Tendência CPA/CPL */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-6"><TrendingUp className="text-primary w-5 h-5" /> Tendência de CPA e CPL · 6 meses</h3>
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-6"><TrendingUp className="text-primary w-5 h-5" /> Tendência de CPA e CPL · 6 meses</h3>
               {roiChart.every(r => r.CPA === 0 && r.CPL === 0) ? (
                 <p className="text-sm text-muted-foreground text-center py-10">Cadastre custos mensais para visualizar a evolução do CPA e CPL.</p>
               ) : (
@@ -1216,8 +1216,8 @@ export default function DesafiosPage() {
             </div>
 
             {/* ROI por origem */}
-            <div className="bg-neutral-900/20 rounded-3xl p-6 border border-border/30">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-neutral-200 mb-6"><Zap className="text-amber-400 w-5 h-5" /> Desempenho por Origem · mês atual</h3>
+            <div className="bg-card/20 rounded-3xl p-6 border border-border/30">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-foreground mb-6"><Zap className="text-warning w-5 h-5" /> Desempenho por Origem · mês atual</h3>
               {roiOrigem.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">Nenhum lead no mês atual.</p>
               ) : (
@@ -1228,12 +1228,12 @@ export default function DesafiosPage() {
                         <p className="text-xs font-bold truncate">{o.origem}</p>
                         <p className="text-[10px] text-muted-foreground">{o.leads} leads · {o.vendas} vendas</p>
                       </div>
-                      <div className="flex-1 h-7 bg-neutral-900/60 rounded-lg overflow-hidden relative">
+                      <div className="flex-1 h-7 bg-card/60 rounded-lg overflow-hidden relative">
                         <div className="h-full rounded-lg bg-gradient-to-r from-primary/40 to-primary/10 transition-all duration-500" style={{ width: `${Math.max((o.leads / maxOrigemLeads) * 100, 4)}%` }} />
                         <span className="absolute inset-y-0 left-3 flex items-center text-[11px] font-bold text-foreground">{o.taxaConversao}% conversão</span>
                       </div>
                       <div className="w-24 text-right shrink-0">
-                        <span className="text-sm font-black text-emerald-400">{BRL(o.receita)}</span>
+                        <span className="text-sm font-black text-success">{BRL(o.receita)}</span>
                       </div>
                     </div>
                   ))}
@@ -1244,11 +1244,11 @@ export default function DesafiosPage() {
             <div className="max-w-xl">
               <h3 className="font-bold mb-4 text-muted-foreground">Histórico de Custos</h3>
               <div className="space-y-2">
-                {custos.length === 0 && <p className="text-sm text-neutral-600">Nenhum custo cadastrado.</p>}
+                {custos.length === 0 && <p className="text-sm text-muted-foreground">Nenhum custo cadastrado.</p>}
                 {custos.map(c => (
-                  <div key={c.id} className="flex justify-between items-center bg-neutral-900/30 p-4 rounded-xl border border-border/30">
+                  <div key={c.id} className="flex justify-between items-center bg-card/30 p-4 rounded-xl border border-border/30">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center">
                         <Calendar className="w-5 h-5" />
                       </div>
                       <div>
@@ -1258,7 +1258,7 @@ export default function DesafiosPage() {
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="font-bold text-lg text-foreground">{BRL(c.valor)}</span>
-                      <button onClick={() => handleDeleteCusto(c.id)} className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors">
+                      <button onClick={() => handleDeleteCusto(c.id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -1272,7 +1272,7 @@ export default function DesafiosPage() {
         {/* TAB: REGRAS */}
         {activeTab === 'regras' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-neutral-900/40 p-5 rounded-2xl border border-border/50 gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card/40 p-5 rounded-2xl border border-border/50 gap-4">
               <div>
                 <h2 className="text-lg font-bold flex items-center gap-2 text-foreground"><Settings className="w-5 h-5 text-primary" /> Regras dos Indicadores</h2>
                 <p className="text-sm text-muted-foreground mt-1">Configure quais etapas do CRM correspondem a cada métrica do Dashboard.</p>
@@ -1284,11 +1284,11 @@ export default function DesafiosPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
               {[
-                { key: 'agendamentoStages', label: 'Agendamentos', desc: 'Etapas que indicam que a reunião foi agendada.', color: 'border-blue-500/30 bg-blue-500/5', titleColor: 'text-blue-400', type: 'stage' },
-                { key: 'comparecimentoStages', label: 'Comparecimentos', desc: 'Etapas que indicam que o lead compareceu.', color: 'border-purple-500/30 bg-purple-500/5', titleColor: 'text-purple-400', type: 'stage' },
-                { key: 'leadsApStages', label: 'Leads AP', desc: 'Tags de Alta Prioridade (AP).', color: 'border-emerald-500/30 bg-emerald-500/5', titleColor: 'text-emerald-400', type: 'tag' },
-                { key: 'zonaCinzaStages', label: 'Zona Cinza', desc: 'Tags de leads indefinidos/médio interesse.', color: 'border-amber-500/30 bg-amber-500/5', titleColor: 'text-amber-400', type: 'tag' },
-                { key: 'desqualificadaStages', label: 'Desqualificadas', desc: 'Tags de leads sem perfil.', color: 'border-rose-500/30 bg-rose-500/5', titleColor: 'text-rose-400', type: 'tag' },
+                { key: 'agendamentoStages', label: 'Agendamentos', desc: 'Etapas que indicam que a reunião foi agendada.', color: 'border-info/30 bg-info/5', titleColor: 'text-info', type: 'stage' },
+                { key: 'comparecimentoStages', label: 'Comparecimentos', desc: 'Etapas que indicam que o lead compareceu.', color: 'border-brand-ink/30 bg-brand-ink/5', titleColor: 'text-brand-ink', type: 'stage' },
+                { key: 'leadsApStages', label: 'Leads AP', desc: 'Tags de Alta Prioridade (AP).', color: 'border-success/30 bg-success/5', titleColor: 'text-success', type: 'tag' },
+                { key: 'zonaCinzaStages', label: 'Zona Cinza', desc: 'Tags de leads indefinidos/médio interesse.', color: 'border-warning/30 bg-warning/5', titleColor: 'text-warning', type: 'tag' },
+                { key: 'desqualificadaStages', label: 'Desqualificadas', desc: 'Tags de leads sem perfil.', color: 'border-destructive/30 bg-destructive/5', titleColor: 'text-destructive', type: 'tag' },
               ].map(group => (
                 <div key={group.key} className={`p-5 rounded-2xl border ${group.color} transition-colors flex flex-col h-full`}>
                   <h3 className={`font-bold text-base mb-1 ${group.titleColor}`}>{group.label}</h3>
@@ -1311,10 +1311,10 @@ export default function DesafiosPage() {
                         itemColor = tag?.color || '#999'
                       }
                       return (
-                        <div key={itemId} className="flex items-center gap-2 bg-neutral-800 border border-border/50 rounded-full px-3 py-1">
+                        <div key={itemId} className="flex items-center gap-2 bg-card border border-border/50 rounded-full px-3 py-1">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: itemColor }} />
                           <span className="text-xs font-semibold">{itemContext}{itemLabel}</span>
-                          <button className="text-muted-foreground hover:text-rose-500 ml-1"
+                          <button className="text-muted-foreground hover:text-destructive ml-1"
                             onClick={() => {
                               const newRules = { ...rules, [group.key]: (rules[group.key] || []).filter((id: string) => id !== itemId) }
                               setRules(newRules)
@@ -1356,10 +1356,10 @@ export default function DesafiosPage() {
         {/* MODAL: Definir metas */}
         {metasModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setMetasModalOpen(false)}>
-            <div className="bg-neutral-950 border border-border/60 rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="bg-card border border-border/60 rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-lg font-bold flex items-center gap-2"><Target className="w-5 h-5 text-primary" /> Metas de {metaCtx.periodo}</h3>
-                <button onClick={() => setMetasModalOpen(false)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-neutral-800"><X className="w-4 h-4" /></button>
+                <button onClick={() => setMetasModalOpen(false)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-card"><X className="w-4 h-4" /></button>
               </div>
               <p className="text-xs text-muted-foreground mb-5">Alvo para <b className="text-foreground">{metaCtx.label}</b>. Deixe em branco para não acompanhar a métrica.</p>
               <div className="space-y-3 max-h-[50vh] overflow-y-auto scrollbar-thin pr-1">
@@ -1380,7 +1380,7 @@ export default function DesafiosPage() {
                 ))}
               </div>
               <div className="flex gap-3 mt-6">
-                <button onClick={() => setMetasModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-border/50 text-sm font-bold hover:bg-neutral-800 transition-colors">Cancelar</button>
+                <button onClick={() => setMetasModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-border/50 text-sm font-bold hover:bg-card transition-colors">Cancelar</button>
                 <button onClick={handleSaveMetas} disabled={savingMetas} className="flex-1 py-2.5 rounded-xl bg-primary text-black text-sm font-bold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {savingMetas ? <div className="w-4 h-4 rounded-full border-2 border-black/40 border-t-black animate-spin" /> : <CheckCircle className="w-4 h-4" />} Salvar metas
                 </button>
@@ -1392,10 +1392,10 @@ export default function DesafiosPage() {
         {/* MODAL: Desafio */}
         {chModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setChModalOpen(false)}>
-            <div className="bg-neutral-950 border border-border/60 rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="bg-card border border-border/60 rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-bold flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-400" /> {chDraft.id ? 'Editar desafio' : 'Novo desafio'}</h3>
-                <button onClick={() => setChModalOpen(false)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-neutral-800"><X className="w-4 h-4" /></button>
+                <h3 className="text-lg font-bold flex items-center gap-2"><Trophy className="w-5 h-5 text-warning" /> {chDraft.id ? 'Editar desafio' : 'Novo desafio'}</h3>
+                <button onClick={() => setChModalOpen(false)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-card"><X className="w-4 h-4" /></button>
               </div>
               <div className="space-y-3 max-h-[60vh] overflow-y-auto scrollbar-thin pr-1">
                 <div>
@@ -1451,7 +1451,7 @@ export default function DesafiosPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button onClick={() => setChModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-border/50 text-sm font-bold hover:bg-neutral-800 transition-colors">Cancelar</button>
+                <button onClick={() => setChModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-border/50 text-sm font-bold hover:bg-card transition-colors">Cancelar</button>
                 <button onClick={handleSaveChallenge} disabled={chSaving} className="flex-1 py-2.5 rounded-xl bg-primary text-black text-sm font-bold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {chSaving ? <div className="w-4 h-4 rounded-full border-2 border-black/40 border-t-black animate-spin" /> : <CheckCircle className="w-4 h-4" />} {chDraft.id ? 'Salvar' : 'Criar desafio'}
                 </button>

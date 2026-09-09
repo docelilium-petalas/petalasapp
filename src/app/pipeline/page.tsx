@@ -399,9 +399,9 @@ function DraggableDealCard({
 function DroppableColumn({
   stage,
   deals,
-  contacts,
-  users,
-  activities,
+  contactsById,
+  usersById,
+  activitiesByDeal,
   history,
   isSelectionMode,
   selectedDeals,
@@ -420,9 +420,9 @@ function DroppableColumn({
 }: {
   stage: MockStage
   deals: MockDeal[]
-  contacts: MockContact[]
-  users: MockUser[]
-  activities: MockActivity[]
+  contactsById: Map<string, MockContact>
+  usersById: Map<string, MockUser>
+  activitiesByDeal: Map<string, MockActivity[]>
   history: MockDealStageHistory[]
   isSelectionMode: boolean
   selectedDeals: Set<string>
@@ -502,11 +502,11 @@ function DroppableColumn({
       {/* Cards Scrollable Area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-2.5 space-y-2.5 max-h-[calc(100vh-280px)] min-h-[150px]">
         {deals.map((deal) => {
-          const contact = contacts.find((c) => c.id === deal.contactId)
-          const owner = users.find((u) => u.id === deal.ownerUserId)
+          const contact = contactsById.get(deal.contactId)
+          const owner = deal.ownerUserId ? usersById.get(deal.ownerUserId) : undefined
           const isSelected = selectedDeals.has(deal.id)
-          const pendingTasksCount = activities.filter(a => a.dealId === deal.id && a.status === 'OPEN').length
-          const dealActivities = activities.filter((a) => a.dealId === deal.id)
+          const dealActivities = activitiesByDeal.get(deal.id) ?? []
+          const pendingTasksCount = dealActivities.filter((a) => a.status === 'OPEN').length
           const hasOverdueActivity = dealActivities.some((a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() < Date.now())
                     const hasFutureActivity = dealActivities.some(
             (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
@@ -582,6 +582,37 @@ function PipelineContent() {
   const [contacts, setContacts] = useState<MockContact[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [activities, setActivities] = useState<MockActivity[]>([])
+
+  // ÍNDICES — construídos uma vez por mudança de dado, não por card.
+  //
+  // Antes cada cartão fazia `contacts.find` + `users.find` + dois
+  // `activities.filter` DENTRO do render. Com 54 negócios e 56 contatos isso
+  // é ~3.000 comparações por render só nos contatos, e cresce pelo produto
+  // das duas listas — some com a base, não com a tela.
+  //
+  // O pipeline inteiro não tinha um `useMemo` sequer, apesar de importá-lo.
+  const contactsById = useMemo(() => {
+    const m = new Map<string, MockContact>()
+    for (const c of contacts) m.set(c.id, c)
+    return m
+  }, [contacts])
+
+  const usersById = useMemo(() => {
+    const m = new Map<string, MockUser>()
+    for (const u of users) m.set(u.id, u)
+    return m
+  }, [users])
+
+  const activitiesByDeal = useMemo(() => {
+    const m = new Map<string, MockActivity[]>()
+    for (const a of activities) {
+      if (!a.dealId) continue
+      const lista = m.get(a.dealId)
+      if (lista) lista.push(a)
+      else m.set(a.dealId, [a])
+    }
+    return m
+  }, [activities])
   const [history, setHistory] = useState<MockDealStageHistory[]>([])
   const [currentUser, setCurrentUser] = useState<{ id: string; isAdmin: boolean } | null>(null)
 
@@ -1706,11 +1737,11 @@ return sum + d.valorEstimado * (prob / 100)
               return (
                 <div className="flex flex-col space-y-3.5 pb-24">
                   {stageDealsList.map((deal) => {
-                    const contact = contacts.find((c) => c.id === deal.contactId)
-                    const owner = users.find((u) => u.id === deal.ownerUserId)
+                    const contact = contactsById.get(deal.contactId)
+                    const owner = deal.ownerUserId ? usersById.get(deal.ownerUserId) : undefined
                     const isSelected = selectedDeals.has(deal.id)
-                    const pendingTasksCount = activities.filter(a => a.dealId === deal.id && a.status === 'OPEN').length
-                    const dealActivities = activities.filter((a) => a.dealId === deal.id)
+                    const dealActivities = activitiesByDeal.get(deal.id) ?? []
+                    const pendingTasksCount = dealActivities.filter((a) => a.status === 'OPEN').length
                     const hasOverdueActivity = dealActivities.some((a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() < Date.now())
                     const hasFutureActivity = dealActivities.some(
                       (a) => a.status === 'OPEN' && new Date(a.dueAt).getTime() > Date.now()
@@ -1791,9 +1822,9 @@ return sum + d.valorEstimado * (prob / 100)
                     key={stage.id}
                     stage={stage}
                     deals={stageDealsList}
-                    contacts={contacts}
-                    users={users}
-                    activities={activities}
+                    contactsById={contactsById}
+                    usersById={usersById}
+                    activitiesByDeal={activitiesByDeal}
                     history={history}
                     isSelectionMode={isSelectionMode}
                     selectedDeals={selectedDeals}
@@ -2909,10 +2940,10 @@ function DealDetailDrawer({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <div className="w-16 h-1.5 rounded-full bg-neutral-600 hover:bg-primary/60 transition-colors" />
+          <div className="w-16 h-1.5 rounded-full bg-muted hover:bg-primary/60 transition-colors" />
           <button
             onClick={onClose}
-            className="absolute right-4 top-2 p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-primary-foreground"
+            className="absolute right-4 top-2 p-1.5 rounded-full bg-secondary text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -3543,7 +3574,7 @@ function DealDetailDrawer({
                     return (
                       <div key={log.id} className="relative text-xs">
                         <span
-                          className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full border border-neutral-950 ${logColor}`}
+                          className={`absolute -left-6 top-1 w-2.5 h-2.5 rounded-full border border-border ${logColor}`}
                         />
                         <p className="font-bold text-foreground">{logTitle}</p>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
