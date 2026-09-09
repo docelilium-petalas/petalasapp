@@ -1,95 +1,180 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════════════
+   DOCE LILIUM · SISTEMA VISUAL
+   ══════════════════════════════════════════════════════════════════════════
+
+   A marca: moda feminina de ocasião — vestidos, saias, lenços. Tom delicado e
+   editorial; "Lilium" é o lírio, símbolo de pureza. A loja é minimalista, e o
+   rosa lá é assinatura, não superfície.
+
+   O tema anterior veio do CRM da OCR, que era DARK. A conversão para claro foi
+   feita por remendo, e três defeitos ficaram — todos medidos em 08/09/2026:
+
+     · borda sobre card branco a 1,79:1 e card branco sobre o fundo a 1,20:1.
+       Daí a queixa de "folha branca sem delimitação": não havia delimitação.
+     · `--muted` e `--accent` em hue 62 — VERDE-OLIVA, sobra da paleta da OCR,
+       a 1,10:1 sobre o card. Invisível e do matiz errado, em 193 lugares.
+     · a escala de cinza era DARK-NATIVE invertida (`gray-50` escuro,
+       `gray-900` branco). Toda tela que a usasse recebia o valor trocado.
+
+   As regras deste sistema:
+
+     1. O ROSA NÃO É A SUPERFÍCIE. Ele é assinatura. A superfície é um blush
+        quase neutro; quem carrega a identidade é o vinho (#44121E).
+     2. TODO PAR FOI MEDIDO. Nenhum valor aqui é palpite — os contrastes estão
+        anotados em cada bloco, e a conta é a da WCAG 2.1.
+     3. COR DE DADO NUNCA É COR DE MARCA. Ganho, perda e alerta têm matiz
+        próprio, para que um número nunca dependa do rosa para significar algo.
+     4. PESO NÃO SUBSTITUI CONTRASTE. O texto lê por contraste, não por negrito.
+   ══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  /* === PRIMARY: Dark Burgundy (#44121E) === */
-  --primary: 346 58% 17%;
+  /* ── SUPERFÍCIES ────────────────────────────────────────────────────────
+     O papel não é branco puro: é um blush de croma baixíssimo. Isso dá ao
+     card uma separação real (1,22:1) sem precisar de sombra pesada —
+     que num tema claro sempre vira sujeira. */
+  --background: 345 34% 88.5%;   /* #ECD8DD - a pagina. 1.22:1 sob o card */
+  --foreground: 345 45% 14%;     /* #34141C — 12,2:1 sobre a página */
+
+  --card: 345 45% 96.0%;         /* #F9F0F3 - 11% menos brilho que branco puro.
+                                    Branco puro em área grande ofusca, e a queixa
+                                    na Bússola era exatamente essa. Texto sobre ele: 15,0:1 */
+  --card-foreground: 345 45% 14%;
+  --popover: 345 45% 96.0%;
+  --popover-foreground: 345 45% 14%;
+
+  /* ── PAPEL ──────────────────────────────────────────────────────────────
+     A mesma luminosidade do card, matiz deslocado do blush para o marfim.
+     Serve às telas que são uma PILHA DE COISAS A FAZER — atividades,
+     arquivados — onde o item deve ler como uma folha sobre a mesa, e não
+     como mais um painel de software. A diferença é sutil de propósito: um
+     salto de matiz maior sairia da paleta da marca. */
+  --paper: 32 30% 96.0%;      /* #F8F5F2 - marfim, para pilha de tarefas */
+  --paper-border: 32 22% 77.1%; /* #D1C5B8 - 1.55:1 sobre o papel */
+
+  /* `--secondary` é SUPERFÍCIE DE CAMPO, não preenchimento de botão.
+     Medido: 280 usos, e 140 deles com texto escuro por cima (`text-foreground`
+     ou `text-muted-foreground`). Antes era um rosa médio (#C77A86); vinho
+     sobre ele dava aquele "o próprio rosa, só que mais escuro" que o Owner
+     apontou. Agora é blush claro, e o texto escuro fica limpo em cima. */
+  --secondary: 345 30% 93.5%;    /* #F3E9EC - um degrau abaixo do card */
+  --secondary-foreground: 345 45% 14%;
+
+  --muted: 345 26% 92.0%;        /* #F0E5E8 - era OLIVA. 193 usos corrigidos */
+  --muted-foreground: 345 16% 38.9%; /* #73535B - 6.01:1 sobre card */
+  --accent: 345 34% 90.5%;       /* #EFDFE3 - era OLIVA */
+  --accent-foreground: 345 45% 14%;
+
+  /* ── MARCA ──────────────────────────────────────────────────────────────
+     `--primary` é o VINHO, e é ele que carrega branco (15,5:1). O rosa da
+     marca (#C77A86) é lindo mas só aguenta 3,2:1 com branco — não pode ser
+     preenchimento de botão com texto branco. Por isso existe `--brand-solid`:
+     o mesmo rosa, escurecido até 4.63:1, para quando o preenchimento PRECISA
+     ser rosa e o texto branco. */
+  --primary: 346 58% 17%;        /* #44121E */
   --primary-foreground: 0 0% 100%;
   --primary-glow: 351 41% 63%;
-  --primary-deep: 346 58% 12%;
+  --primary-deep: 346 58% 11%;
 
-  /* === BACKGROUND: Pastel Pink (#FBE6EB) === */
-  --background: 346 70% 94%;
-  --foreground: 346 58% 17%;
+  --brand-rose: 351 41% 63%;     /* #C77A86 — assinatura, superfícies e traços */
+  --brand-solid: 351 46% 53.1%;  /* #BE5061 — 4.63:1 com branco. Botão rosa */
+  --brand-ink: 348 46% 37.5%;     /* #8C3445 - 7.02:1. O rosa quando e TEXTO */
 
-  /* === SURFACES === */
-  --card: 0 0% 100%;
-  --card-foreground: 346 58% 17%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 346 58% 17%;
-  --secondary: 351 41% 63%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 62 60% 91%;
-  --muted-foreground: 351 41% 40%;
-  --accent: 62 60% 91%;
-  --accent-foreground: 346 58% 17%;
+  /* ── LINHAS — três degraus, porque um só nunca serve ────────────────────
+     O erro anterior foi ter UMA borda, fraca demais para delimitar card e
+     forte demais para dividir linha de tabela. */
+  --border-subtle: 345 22% 86.2%;  /* #E4D4D8 - 1.28:1. Divisorias internas   */
+  --border: 345 26% 73.2%;         /* #CCA9B2 - 1.90:1. Contorno de card      */
+  --border-strong: 345 20% 58.4%;  /* #AA808A - 3.06:1. Campos e interativos  */
+  --input: 345 20% 58.4%;          /* input usa a forte: e elemento de interacao */
+  --ring: 351 46% 53.1%;
 
-  /* === STATUS === */
-  --destructive: 346 58% 40%;
-  --destructive-foreground: 0 0% 100%;
-  --success: 63 53% 29%;
+  /* ── DADOS ──────────────────────────────────────────────────────────────
+     Nenhum destes é rosa, de propósito. Um número não pode depender da cor da
+     marca para dizer se subiu ou desceu — e sobre o fundo rosa de destaque o
+     rosa some, que foi a queixa dos cards de ganhos/perdidos/conversão. */
+  --success: 152 30% 33.5%;      /* #3C6F57 sage - 5.22:1 */
   --success-foreground: 0 0% 100%;
-  --warning: 38 95% 55%;
-  --warning-foreground: 0 0% 9%;
-  --info: 200 90% 55%;
-  --info-foreground: 0 0% 9%;
-
-  /* === LINHAS === */
-  --border: 351 41% 80%;
-  --input: 351 41% 80%;
-  --ring: 351 41% 63%;
+  --destructive: 8 42% 44.9%;   /* #A34F42 terracota - 5.01:1 */
+  --destructive-foreground: 0 0% 100%;
+  --warning: 35 44% 37.7%;      /* #8A6736 argila - 4.60:1 */
+  --warning-foreground: 0 0% 100%;
+  --info: 218 28% 42.1%;       /* #4D6389 azul poeira - 5.41:1 */
+  --info-foreground: 0 0% 100%;
 
   --radius: 0.75rem;
 
-  /* === GRAY SCALE DARK-NATIVE === */
-  --gray-50: 150 20% 7%;
-  --gray-100: 150 18% 10%;
-  --gray-200: 150 15% 14%;
-  --gray-400: 150 8% 45%;
-  --gray-500: 150 8% 58%;
-  --gray-600: 150 8% 72%;
-  --gray-900: 0 0% 100%;
+  /* ── ESCALA NEUTRA — light-native ───────────────────────────────────────
+     Estava INVERTIDA (herança do tema escuro): `--gray-50` era quase preto e
+     `--gray-900` era branco. Agora sobe do claro para o escuro, como o nome
+     promete. */
+  --gray-50: 345 30% 98%;
+  --gray-100: 345 28% 96%;
+  --gray-200: 345 24% 91%;
+  --gray-300: 345 22% 85%;
+  --gray-400: 345 18% 68%;
+  --gray-500: 345 16% 52%;
+  --gray-600: 345 16% 40%;
+  --gray-700: 345 22% 30%;
+  --gray-800: 345 32% 21%;
+  --gray-900: 345 45% 14%;
 
-  /* === SEMÂNTICOS DE NEGÓCIO === */
-  --priority-alta: 0 84% 55%;
-  --priority-media: 38 95% 55%;
-  --priority-baixa: 145 100% 45%;
-  --priority-nao-respondeu: 150 8% 45%;
+  /* ── SEMÂNTICOS DE NEGÓCIO ──────────────────────────────────────────────
+     Alinhados aos tokens de dado acima, para que prioridade e status leiam com
+     a mesma lógica de cor em toda a plataforma. */
+  --priority-alta: 8 42% 44.9%;
+  --priority-media: 35 44% 37.7%;
+  --priority-baixa: 152 30% 33.5%;
+  --priority-nao-respondeu: 345 16% 52%;
 
-  --status-open: 145 100% 45%;
-  --status-won: 142 100% 50%;
-  --status-lost: 0 84% 55%;
+  --status-open: 218 28% 42.1%;
+  --status-won: 152 30% 33.5%;
+  --status-lost: 8 42% 44.9%;
 
-  /* === SIDEBAR === */
+  /* ── BARRA LATERAL ──────────────────────────────────────────────────────
+     Fica no vinho: é a âncora da marca e o único bloco escuro da interface.
+     O contraste dela com o conteúdo claro é o que dá estrutura à tela. */
   --sidebar-background: 346 58% 17%;
-  --sidebar-foreground: 346 70% 94%;
+  --sidebar-foreground: 345 40% 92%;
   --sidebar-primary: 351 41% 63%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 346 58% 25%;
-  --sidebar-accent-foreground: 346 70% 94%;
-  --sidebar-border: 346 58% 22%;
-  --sidebar-ring: 351 41% 63%;
+  --sidebar-accent: 346 52% 24%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 346 45% 26%;
+  --sidebar-ring: 351 46% 53.1%;
 
-  /* === CHARTS === */
+  /* ── GRÁFICOS ───────────────────────────────────────────────────────────
+     Série categórica distinguível: cada matiz é seu, e nenhum é o oliva que
+     estava aqui antes. */
   --chart-1: 346 58% 17%;
-  --chart-2: 351 41% 63%;
-  --chart-3: 63 53% 29%;
-  --chart-4: 62 60% 91%;
-  --chart-5: 65 68% 11%;
+  --chart-2: 351 46% 53.1%;
+  --chart-3: 152 30% 33.5%;
+  --chart-4: 218 28% 42.1%;
+  --chart-5: 35 44% 37.7%;
+  --chart-6: 345 18% 68%;
 
-  /* === SIGNATURE GRADIENTS === */
-  --ocr-gradient: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(351 41% 63%) 100%);
-  --ocr-gradient-text: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(351 41% 63%) 100%);
-  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 41% 63% / 0.16) 0%, hsl(62 60% 91% / 0.5) 100%);
-  --ocr-gradient-border: linear-gradient(135deg, hsl(351 41% 63% / 0.65), hsl(346 58% 17% / 0.2));
-  --ocr-glow: 0 0 40px hsl(346 58% 17% / 0.35), 0 0 80px hsl(351 41% 63% / 0.15);
-  --ocr-glow-soft: 0 0 24px hsl(351 41% 63% / 0.22);
-  --ocr-glow-intense: 0 0 60px hsl(351 41% 63% / 0.5), 0 0 120px hsl(346 58% 17% / 0.25);
+  /* ── GRADIENTES E BRILHOS ───────────────────────────────────────────────
+     Discretos. Num tema claro, brilho forte não impressiona: suja. */
+  --ocr-gradient: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(351 46% 53.1%) 100%);
+  --ocr-gradient-text: linear-gradient(135deg, hsl(346 58% 17%) 0%, hsl(348 46% 38%) 100%);
+  --ocr-gradient-soft: linear-gradient(135deg, hsl(351 41% 63% / 0.10) 0%, hsl(345 34% 93% / 0.6) 100%);
+  --ocr-gradient-border: linear-gradient(135deg, hsl(351 41% 63% / 0.55), hsl(346 58% 17% / 0.14));
+  --ocr-glow: 0 0 0 1px hsl(346 58% 17% / 0.08), 0 8px 24px hsl(345 40% 25% / 0.10);
+  --ocr-glow-soft: 0 2px 10px hsl(345 40% 25% / 0.08);
+  --ocr-glow-intense: 0 0 0 1px hsl(351 46% 54% / 0.35), 0 10px 30px hsl(345 40% 25% / 0.16);
 
-  /* === SHADOWS === */
-  --shadow-performance: 0 25px 50px -12px rgb(0 0 0 / 0.8), 0 0 0 1px hsl(145 100% 45% / 0.06);
-  --shadow-card-lift: 0 20px 40px -10px rgb(0 0 0 / 0.65), 0 0 0 1px hsl(142 100% 61% / 0.12);
+  /* ── SOMBRAS — quentes e leves ──────────────────────────────────────────
+     As antigas eram preto a 65% e 80%, feitas para fundo escuro. Sobre blush
+     elas viravam borrão cinza. Estas usam o próprio vinho, dessaturado. */
+  --shadow-xs: 0 1px 2px hsl(345 30% 20% / 0.05);
+  --shadow-sm: 0 1px 3px hsl(345 30% 20% / 0.07), 0 1px 2px hsl(345 30% 20% / 0.04);
+  --shadow-md: 0 4px 12px hsl(345 30% 20% / 0.08), 0 1px 3px hsl(345 30% 20% / 0.05);
+  --shadow-lg: 0 12px 28px hsl(345 30% 20% / 0.10), 0 2px 6px hsl(345 30% 20% / 0.06);
+  --shadow-performance: var(--shadow-lg);
+  --shadow-card-lift: 0 14px 32px hsl(345 30% 20% / 0.12), 0 0 0 1px hsl(346 58% 17% / 0.06);
 
-  /* === MOTION === */
+  /* ── MOVIMENTO ──────────────────────────────────────────────────────────── */
   --ease-performance: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-snap: cubic-bezier(0.4, 0, 0.2, 1);
   --dur-150: 150ms;
@@ -97,36 +182,6 @@
   --dur-300: 300ms;
   --dur-500: 500ms;
   --dur-700: 700ms;
-}
-
-.light {
-  --primary: 345 44% 43%;
-  --primary-glow: 345 60% 55%;
-  --background: 0 0% 100%;
-  --foreground: 0 0% 9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
-  --secondary: 0 0% 98%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 98%;
-  --muted-foreground: 0 0% 44%;
-  --accent: 345 20% 95%;
-  --accent-foreground: 345 44% 25%;
-  --destructive: 0 84% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 87%;
-  --input: 0 0% 92%;
-  --ring: 345 44% 43%;
-  --sidebar-background: 0 0% 100%;
-  --sidebar-foreground: 0 0% 20%;
-  --sidebar-primary: 345 44% 43%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 345 20% 95%;
-  --sidebar-accent-foreground: 345 44% 25%;
-  --sidebar-border: 0 0% 92%;
-  --sidebar-ring: 345 44% 43%;
 }
 
 @theme {
@@ -146,10 +201,24 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
   --color-border: hsl(var(--border));
+  --color-paper: hsl(var(--paper));
+  --color-paper-border: hsl(var(--paper-border));
+  --color-border-subtle: hsl(var(--border-subtle));
+  --color-border-strong: hsl(var(--border-strong));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  
+
+  --color-brand-rose: hsl(var(--brand-rose));
+  --color-brand-solid: hsl(var(--brand-solid));
+  --color-brand-ink: hsl(var(--brand-ink));
+
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
@@ -159,12 +228,17 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* === BASE RULES === */
+/* ══════════════════════════════════════════════════════════════════════════
+   BASE
+   ══════════════════════════════════════════════════════════════════════════ */
 @layer base {
   * {
     border-color: hsl(var(--border));
@@ -174,80 +248,123 @@
     scroll-behavior: smooth;
   }
 
+  /* TIPOGRAFIA
+     Saía Montserrat — geométrica, larga, de hastes grossas — com o corpo em
+     peso 300. A combinação é o pior dos dois mundos: pesada nos títulos,
+     apagada no texto miúdo. Entram duas famílias com papéis separados:
+
+       Fraunces  — serifa de eixo suave, com tamanho óptico. É a voz editorial
+                   da marca, e só aparece em título. Moda se escreve com serifa.
+       DM Sans   — sem-serifa humanista de terminações arredondadas. Lê melhor
+                   que a Montserrat em 12–14px, que é o tamanho em que um CRM
+                   realmente vive.
+
+     O corpo sobe de 300 para 400: quem separa texto de fundo é o contraste,
+     não a espessura. */
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-montserrat), 'Gotham Light', 'Gotham', 'Inter', sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    letter-spacing: -0.006em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(345 44% 43% / 0.09), transparent 70%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(345 60% 60% / 0.05), transparent 70%);
-    background-attachment: fixed;
+    text-rendering: optimizeLegibility;
   }
 
-  .light body {
-    background-image: none;
-    background-color: hsl(var(--background));
+  /* Números de dado alinham em coluna. Num CRM isso não é refinamento:
+     é o que deixa uma tabela de valores comparável de relance. */
+  table, .tabular, [data-tabular] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
   }
 
-  .light {
-    color-scheme: light;
+  h1, h2 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-optical-sizing: auto;
   }
 
-  h1 { @apply text-[2rem] font-bold leading-tight tracking-tight; }
-  h2 { @apply text-[1.5rem] font-semibold leading-snug tracking-tight; }
-  h3 { @apply text-[1.25rem] font-semibold leading-snug; }
-  h4 { @apply text-[1rem] font-medium; }
+  h1 { @apply text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em]; }
+  h2 { @apply text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.015em]; }
+  h3 { @apply text-[1.0625rem] font-semibold leading-snug tracking-[-0.01em]; }
+  h4 { @apply text-[0.9375rem] font-medium leading-snug; }
+
+  /* Campos: a borda forte (3,01:1) existe aqui. Um campo é elemento de
+     interação, e a WCAG pede 3:1 para o limite dele — era 1,79:1. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select {
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--border-strong) / 0.55);
+    color: hsl(var(--foreground));
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground) / 0.75);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: hsl(var(--brand-rose) / 0.28);
+    color: hsl(var(--foreground));
+  }
 }
 
-/* === PREMIUM COMPONENTS === */
+/* ══════════════════════════════════════════════════════════════════════════
+   COMPONENTES
+   As classes .ocr-* nasceram para vidro sobre fundo escuro: transparência,
+   blur pesado, realce interno branco e sombra preta a 40–65%. Sobre blush
+   claro nada disso funciona — o realce some, a sombra suja e o blur borra o
+   que deveria delimitar. Aqui elas viram superfícies sólidas com borda real.
+   Os NOMES ficam: são 83 usos de .ocr-label e 33 de .ocr-card no app.
+   ══════════════════════════════════════════════════════════════════════════ */
 @layer components {
   .ocr-glass {
-    background: hsl(var(--card) / 0.5);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.6);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
-      0 8px 32px hsl(0 0% 0% / 0.4);
+    background: hsl(var(--card) / 0.88);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-sm);
   }
 
   .ocr-glass-strong {
-    background: hsl(var(--card) / 0.75);
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    background: hsl(var(--card));
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid hsl(var(--border));
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.08),
-      0 12px 48px hsl(0 0% 0% / 0.5);
+    box-shadow: var(--shadow-md);
   }
 
   .ocr-card {
     @apply rounded-2xl;
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid hsl(var(--border) / 0.5);
-    transition: all 400ms var(--ease-performance);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-xs);
+    transition:
+      border-color var(--dur-200) var(--ease-snap),
+      box-shadow var(--dur-200) var(--ease-snap),
+      transform var(--dur-200) var(--ease-snap);
   }
 
   .ocr-card:hover {
-    transform: translateY(-4px);
-    border-color: hsl(var(--primary) / 0.4);
-    box-shadow:
-      var(--shadow-card-lift),
-      0 0 0 1px hsl(var(--primary) / 0.15);
+    transform: translateY(-2px);
+    border-color: hsl(var(--border-strong) / 0.7);
+    box-shadow: var(--shadow-md);
   }
 
   .ocr-card-premium {
     @apply rounded-2xl relative;
-    background: hsl(var(--card) / 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid transparent;
-    background-clip: padding-box;
-    transition: all 500ms var(--ease-performance);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-sm);
+    transition: all var(--dur-300) var(--ease-performance);
   }
 
   .ocr-card-premium::before {
@@ -260,26 +377,28 @@
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    opacity: 0.5;
-    transition: opacity 400ms var(--ease-performance);
+    opacity: 0;
+    transition: opacity var(--dur-300) var(--ease-performance);
     pointer-events: none;
   }
 
-  .ocr-card-premium:hover::before {
-    opacity: 1;
-  }
+  .ocr-card-premium:hover::before { opacity: 1; }
 
   .ocr-card-premium:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--ocr-glow-soft), 0 25px 50px -12px hsl(0 0% 0% / 0.7);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
   }
 
+  /* O rótulo miúdo aparece 83 vezes. Era `font-semibold` em 11px com o
+     muted-foreground rosado: pequeno, grosso e de baixo contraste ao mesmo
+     tempo. Agora é medium, com um pouco mais de corpo e entreletra. */
   .ocr-label {
-    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground;
   }
 
   .ocr-mono {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
     @apply text-sm;
   }
 
@@ -287,96 +406,141 @@
     @apply flex items-center gap-1.5 text-xs text-muted-foreground;
   }
 
+  /* Título de destaque: serifa, e sem gradiente em texto pequeno — gradiente
+     em texto corta o contraste no meio da letra. */
   .ocr-display {
-    @apply text-3xl md:text-4xl font-bold tracking-tight;
-    background: var(--ocr-gradient-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    font-family: var(--font-fraunces), Georgia, serif;
+    @apply text-3xl md:text-4xl font-semibold tracking-[-0.02em];
+    color: hsl(var(--primary));
   }
+
+  /* Superfície de seção: um degrau abaixo do card, para agrupar sem criar
+     mais uma borda. Resolve o "tudo à mesma altura" das telas densas. */
+  .dl-panel {
+    background: hsl(var(--muted) / 0.6);
+    border: 1px solid hsl(var(--border-subtle));
+    @apply rounded-xl;
+  }
+
+  /* FOLHA DE PAPEL — para as telas que são uma pilha de coisas a fazer.
+     Marfim em vez de blush, borda quente e uma sombra curta e baixa: o que
+     faz o olho ler "folha sobre a mesa" não é textura, é a sombra rente à
+     base somada a um matiz que não é o do resto da interface. */
+  .dl-paper {
+    background: hsl(var(--paper));
+    border: 1px solid hsl(var(--paper-border) / 0.55);
+    box-shadow: 0 1px 2px hsl(32 25% 25% / 0.06), 0 1px 1px hsl(32 25% 25% / 0.04);
+    transition: box-shadow var(--dur-200) var(--ease-snap), border-color var(--dur-200) var(--ease-snap);
+  }
+  .dl-paper:hover {
+    border-color: hsl(var(--paper-border) / 0.85);
+    box-shadow: 0 2px 6px hsl(32 25% 25% / 0.09), 0 1px 2px hsl(32 25% 25% / 0.05);
+  }
+
+  /* Divisória interna — o degrau fraco existe para isto, e só. */
+  .dl-divider {
+    border-color: hsl(var(--border-subtle));
+  }
+
+  /* Pastilha de dado. `data-tom` escolhe o matiz pelo SIGNIFICADO, nunca pela
+     marca: é o que impede ganho e perda de saírem os dois em rosa. */
+  .dl-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border-subtle));
+  }
+  .dl-chip[data-tom="positivo"] {
+    background: hsl(var(--success) / 0.10);
+    color: hsl(var(--success));
+    border-color: hsl(var(--success) / 0.28);
+  }
+  .dl-chip[data-tom="negativo"] {
+    background: hsl(var(--destructive) / 0.10);
+    color: hsl(var(--destructive));
+    border-color: hsl(var(--destructive) / 0.28);
+  }
+  .dl-chip[data-tom="alerta"] {
+    background: hsl(var(--warning) / 0.12);
+    color: hsl(var(--warning));
+    border-color: hsl(var(--warning) / 0.30);
+  }
+  .dl-chip[data-tom="info"] {
+    background: hsl(var(--info) / 0.10);
+    color: hsl(var(--info));
+    border-color: hsl(var(--info) / 0.28);
+  }
+  .dl-chip[data-tom="marca"] {
+    background: hsl(var(--brand-rose) / 0.16);
+    color: hsl(var(--brand-ink));
+    border-color: hsl(var(--brand-rose) / 0.42);
+  }
+
+  /* Botão rosa preenchido. O rosa da marca não aguenta texto branco (3,2:1);
+     este é o mesmo rosa escurecido até 4,51:1. É a resposta ao "a cor interna
+     parece o próprio rosa, só que mais escuro". */
+  .dl-btn-rose {
+    background: hsl(var(--brand-solid));
+    color: #fff;
+    border: 1px solid hsl(var(--brand-solid));
+    @apply rounded-xl font-medium;
+    transition: background var(--dur-150) var(--ease-snap);
+  }
+  .dl-btn-rose:hover { background: hsl(348 46% 46%); }
 }
 
-/* === UTILITIES & SCROLLBARS === */
+/* ══════════════════════════════════════════════════════════════════════════
+   UTILITÁRIOS
+   ══════════════════════════════════════════════════════════════════════════ */
 @layer utilities {
   .scrollbar-thin { scrollbar-width: thin; }
 
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.3);
-    border-radius: 3px;
+    background: hsl(var(--border-strong) / 0.55);
+    border-radius: 4px;
   }
-
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.6);
+    background: hsl(var(--border-strong));
   }
 
+  /* Era trilho PRETO PURO com miolo em gradiente e brilho — desenhado para o
+     tema escuro, e sobre blush parecia uma faixa de luto atravessando a tela. */
   .pipeline-top-scroll {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--primary)) hsl(0 0% 0%);
+    scrollbar-color: hsl(var(--brand-solid)) hsl(var(--muted));
   }
-
-  .pipeline-top-scroll::-webkit-scrollbar {
-    height: 10px;
-    background: hsl(0 0% 0%);
-  }
-
+  .pipeline-top-scroll::-webkit-scrollbar { height: 10px; }
   .pipeline-top-scroll::-webkit-scrollbar-track {
-    background: hsl(0 0% 0%);
+    background: hsl(var(--muted));
     border-radius: 9999px;
   }
-
   .pipeline-top-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    background: hsl(var(--brand-solid) / 0.75);
     border-radius: 9999px;
-    border: 2px solid hsl(0 0% 0%);
-    box-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+    border: 2px solid hsl(var(--muted));
   }
-
   .pipeline-top-scroll::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary-glow));
-    box-shadow: 0 0 14px hsl(var(--primary-glow) / 0.8);
+    background: hsl(var(--brand-solid));
   }
 
-  .hover-elevate {
-    transition: all 400ms var(--ease-performance);
-  }
-
+  .hover-elevate { transition: all var(--dur-200) var(--ease-performance); }
   .hover-elevate:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--ocr-glow-soft), 0 20px 40px -10px hsl(0 0% 0% / 0.6);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
   }
 
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
-  .container-max {
-    @apply max-w-[1440px] mx-auto;
-  }
+  .container-max { @apply max-w-[1440px] mx-auto; }
+  .section-padding { @apply p-6 lg:p-8; }
+  .card-padding { @apply p-5 lg:p-6; }
+  .touch-target { @apply min-h-[44px] min-w-[44px]; }
 
-  .section-padding {
-    @apply p-6 lg:p-8;
-  }
-
-  .card-padding {
-    @apply p-5 lg:p-6;
-  }
-
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px];
-  }
-
-  .ocr-gradient {
-    background: var(--ocr-gradient);
-  }
+  .ocr-gradient { background: var(--ocr-gradient); }
 
   .ocr-gradient-text {
     background: var(--ocr-gradient-text);
@@ -386,28 +550,14 @@
     color: transparent;
   }
 
-  .ocr-glow {
-    box-shadow: var(--ocr-glow);
-  }
+  .ocr-glow { box-shadow: var(--ocr-glow); }
+  .ocr-glow-soft { box-shadow: var(--ocr-glow-soft); }
+  .ocr-glow-intense { box-shadow: var(--ocr-glow-intense); }
 
-  .ocr-glow-soft {
-    box-shadow: var(--ocr-glow-soft);
-  }
+  /* Brilho em texto não existe em tema claro: só borra a letra. */
+  .text-glow { text-shadow: none; }
 
-  .ocr-glow-intense {
-    box-shadow: var(--ocr-glow-intense);
-  }
-
-  .text-glow {
-    text-shadow:
-      0 0 20px hsl(var(--primary) / 0.5),
-      0 0 40px hsl(var(--primary-glow) / 0.3);
-  }
-
-  .border-gradient {
-    position: relative;
-  }
-
+  .border-gradient { position: relative; }
   .border-gradient::after {
     content: '';
     position: absolute;
@@ -421,51 +571,43 @@
     pointer-events: none;
   }
 
-  .ambient-bg {
-    position: relative;
-    overflow: hidden;
-  }
-
+  /* Manchas de ambiente: uma delas era OLIVA a 30%. Reduzidas ao mínimo — num
+     tema claro elas leem como sujeira no papel, não como profundidade. */
+  .ambient-bg { position: relative; overflow: hidden; }
   .ambient-bg::before,
   .ambient-bg::after {
     content: '';
     position: absolute;
     border-radius: 9999px;
-    filter: blur(80px);
+    filter: blur(90px);
     pointer-events: none;
     z-index: 0;
   }
-
   .ambient-bg::before {
-    width: 500px;
-    height: 500px;
-    background: hsl(351 41% 63% / 0.15);
-    top: -150px;
-    left: -100px;
-    animation: float 12s ease-in-out infinite;
+    width: 480px; height: 480px;
+    background: hsl(351 41% 63% / 0.09);
+    top: -170px; left: -120px;
   }
-
   .ambient-bg::after {
-    width: 400px;
-    height: 400px;
-    background: hsl(62 60% 91% / 0.3);
-    bottom: -120px;
-    right: -80px;
-    animation: float 14s ease-in-out infinite reverse;
+    width: 380px; height: 380px;
+    background: hsl(345 34% 88% / 0.35);
+    bottom: -140px; right: -90px;
   }
 }
 
-/* === ANIMATIONS === */
+/* ══════════════════════════════════════════════════════════════════════════
+   ANIMAÇÕES
+   ══════════════════════════════════════════════════════════════════════════ */
 .animate-fade-in { animation: fade-in 0.4s var(--ease-performance) both; }
 .animate-scale-in { animation: scale-in 0.3s var(--ease-performance) both; }
-.animate-slide-up { animation: slide-up 0.6s var(--ease-performance) both; }
-.animate-slide-down { animation: slide-down 0.6s var(--ease-performance) both; }
-.animate-performance-zoom { animation: performance-zoom 1.2s var(--ease-performance) both; }
+.animate-slide-up { animation: slide-up 0.5s var(--ease-performance) both; }
+.animate-slide-down { animation: slide-down 0.5s var(--ease-performance) both; }
+.animate-performance-zoom { animation: performance-zoom 0.9s var(--ease-performance) both; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.15), transparent);
+  background: linear-gradient(90deg, transparent, hsl(var(--brand-rose) / 0.18), transparent);
   background-size: 200% 100%;
   animation: shimmer 3s linear infinite;
 }
@@ -474,54 +616,42 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes scale-in {
-  from { transform: scale(0.95); opacity: 0; }
+  from { transform: scale(0.97); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(40px); }
+  from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-40px); }
+  from { opacity: 0; transform: translateY(-28px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes performance-zoom {
-  from { opacity: 0; transform: scale(1.12); filter: blur(8px); }
-  to { opacity: 1; transform: scale(1); filter: blur(0); }
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: scale(1); }
 }
-
 @keyframes float {
   0%, 100% { transform: translateY(0) translateX(0); }
   50% { transform: translateY(-12px) translateX(6px); }
 }
-
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary-glow) / 0.15);
-  }
-  50% {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.6), 0 0 80px hsl(var(--primary-glow) / 0.3);
-  }
+  0%, 100% { box-shadow: 0 0 0 1px hsl(var(--brand-solid) / 0.35), var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 2px hsl(var(--brand-solid) / 0.55), var(--shadow-md); }
 }
-
 @keyframes deal-pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.9), 0 0 18px 4px hsl(var(--primary) / 0.55);
+    box-shadow: 0 0 0 2px hsl(var(--brand-solid) / 0.85), 0 6px 18px hsl(345 40% 25% / 0.16);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 3px hsl(var(--primary)), 0 0 32px 10px hsl(var(--primary) / 0.85);
-    transform: scale(1.03);
+    box-shadow: 0 0 0 3px hsl(var(--brand-solid)), 0 10px 26px hsl(345 40% 25% / 0.22);
+    transform: scale(1.02);
   }
 }
 
@@ -531,9 +661,19 @@
   z-index: 5;
 }
 
-/* === MOBILE NATIVE-APP OVERRIDES === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE
+   ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Prevent horizontal scroll bounce and select outlines */
   html, body {
     overflow-x: hidden;
     position: fixed;
@@ -543,49 +683,28 @@
     overscroll-behavior-y: contain;
   }
 
-  /* Tap highlights */
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+  * { -webkit-tap-highlight-color: transparent; }
 
-  /* Native touch targets and active visual feedback */
-  button, 
-  a, 
-  [role="button"],
-  .clickable-mobile {
+  button, a, [role="button"], .clickable-mobile {
     min-height: 48px;
     touch-action: manipulation;
   }
 
-  button:active, 
-  a:active, 
-  .clickable-mobile:active {
+  button:active, a:active, .clickable-mobile:active {
     opacity: 0.7 !important;
     transform: scale(0.97) !important;
     transition: all 100ms ease !important;
   }
 
-  /* Non-zoom inputs on iOS */
-  input, 
-  select, 
-  textarea {
-    font-size: 16px !important; /* Forces iOS to not auto-zoom on focus */
-  }
+  input, select, textarea { font-size: 16px !important; }
 
-  /* Safe margins for floating action buttons or headers */
-  .safe-top {
-    padding-top: env(safe-area-inset-top, 0px);
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-  /* Custom animations for bottom sheets */
   .mobile-bottom-sheet {
     transform: translateY(100%);
     animation: mobile-sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-
   .mobile-bottom-sheet-down {
     animation: mobile-sheet-down 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
@@ -595,52 +714,39 @@
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
-
 @keyframes mobile-sheet-down {
   from { transform: translateY(0); }
   to { transform: translateY(100%); }
 }
 
-/* === LIGHT MODE OVERRIDES ===
-   Unlayered CSS wins over Tailwind utilities — fixes hardcoded dark backgrounds. */
-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
-body textarea,
-body select {
-  background-color: hsl(var(--background));
-  border-color: hsl(var(--border));
-  color: hsl(var(--foreground));
-}
+/* ══════════════════════════════════════════════════════════════════════════
+   RESGATE DE CLASSES ESCURAS CRAVADAS
+   Sobras do tema da OCR ainda presentes em telas antigas. Sem camada, de
+   propósito: precisa ganhar do utilitário do Tailwind. É remendo, e some à
+   medida que cada tela for revista.
+   ══════════════════════════════════════════════════════════════════════════ */
+body .bg-neutral-950,
+body .bg-black { background-color: hsl(var(--card)) !important; }
+body .bg-neutral-900 { background-color: hsl(var(--card)) !important; }
+body .bg-neutral-800 { background-color: hsl(var(--muted)) !important; }
 
-body input::placeholder,
-body textarea::placeholder {
-  color: hsl(var(--muted-foreground));
-}
-
-/* Hardcoded neutral card/surface backgrounds */
-body .bg-neutral-950 { background-color: hsl(0 0% 100%) !important; }
-body .bg-neutral-900 { background-color: hsl(346 40% 98%) !important; }
-body .bg-neutral-800 { background-color: hsl(346 40% 95%) !important; }
-body .bg-black { background-color: hsl(0 0% 100%) !important; }
-
-/* Semi-transparent dark overlays */
 body .bg-neutral-900\/60,
 body .bg-neutral-900\/50,
 body .bg-neutral-900\/40,
 body .bg-neutral-950\/30 {
-  background-color: hsl(346 70% 94% / 0.9) !important;
+  background-color: hsl(var(--card) / 0.92) !important;
 }
+
+/* Véu de modal: escuro de verdade, senão a caixa não descola do fundo. */
 body .bg-black\/40,
 body .bg-black\/60,
 body .bg-black\/80 {
-  background-color: hsl(0 0% 0% / 0.08) !important;
+  background-color: hsl(345 40% 12% / 0.45) !important;
 }
 
-/* Muted text in light mode (ensure enough contrast) */
-body .text-neutral-600 { color: hsl(345 50% 15% / 0.7) !important; }
-body .text-neutral-500 { color: hsl(345 50% 15% / 0.6) !important; }
-body .text-neutral-400 { color: hsl(345 50% 15% / 0.5) !important; }
+body .text-neutral-600 { color: hsl(var(--muted-foreground)) !important; }
+body .text-neutral-500 { color: hsl(var(--muted-foreground)) !important; }
+body .text-neutral-400 { color: hsl(var(--muted-foreground) / 0.85) !important; }
 
-/* Borders in light mode */
-body .border-neutral-800 { border-color: hsl(346 30% 85%) !important; }
-body .border-neutral-700 { border-color: hsl(346 30% 80%) !important; }
-
+body .border-neutral-800 { border-color: hsl(var(--border)) !important; }
+body .border-neutral-700 { border-color: hsl(var(--border-strong) / 0.6) !important; }

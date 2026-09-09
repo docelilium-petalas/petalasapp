@@ -18,7 +18,7 @@ export default function LeadSearchPage() {
       <AppLayout>
       <div className="flex flex-col h-full bg-background">
         {/* Header Tabs */}
-        <div className="px-6 pt-6 pb-0 border-b border-border/20 shrink-0">
+        <div className="px-6 pt-6 pb-0 border-b border-border-subtle shrink-0">
           <div className="flex items-center gap-6">
             <button
               onClick={() => setActiveTab('buscar')}

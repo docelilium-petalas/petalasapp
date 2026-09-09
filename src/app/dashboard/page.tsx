@@ -26,9 +26,9 @@ const TOOLTIP_STYLE = { background: '#0a0a0a', border: '1px solid #1a2e1a', bord
 
 // Priority labels (inverted semantic: ALTA = ruim, BAIXA = bom)
 const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
-  BAIXA: { label: 'LEAD AP', color: 'text-emerald-400' },
-  MEDIA: { label: 'ZONA CINZA', color: 'text-amber-400' },
-  ALTA: { label: 'DESQUALIFICADA', color: 'text-rose-400' },
+  BAIXA: { label: 'LEAD AP', color: 'text-success' },
+  MEDIA: { label: 'ZONA CINZA', color: 'text-warning' },
+  ALTA: { label: 'DESQUALIFICADA', color: 'text-destructive' },
   NAO_RESPONDEU: { label: 'NÃO RESPONDEU', color: 'text-muted-foreground' },
 }
 
@@ -230,7 +230,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border/30 bg-secondary p-5 space-y-4">
+              <div key={i} className="rounded-2xl border border-border-subtle bg-secondary p-5 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="h-9 w-9 rounded-xl bg-muted animate-pulse" />
                   <div className="h-4 w-10 rounded-lg bg-muted animate-pulse" />
@@ -243,7 +243,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className={`rounded-2xl border border-border/30 bg-secondary p-5 h-48 animate-pulse ${i === 0 ? '' : 'lg:col-span-1'}`} />
+              <div key={i} className={`rounded-2xl border border-border-subtle bg-secondary p-5 h-48 animate-pulse ${i === 0 ? '' : 'lg:col-span-1'}`} />
             ))}
           </div>
         </div>
@@ -270,14 +270,14 @@ export default function DashboardPage() {
             <select
               value={selectedPipelineId}
               onChange={e => setSelectedPipelineId(e.target.value)}
-              className="text-xs bg-secondary border border-border/40 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/50 hover:border-border/60 transition-colors"
+              className="text-xs bg-secondary border border-border rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-primary/70 hover:border-border transition-colors"
             >
               <option value="all">Todos os produtos</option>
               {pipelines.map(p => (
                 <option key={p.id} value={p.id}>{p.nome}</option>
               ))}
             </select>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/50 bg-secondary text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-secondary text-xs text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Ao vivo
             </div>
@@ -288,10 +288,10 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* Total Contatos */}
-          <div className="ocr-card card-padding group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
+          <div className="ocr-card card-padding group hover:border-border transition-all cursor-default relative overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'radial-gradient(ellipse at top left, rgba(0,230,118,0.04), transparent 70%)' }} />
             <div className="flex items-start justify-between mb-4">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary group-hover:bg-primary/15 transition-colors">
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-border text-primary group-hover:bg-primary/15 transition-colors">
                 <Users className="w-5 h-5" />
               </div>
               <span className="flex items-center gap-1 text-xs font-semibold text-primary">
@@ -304,10 +304,10 @@ export default function DashboardPage() {
           </div>
 
           {/* Deals Abertos */}
-          <div className="ocr-card card-padding group hover:border-primary/30 transition-all cursor-default relative overflow-hidden">
+          <div className="ocr-card card-padding group hover:border-border transition-all cursor-default relative overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'radial-gradient(ellipse at top left, rgba(0,230,118,0.04), transparent 70%)' }} />
             <div className="flex items-start justify-between mb-4">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary group-hover:bg-primary/15 transition-colors">
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-border text-primary group-hover:bg-primary/15 transition-colors">
                 <Target className="w-5 h-5" />
               </div>
               <span className="flex items-center gap-1 text-xs font-semibold text-primary">
@@ -320,35 +320,35 @@ export default function DashboardPage() {
           </div>
 
           {/* Taxa de Conversão */}
-          <div className="ocr-card card-padding group hover:border-yellow-500/30 transition-all cursor-default relative overflow-hidden">
+          <div className="ocr-card card-padding group hover:border-warning/30 transition-all cursor-default relative overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'radial-gradient(ellipse at top left, rgba(251,191,36,0.04), transparent 70%)' }} />
             <div className="flex items-start justify-between mb-4">
-              <div className="p-2.5 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 group-hover:bg-yellow-500/15 transition-colors">
+              <div className="p-2.5 rounded-xl bg-warning/10 border border-warning/20 text-warning group-hover:bg-warning/15 transition-colors">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <span className={`flex items-center gap-1 text-xs font-semibold ${conversionRate >= 20 ? 'text-primary' : 'text-yellow-400'}`}>
+              <span className={`flex items-center gap-1 text-xs font-semibold ${conversionRate >= 20 ? 'text-primary' : 'text-warning'}`}>
                 {conversionRate >= 20 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                 {conversionRate}%
               </span>
             </div>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Taxa de Conversão</p>
-            <p className="text-3xl font-bold text-yellow-400">{conversionRate}%</p>
+            <p className="text-3xl font-bold text-warning">{conversionRate}%</p>
             <p className="text-xs text-muted-foreground mt-1">{wonDeals.length} ganhos / {lostDeals.length} perdidos</p>
           </div>
 
           {/* Receita Fechada */}
-          <div className="ocr-card card-padding group hover:border-emerald-500/30 transition-all cursor-default relative overflow-hidden">
+          <div className="ocr-card card-padding group hover:border-success/30 transition-all cursor-default relative overflow-hidden">
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'radial-gradient(ellipse at top left, rgba(16,185,129,0.04), transparent 70%)' }} />
             <div className="flex items-start justify-between mb-4">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/15 transition-colors">
+              <div className="p-2.5 rounded-xl bg-success/10 border border-success/20 text-success group-hover:bg-success/15 transition-colors">
                 <DollarSign className="w-5 h-5" />
               </div>
-              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400">
+              <span className="flex items-center gap-1 text-xs font-semibold text-success">
                 <ArrowUpRight className="w-3.5 h-3.5" />+8%
               </span>
             </div>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Receita Fechada</p>
-            <p className="text-3xl font-bold text-emerald-400">{BRLk(totalRevenue)}</p>
+            <p className="text-3xl font-bold text-success">{BRLk(totalRevenue)}</p>
             <p className="text-xs text-muted-foreground mt-1">+8% vs mês anterior</p>
           </div>
         </div>
@@ -363,7 +363,7 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-foreground">Funil do Pipeline</h3>
                 <p className="text-xs text-muted-foreground">Deals abertos por etapa</p>
               </div>
-              <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+              <div className="p-2 rounded-lg bg-primary/10 border border-border text-primary">
                 <Kanban className="w-4 h-4" />
               </div>
             </div>
@@ -401,7 +401,7 @@ export default function DashboardPage() {
           <div className="ocr-card card-padding flex flex-col">
             <div className="flex items-center justify-between mb-4 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                <div className="p-2 rounded-lg bg-primary/10 border border-border text-primary">
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => router.push('/activities?new=1')}
-                className="p-1.5 rounded-lg border border-border/40 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all"
+                className="p-1.5 rounded-lg border border-border hover:border-primary/70 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all"
                 title="Nova atividade"
               >
                 <Plus className="w-4 h-4" />
@@ -435,7 +435,7 @@ export default function DashboardPage() {
                   const Icon = ACTIVITY_TYPE_ICON[act.tipo] || Clock
                   const isPast = act.dueAt && new Date(act.dueAt) < new Date()
                   return (
-                    <div key={act.id} className="flex items-start gap-3 px-3 py-2.5 rounded-xl border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all group">
+                    <div key={act.id} className="flex items-start gap-3 px-3 py-2.5 rounded-xl border border-border-subtle hover:border-border hover:bg-primary/5 transition-all group">
                       <span className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${isPast ? 'bg-destructive' : 'bg-primary'}`} />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-foreground truncate">{act.titulo}</p>
@@ -466,7 +466,7 @@ export default function DashboardPage() {
           <div className="ocr-card card-padding flex flex-col">
             <div className="flex items-center justify-between mb-4 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <div className="p-2 rounded-lg bg-info/10 border border-info/20 text-info">
                   <Flame className="w-4 h-4" />
                 </div>
                 <div>
@@ -493,7 +493,7 @@ export default function DashboardPage() {
                     const contact = contacts.find(c => c.id === deal.contactId)
                     const prio = PRIORITY_LABEL[deal.prioridade ?? 'MEDIA'] || PRIORITY_LABEL.MEDIA
                     return (
-                      <div key={deal.id} className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all group cursor-pointer" onClick={() => router.push(`/pipeline?dealId=${deal.id}`)}>
+                      <div key={deal.id} className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-border-subtle hover:border-border hover:bg-primary/5 transition-all group cursor-pointer" onClick={() => router.push(`/pipeline?dealId=${deal.id}`)}>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-foreground truncate">{deal.titulo}</p>
                           <p className="text-[10px] text-muted-foreground truncate mt-0.5">
@@ -560,7 +560,7 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-foreground">Top Vendedores</h3>
                 <p className="text-xs text-muted-foreground">Ranking por receita fechada</p>
               </div>
-              <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
+              <div className="p-2 rounded-lg bg-warning/10 border border-warning/20 text-warning">
                 <Trophy className="w-4 h-4" />
               </div>
             </div>
@@ -569,11 +569,11 @@ export default function DashboardPage() {
               {topSellers.map((s, i) => (
                 <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary transition-colors">
                   {/* Rank */}
-                  <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-muted-foreground' : 'text-amber-700'}`}>
+                  <span className={`text-xs font-bold w-4 shrink-0 ${i === 0 ? 'text-warning' : i === 1 ? 'text-muted-foreground' : 'text-warning'}`}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
                   </span>
                   {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-border flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                     {s.initial}
                   </div>
                   {/* Info */}

@@ -77,20 +77,20 @@ export default function AuthPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary-glow/5 rounded-full blur-[160px] pointer-events-none" style={{ animation: 'float 8s ease-in-out infinite reverse' }} />
 
       {/* LEFT SIDE: Marketing (Desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card border-r border-border/30 relative">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-card border-r border-border-subtle relative">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-primary/20 text-primary ocr-glow-soft shrink-0">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-border text-primary ocr-glow-soft shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-sm uppercase">Operação Doce LILiUM</span>
+            <span className="font-bold tracking-tight text-sm uppercase">Operação Doce Lilium</span>
             <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] -mt-0.5">Máquina de Vendas</span>
           </div>
         </div>
 
         <div className="space-y-6 max-w-lg my-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-border text-[10px] font-semibold text-primary uppercase tracking-wider">
             <Coins className="w-3.5 h-3.5" />
             <span>Foco em Faturamento</span>
           </div>
@@ -101,11 +101,11 @@ export default function AuthPage() {
             Pipeline, prospecção ativa, disparos de WhatsApp, inteligência artificial e métricas comerciais consolidadas em uma única máquina de vendas.
           </p>
           <div className="pt-6 grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-border/40 bg-secondary backdrop-blur-sm">
+            <div className="p-4 rounded-xl border border-border bg-secondary backdrop-blur-sm">
               <span className="block text-lg font-bold text-primary text-glow">10x</span>
               <span className="text-[10px] text-muted-foreground uppercase font-medium">Velocidade de Prospecção</span>
             </div>
-            <div className="p-4 rounded-xl border border-border/40 bg-secondary backdrop-blur-sm">
+            <div className="p-4 rounded-xl border border-border bg-secondary backdrop-blur-sm">
               <span className="block text-lg font-bold text-primary text-glow">+45%</span>
               <span className="text-[10px] text-muted-foreground uppercase font-medium">Conversão Comercial</span>
             </div>
@@ -120,19 +120,19 @@ export default function AuthPage() {
 
       {/* RIGHT SIDE: Auth Card */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative z-10">
-        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border/80 bg-card backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
+        <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl border border-border bg-card backdrop-blur-xl shadow-2xl ocr-glass-strong relative">
 
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center gap-2 justify-center mb-6">
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 flex items-center justify-center text-primary">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-border flex items-center justify-center text-primary">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-xs uppercase tracking-wider">Doce LILiUM</span>
+            <span className="font-bold text-xs uppercase tracking-wider">Doce Lilium</span>
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded-xl border border-border/60 bg-secondary p-1 mb-8">
+          <div className="flex rounded-xl border border-border bg-secondary p-1 mb-8">
             <button
               type="button"
               onClick={() => switchMode('login')}

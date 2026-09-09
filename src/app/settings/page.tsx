@@ -114,8 +114,8 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-secondary hover:border-border/60 transition-all gap-3 ${
-        isDragging ? 'shadow-lg border-primary/45 bg-secondary' : ''
+      className={`flex items-center justify-between p-3.5 rounded-2xl border border-border-subtle bg-secondary hover:border-border transition-all gap-3 ${
+        isDragging ? 'shadow-lg border-primary/70 bg-secondary' : ''
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -153,7 +153,7 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
         </button>
         <button
           onClick={() => onDelete(stage)}
-          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-destructive transition-all"
           title="Excluir etapa"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -1225,7 +1225,7 @@ function SettingsContent() {
       
       {/* Sidebar navigation */}
       {(!isMobile || !mobileTabActive) && (
-        <div className={`${isMobile ? 'w-full flex-1' : 'w-60 shrink-0 border-r'} border-border/30 p-5 space-y-1 bg-card flex flex-col justify-between`}>
+        <div className={`${isMobile ? 'w-full flex-1' : 'w-60 shrink-0 border-r'} border-border-subtle p-5 space-y-1 bg-card flex flex-col justify-between`}>
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-3 mb-4">Configurações</p>
             <div className="space-y-1">
@@ -1241,7 +1241,7 @@ function SettingsContent() {
                     }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isSel
-                      ? 'bg-primary/10 text-primary border border-primary/20 shadow-md shadow-primary/[0.02]'
+                      ? 'bg-primary/10 text-primary border border-border shadow-md shadow-primary/[0.02]'
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent'
                   }`}
                 >
@@ -1256,7 +1256,7 @@ function SettingsContent() {
 
         {/* Developer details footer */}
         {currentUser && (
-          <div className="p-3.5 rounded-2xl bg-secondary border border-border/20 text-[10px] text-muted-foreground flex flex-col gap-1">
+          <div className="p-3.5 rounded-2xl bg-secondary border border-border-subtle text-[10px] text-muted-foreground flex flex-col gap-1">
             <span className="font-bold text-muted-foreground">Identidade do Operador</span>
             <span className="truncate">ID: {currentUser.id}</span>
             <span className="capitalize">Role: {currentUser.role}</span>
@@ -1272,7 +1272,7 @@ function SettingsContent() {
             {isMobile && mobileTabActive && (
               <button
                 onClick={() => setMobileTabActive(false)}
-                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border/40 hover:bg-muted text-xs font-bold text-foreground transition-all active:scale-95 w-full justify-center md:w-auto"
+                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border hover:bg-muted text-xs font-bold text-foreground transition-all active:scale-95 w-full justify-center md:w-auto"
               >
                 ← Voltar para Configurações
               </button>
@@ -1289,10 +1289,10 @@ function SettingsContent() {
                 <p className="text-xs text-muted-foreground mt-0.5">Suas informações cadastrais e detalhes da conta</p>
               </div>
 
-              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-5">
-                <div className="flex items-center gap-4 pb-5 border-b border-border/20">
+              <div className="p-6 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-5">
+                <div className="flex items-center gap-4 pb-5 border-b border-border-subtle">
                   <div className="relative group">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-xl font-extrabold text-primary overflow-hidden">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-border flex items-center justify-center text-xl font-extrabold text-primary overflow-hidden">
                       {perfilForm.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={perfilForm.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -1305,7 +1305,7 @@ function SettingsContent() {
                     <h3 className="font-bold text-sm text-foreground">{perfilForm.nome} {perfilForm.sobrenome}</h3>
                     <p className="text-xs text-muted-foreground">{currentUser.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-border">
                         {currentUser.role}
                       </span>
                       <span className="text-[9px] text-muted-foreground">Conta ativa desde 21/04/2026</span>
@@ -1380,8 +1380,8 @@ function SettingsContent() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
                 {/* COLUMN 1: Pipelines List */}
-                <div className="lg:col-span-5 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-border/20 pb-3">
+                <div className="lg:col-span-5 p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                     <h3 className="text-xs font-bold text-foreground">Pipelines Ativos</h3>
                     {!isAddingPipeline && (
                       <button
@@ -1394,7 +1394,7 @@ function SettingsContent() {
                   </div>
 
                   {isAddingPipeline && (
-                    <div className="p-3.5 rounded-2xl border border-primary/20 bg-primary/5 space-y-3 animate-scale-in">
+                    <div className="p-3.5 rounded-2xl border border-border bg-primary/5 space-y-3 animate-scale-in">
                       <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider block">Novo Funil de Vendas</span>
                       <input
                         type="text"
@@ -1433,8 +1433,8 @@ function SettingsContent() {
                           onClick={() => !isEdit && setSelectedPipelineId(p.id)}
                           className={`group relative p-3 rounded-xl border cursor-pointer transition-all flex flex-col gap-2 ${
                             isSel
-                              ? 'border-primary/30 bg-primary/5 shadow-inner'
-                              : 'border-border/20 hover:border-border/50 bg-secondary'
+                              ? 'border-border bg-primary/5 shadow-inner'
+                              : 'border-border-subtle hover:border-border bg-secondary'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -1464,7 +1464,7 @@ function SettingsContent() {
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <span className="text-xs font-bold text-foreground truncate">{p.nome}</span>
                                   {p.isDefault && (
-                                    <span className="text-[8px] font-extrabold bg-primary/10 text-primary border border-primary/20 px-1 py-0.5 rounded">
+                                    <span className="text-[8px] font-extrabold bg-primary/10 text-primary border border-border px-1 py-0.5 rounded">
                                       Padrão
                                     </span>
                                   )}
@@ -1493,7 +1493,7 @@ function SettingsContent() {
                                   {pipelines.length > 1 && (
                                     <button
                                       onClick={() => handleDeletePipeline(p.id)}
-                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
                                       title="Excluir funil"
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1510,8 +1510,8 @@ function SettingsContent() {
                 </div>
 
                 {/* COLUMN 2: Stages drag and drop */}
-                <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-border/20 pb-3">
+                <div className="lg:col-span-7 p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                     <div>
                       <h3 className="text-xs font-bold text-foreground">Etapas do Funil Selecionado</h3>
                       <p className="text-[9px] text-muted-foreground mt-0.5">Arraste para reordenar o fluxo</p>
@@ -1529,11 +1529,11 @@ function SettingsContent() {
 
                   {/* Stage deleting migration warning overlay */}
                   {deletingStage && (
-                    <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-3 animate-fade-in">
+                    <div className="p-4 rounded-2xl border border-warning/20 bg-warning/5 space-y-3 animate-fade-in">
                       <div className="flex items-start gap-2.5">
-                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-bold text-amber-400">Migração de Negócios Pendente</p>
+                          <p className="text-xs font-bold text-warning">Migração de Negócios Pendente</p>
                           <p className="text-[11px] text-muted-foreground mt-0.5">
                             A etapa <strong className="text-foreground">&quot;{deletingStage.nome}&quot;</strong> possui{' '}
                             <strong className="text-primary">{deals.filter(d => d.stageId === deletingStage.id).length} negócios ativos</strong>.{' '}
@@ -1569,7 +1569,7 @@ function SettingsContent() {
                         <button
                           onClick={() => executeDeleteStage(deletingStage.id, migrationStageId)}
                           disabled={!migrationStageId}
-                          className="px-3 py-1.5 rounded-lg bg-rose-500 text-primary-foreground font-bold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1.5 rounded-lg bg-destructive text-primary-foreground font-bold hover:bg-destructive disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Migrar e Confirmar Exclusão
                         </button>
@@ -1579,7 +1579,7 @@ function SettingsContent() {
 
                   {/* Add Stage Form inline */}
                   {isAddingStage && (
-                    <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 space-y-4 animate-scale-in">
+                    <div className="p-4 rounded-2xl border border-border bg-primary/5 space-y-4 animate-scale-in">
                       <span className="text-xs font-bold text-primary block">
                         {editingStageId ? 'Editar Parâmetros da Etapa' : 'Nova Etapa do Funil'}
                       </span>
@@ -1709,7 +1709,7 @@ function SettingsContent() {
               </div>
 
               {/* Google Maps (N8N) Webhook Settings */}
-              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
+              <div className="p-6 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4">
                 <div>
                   <h3 className="text-sm font-bold text-foreground">Google Maps (N8N)</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">Webhook responsável por iniciar a automação de mineração de leads do Google Maps.</p>
@@ -1746,7 +1746,7 @@ function SettingsContent() {
 
               {/* Add Integration Form */}
               {showAddIntegration && (
-                <div className="p-5 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 animate-scale-in max-w-xl mx-auto">
+                <div className="p-5 rounded-3xl border border-border bg-primary/5 space-y-4 animate-scale-in max-w-xl mx-auto">
                   <span className="text-xs font-bold text-primary block uppercase tracking-wider">Nova Integração</span>
                   <div className="space-y-3">
                     <div>
@@ -1806,16 +1806,16 @@ function SettingsContent() {
                 {integrations.map(int => (
                   <div
                     key={int.id}
-                    className="p-5 rounded-3xl border border-border/25 bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
+                    className="p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border"
                   >
-                    <div className="flex items-center justify-between border-b border-border/20 pb-3">
+                    <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                       <div>
                         <h3 className="font-bold text-sm text-foreground">{int.nome}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
                             int.tipo === 'inbound_webhook'
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                              : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              ? 'bg-info/10 text-info border-info/20'
+                              : 'bg-brand-ink/10 text-brand-ink border-brand-ink/20'
                           }`}>
                             {int.tipo === 'inbound_webhook' ? 'Inbound Webhook' : 'Outbound API'}
                           </span>
@@ -1839,7 +1839,7 @@ function SettingsContent() {
 
                         <button
                           onClick={() => handleDeleteIntegration(int.id)}
-                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 transition-colors"
+                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors"
                           title="Excluir integração"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1849,7 +1849,7 @@ function SettingsContent() {
 
                     {/* Integration details */}
                     {int.tipo === 'outbound_api' && (
-                      <div className="p-3.5 rounded-2xl bg-card border border-border/20 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-card border border-border-subtle text-xs">
                         <span className="ocr-label">Base URL Configurada:</span>
                         <code className="text-primary block font-mono mt-1 text-[11px] select-all break-all">{int.baseUrl}</code>
                       </div>
@@ -1858,7 +1858,7 @@ function SettingsContent() {
                     {int.tipo === 'inbound_webhook' && (
                       <div className="space-y-4">
                         {/* Webhook Endpoints section */}
-                        <div className="flex items-center justify-between border-t border-border/10 pt-3">
+                        <div className="flex items-center justify-between border-t border-border-subtle pt-3">
                           <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">Caminhos / Endpoints Ativos</span>
                           {showAddEndpoint !== int.id && (
                             <button
@@ -1875,7 +1875,7 @@ function SettingsContent() {
 
                         {/* Add Endpoint dialog inline */}
                         {showAddEndpoint === int.id && (
-                          <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 space-y-3 animate-scale-in">
+                          <div className="p-4 rounded-2xl border border-border bg-primary/5 space-y-3 animate-scale-in">
                             <span className="text-[10px] font-extrabold text-primary block">Configurar Novo Endpoint</span>
                             <div className="grid grid-cols-3 gap-3">
                               <div>
@@ -1940,7 +1940,7 @@ function SettingsContent() {
                             return (
                               <div
                                 key={ep.id}
-                                className="p-3.5 rounded-2xl border border-border/20 bg-card space-y-3"
+                                className="p-3.5 rounded-2xl border border-border-subtle bg-card space-y-3"
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
@@ -1953,7 +1953,7 @@ function SettingsContent() {
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={() => handleToggleAccordionLog(ep.id)}
-                                      className="px-2 py-1 rounded-lg border border-border/30 hover:bg-muted text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
+                                      className="px-2 py-1 rounded-lg border border-border-subtle hover:bg-muted text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-all"
                                     >
                                       <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
                                       {isAccordionOpen ? 'Fechar Logs' : 'Ver Logs'}
@@ -1972,7 +1972,7 @@ function SettingsContent() {
 
                                     <button
                                       onClick={() => handleDeleteEndpoint(ep.id)}
-                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-destructive transition-all"
                                       title="Remover endpoint"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -1982,11 +1982,11 @@ function SettingsContent() {
 
                                 {/* Accordion Logs View */}
                                 {isAccordionOpen && (
-                                  <div className="pt-3 border-t border-border/10 space-y-3 animate-fade-in">
+                                  <div className="pt-3 border-t border-border-subtle space-y-3 animate-fade-in">
                                     <span className="text-[9px] font-extrabold uppercase text-primary tracking-widest block">Registro de Eventos Recebidos (Logs)</span>
                                     
                                     {logs.length === 0 ? (
-                                      <div className="text-center py-5 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-xl">
+                                      <div className="text-center py-5 text-[11px] text-muted-foreground italic border border-dashed border-border-subtle rounded-xl">
                                         Nenhum evento registrado para este endpoint.
                                       </div>
                                     ) : (
@@ -1994,11 +1994,11 @@ function SettingsContent() {
                                         {logs.map(log => (
                                           <div
                                             key={log.id}
-                                            className="p-3 rounded-xl border border-border/20 bg-secondary flex flex-col gap-2"
+                                            className="p-3 rounded-xl border border-border-subtle bg-secondary flex flex-col gap-2"
                                           >
                                             <div className="flex items-center justify-between text-[9px]">
                                               <span className={`font-bold px-1.5 py-0.5 rounded ${
-                                                log.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                                log.status === 'SUCCESS' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
                                               }`}>
                                                 {log.status}
                                               </span>
@@ -2015,7 +2015,7 @@ function SettingsContent() {
                                     )}
 
                                     {/* Snippet Example */}
-                                    <div className="p-3.5 rounded-xl border border-border/15 bg-card space-y-2">
+                                    <div className="p-3.5 rounded-xl border border-border-subtle bg-card space-y-2">
                                       <span className="text-[10px] font-bold text-muted-foreground block">Payload Esperado (Inbound Lead JSON)</span>
                                       <pre className="text-[9px] text-muted-foreground font-mono bg-card p-2 rounded-lg select-all">
 {`{
@@ -2060,13 +2060,13 @@ function SettingsContent() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Products */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Produtos de Interesse</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.products.map(p => (
-                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
+                      <div key={p} className="flex items-center justify-between p-2 rounded-xl border border-border-subtle bg-secondary">
                         <span className="text-xs text-muted-foreground font-medium">{p}</span>
-                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeProduct(p)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2088,13 +2088,13 @@ function SettingsContent() {
                 </div>
 
                 {/* Origins */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Origens dos Leads</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.origins.map(o => (
-                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
+                      <div key={o} className="flex items-center justify-between p-2 rounded-xl border border-border-subtle bg-secondary">
                         <span className="text-xs text-muted-foreground font-medium">{o}</span>
-                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeOrigin(o)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2116,16 +2116,16 @@ function SettingsContent() {
                 </div>
 
                 {/* Tags */}
-                <div className="p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl">
+                <div className="p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl">
                   <h3 className="text-sm font-bold text-foreground mb-4">Tags</h3>
                   <div className="space-y-3">
                     {categoriesStore.categories.tags.map(t => (
-                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border/20 bg-secondary">
+                      <div key={t.label} className="flex items-center justify-between p-2 rounded-xl border border-border-subtle bg-secondary">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
                           <span className="text-xs text-muted-foreground font-medium">{t.label}</span>
                         </div>
-                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-rose-400">
+                        <button onClick={() => categoriesStore.removeTag(t.label)} className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2157,7 +2157,7 @@ function SettingsContent() {
           {tab === 'disparo' && (
             <div className="space-y-6 animate-fade-in">
               {/* Webhooks Globais Card */}
-              <div className="p-6 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
+              <div className="p-6 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4">
                 <div>
                   <h3 className="text-sm font-bold text-foreground">Configuração Global de Webhooks (Caixa Rápido)</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">URLs de webhooks gerais do sistema para disparo, status e cancelamento.</p>
@@ -2197,7 +2197,7 @@ function SettingsContent() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t border-border/10">
+              <div className="flex justify-between items-center pt-4 border-t border-border-subtle">
                 <div>
                   <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary animate-pulse" />
@@ -2222,7 +2222,7 @@ function SettingsContent() {
 
               {/* Form container */}
               {showAddChannel && (
-                <div className="p-6 rounded-3xl border border-primary/25 bg-primary/5 space-y-4 max-w-2xl mx-auto animate-scale-in">
+                <div className="p-6 rounded-3xl border border-border bg-primary/5 space-y-4 max-w-2xl mx-auto animate-scale-in">
                   <span className="text-xs font-bold text-primary block uppercase tracking-wider">
                     {editingChannelId ? 'Editar Canal de Disparo' : 'Novo Canal de Disparo'}
                   </span>
@@ -2303,7 +2303,7 @@ function SettingsContent() {
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Canais Ativos</h3>
                 {channels.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-secondary">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border-subtle rounded-2xl bg-secondary">
                     Nenhum canal de disparo configurado. Crie um canal acima.
                   </div>
                 ) : (
@@ -2313,13 +2313,13 @@ function SettingsContent() {
                       return (
                         <div
                           key={chan.id}
-                          className="p-5 rounded-3xl border border-border/25 bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border/45"
+                          className="p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4 transition-all hover:border-border"
                         >
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
                               <h4 className="font-bold text-sm text-foreground">{chan.nome}</h4>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border bg-primary/10 text-primary border-primary/20">
+                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border bg-primary/10 text-primary border-border">
                                   {pipeName}
                                 </span>
                                 <span className="text-[9px] text-muted-foreground">Criado em {new Date(chan.createdAt).toLocaleDateString('pt-BR')}</span>
@@ -2350,7 +2350,7 @@ function SettingsContent() {
 
                               <button
                                 onClick={() => handleDeleteChannel(chan.id)}
-                                className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 transition-colors"
+                                className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors"
                                 title="Excluir canal"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2358,7 +2358,7 @@ function SettingsContent() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border/20 text-xs">
+                          <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border-subtle text-xs">
                             <div className="min-w-0 flex-1">
                               <span className="ocr-label text-[10px] font-bold text-muted-foreground">Webhook URL:</span>
                               <code className="text-primary block font-mono mt-1 text-[11px] select-all truncate">{chan.urlWebhook}</code>
@@ -2391,19 +2391,19 @@ function SettingsContent() {
               </div>
 
               {/* Execution Logs Section */}
-              <div className="space-y-4 border-t border-border/10 pt-6">
+              <div className="space-y-4 border-t border-border-subtle pt-6">
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Histórico de Disparos (Logs)</h3>
                 
                 {disparoLogs.length === 0 ? (
-                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border/10 rounded-2xl bg-secondary">
+                  <div className="text-center py-8 text-[11px] text-muted-foreground italic border border-dashed border-border-subtle rounded-2xl bg-secondary">
                     Nenhum log de disparo registrado.
                   </div>
                 ) : (
-                  <div className="p-4 rounded-3xl border border-border/20 bg-card overflow-hidden">
+                  <div className="p-4 rounded-3xl border border-border-subtle bg-card overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="hidden md:table w-full text-left border-collapse text-[11px]">
                         <thead>
-                          <tr className="border-b border-border/20 text-muted-foreground font-bold">
+                          <tr className="border-b border-border-subtle text-muted-foreground font-bold">
                             <th className="pb-3 pr-4">Data/Hora</th>
                             <th className="pb-3 pr-4">Canal</th>
                             <th className="pb-3 pr-4 text-center">Leads</th>
@@ -2426,8 +2426,8 @@ function SettingsContent() {
                               <td className="py-3 pr-4">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[9px] border ${
                                   log.status === 'SUCESSO'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                    ? 'bg-success/10 text-success border-success/20'
+                                    : 'bg-destructive/10 text-destructive border-destructive/20'
                                 }`}>
                                   {log.status}
                                 </span>
@@ -2443,13 +2443,13 @@ function SettingsContent() {
                       {/* Mobile Cards View */}
                       <div className="flex flex-col gap-3 md:hidden">
                         {disparoLogs.map(log => (
-                          <div key={log.id} className="p-3.5 rounded-2xl border border-border/40 bg-card space-y-2">
+                          <div key={log.id} className="p-3.5 rounded-2xl border border-border bg-card space-y-2">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-foreground text-xs">{log.channelNome}</span>
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[9px] border ${
                                 log.status === 'SUCESSO'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                  ? 'bg-success/10 text-success border-success/20'
+                                  : 'bg-destructive/10 text-destructive border-destructive/20'
                               }`}>
                                 {log.status}
                               </span>
@@ -2459,7 +2459,7 @@ function SettingsContent() {
                               <span>Leads: <strong className="text-primary">{log.leadsCount}</strong></span>
                             </div>
                             {log.mensagem && (
-                              <div className="p-2 rounded bg-card font-mono text-[9px] text-rose-400 break-all border border-rose-500/10">
+                              <div className="p-2 rounded bg-card font-mono text-[9px] text-destructive break-all border border-destructive/10">
                                 {log.mensagem}
                               </div>
                             )}
@@ -2497,7 +2497,7 @@ function SettingsContent() {
 
               {/* Add User form dialog inline */}
               {showAddUser && (
-                <div className="p-5 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
+                <div className="p-5 rounded-3xl border border-border bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
                   <span className="text-xs font-bold text-primary block uppercase tracking-wider">Novo Cadastro de Usuário</span>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -2566,11 +2566,11 @@ function SettingsContent() {
                 {users.map(u => (
                   <div
                     key={u.id}
-                    className="p-5 rounded-3xl border border-border/25 bg-card space-y-4"
+                    className="p-5 rounded-3xl border border-border-subtle bg-card space-y-4"
                   >
-                    <div className="flex items-center justify-between border-b border-border/15 pb-3">
+                    <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-border flex items-center justify-center font-bold text-primary">
                           {u.nome ? u.nome[0] : 'U'}
                         </div>
                         {userEdits[u.id] ? (
@@ -2581,14 +2581,14 @@ function SettingsContent() {
                                 placeholder="Nome"
                                 value={userEdits[u.id].nome}
                                 onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], nome: e.target.value } }))}
-                                className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
+                                className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground focus:outline-none"
                               />
                               <input
                                 type="text"
                                 placeholder="Sobrenome"
                                 value={userEdits[u.id].sobrenome}
                                 onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], sobrenome: e.target.value } }))}
-                                className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
+                                className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground focus:outline-none"
                               />
                             </div>
                             <input
@@ -2596,11 +2596,11 @@ function SettingsContent() {
                               placeholder="E-mail"
                               value={userEdits[u.id].email}
                               onChange={e => setUserEdits(p => ({ ...p, [u.id]: { ...p[u.id], email: e.target.value } }))}
-                              className="w-full px-2 py-1 rounded bg-secondary border border-border/40 text-xs text-foreground focus:outline-none"
+                              className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground focus:outline-none"
                             />
                             <div className="flex items-center gap-1 mt-1">
                               <button onClick={() => handleSaveUserEdit(u.id)} className="px-2 py-1 bg-primary text-primary-foreground text-[10px] font-bold rounded">Salvar</button>
-                              <button onClick={() => setUserEdits(p => { const copy={...p}; delete copy[u.id]; return copy })} className="px-2 py-1 border border-border/40 text-[10px] text-muted-foreground rounded">Cancelar</button>
+                              <button onClick={() => setUserEdits(p => { const copy={...p}; delete copy[u.id]; return copy })} className="px-2 py-1 border border-border text-[10px] text-muted-foreground rounded">Cancelar</button>
                             </div>
                           </div>
                         ) : (
@@ -2634,7 +2634,7 @@ function SettingsContent() {
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           disabled={u.id === currentUser.id}
-                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -2664,8 +2664,8 @@ function SettingsContent() {
                               onClick={() => handleToggleUserPermission(u, feat.key)}
                               className={`flex items-center justify-between p-2 rounded-xl border text-[10px] font-semibold transition-all ${
                                 isPermitted
-                                  ? 'bg-primary/5 border-primary/40 text-primary'
-                                  : 'border-border/30 bg-secondary text-muted-foreground hover:text-foreground'
+                                  ? 'bg-primary/5 border-primary/70 text-primary'
+                                  : 'border-border-subtle bg-secondary text-muted-foreground hover:text-foreground'
                               }`}
                             >
                               <span>{feat.label}</span>
@@ -2677,7 +2677,7 @@ function SettingsContent() {
                     </div>
 
                     {/* Change password */}
-                    <div className="flex items-center gap-2 pt-1 border-t border-border/10">
+                    <div className="flex items-center gap-2 pt-1 border-t border-border-subtle">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0">Nova senha</span>
                       <input
                         type="password"
@@ -2724,7 +2724,7 @@ function SettingsContent() {
 
               {/* Add Team Inline form */}
               {showAddTeam && (
-                <div className="p-5 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
+                <div className="p-5 rounded-3xl border border-border bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
                   <span className="text-xs font-bold text-primary block uppercase tracking-wider">Novo Time Comercial</span>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2">
@@ -2771,14 +2771,14 @@ function SettingsContent() {
 
               {/* Teams Dashboard */}
               {teams.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-secondary">
+                <div className="text-center py-10 text-muted-foreground border border-dashed border-border-subtle rounded-2xl bg-secondary">
                   Nenhum time comercial criado.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   {/* Select team */}
-                  <div className="lg:col-span-5 p-4 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-3">
-                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest block border-b border-border/10 pb-2">Selecione o Time</span>
+                  <div className="lg:col-span-5 p-4 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-3">
+                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest block border-b border-border-subtle pb-2">Selecione o Time</span>
                     <div className="space-y-1.5">
                       {teams.map(t => (
                         <div
@@ -2786,8 +2786,8 @@ function SettingsContent() {
                           onClick={() => setSelectedTeamId(t.id)}
                           className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
                             selectedTeamId === t.id
-                              ? 'bg-primary/5 border-primary/45 text-primary'
-                              : 'border-border/10 bg-secondary text-muted-foreground hover:text-foreground'
+                              ? 'bg-primary/5 border-primary/70 text-primary'
+                              : 'border-border-subtle bg-secondary text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <span className="text-xs font-bold truncate max-w-[150px]">{t.nome}</span>
@@ -2796,7 +2796,7 @@ function SettingsContent() {
                               e.stopPropagation()
                               handleDeleteTeam(t.id)
                             }}
-                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2806,10 +2806,10 @@ function SettingsContent() {
                   </div>
 
                   {/* Manage members of selected team */}
-                  <div className="lg:col-span-7 p-5 rounded-3xl border border-border/30 bg-card backdrop-blur-xl space-y-4">
+                  <div className="lg:col-span-7 p-5 rounded-3xl border border-border-subtle bg-card backdrop-blur-xl space-y-4">
                     {selectedTeam ? (
                       <>
-                        <div className="border-b border-border/20 pb-3">
+                        <div className="border-b border-border-subtle pb-3">
                           <h3 className="font-bold text-sm text-foreground">{selectedTeam.nome}</h3>
                           <span className="text-[10px] text-muted-foreground mt-0.5">
                             Líder do Time: <strong className="text-muted-foreground">
@@ -2865,7 +2865,7 @@ function SettingsContent() {
                                 return (
                                   <div
                                     key={mId}
-                                    className="p-3.5 rounded-xl border border-border/20 bg-card flex items-center justify-between gap-3 hover:border-border/40 transition-all animate-fade-in"
+                                    className="p-3.5 rounded-xl border border-border-subtle bg-card flex items-center justify-between gap-3 hover:border-border transition-all animate-fade-in"
                                   >
                                     <div className="min-w-0">
                                       <span className="text-xs font-bold text-foreground block truncate">{usr.nome} {usr.sobrenome || ''}</span>
@@ -2873,7 +2873,7 @@ function SettingsContent() {
                                     </div>
                                     <button
                                       onClick={() => handleRemoveTeamMember(selectedTeam.id, mId)}
-                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-rose-400"
+                                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
                                       title="Remover integrante"
                                     >
                                       <X className="w-3.5 h-3.5" />
@@ -2924,7 +2924,7 @@ function SettingsContent() {
 
               {/* Add/Edit Template form */}
               {showAddTemplate && (
-                <div className="p-5 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
+                <div className="p-5 rounded-3xl border border-border bg-primary/5 space-y-4 max-w-xl mx-auto animate-scale-in">
                   <span className="text-xs font-bold text-primary block uppercase tracking-wider">
                     {editingTemplate ? 'Editar Template de Mensagem' : 'Novo Template de Mensagem'}
                   </span>
@@ -2964,7 +2964,7 @@ function SettingsContent() {
                             key={variable}
                             type="button"
                             onClick={() => setTemplateForm(p => ({ ...p, corpo: p.corpo + variable }))}
-                            className="px-2 py-1 rounded bg-card border border-border/20 text-xs text-primary hover:bg-secondary transition-colors"
+                            className="px-2 py-1 rounded bg-card border border-border-subtle text-xs text-primary hover:bg-secondary transition-colors"
                           >
                             {variable}
                           </button>
@@ -2980,7 +2980,7 @@ function SettingsContent() {
                       />
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-secondary border border-border/20 space-y-1.5">
+                    <div className="p-3.5 rounded-xl bg-secondary border border-border-subtle space-y-1.5">
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] font-bold uppercase text-primary">Preview com dados fictícios</p>
                         <div className="flex flex-wrap gap-1">
@@ -2989,7 +2989,7 @@ function SettingsContent() {
                               key={v}
                               type="button"
                               onClick={() => setTemplateForm(p => ({ ...p, corpo: p.corpo + v }))}
-                              className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-mono transition-colors"
+                              className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-border hover:bg-primary/20 font-mono transition-colors"
                             >
                               {v}
                             </button>
@@ -3036,29 +3036,29 @@ function SettingsContent() {
               {/* Templates grid list */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {templates.map(tpl => (
-                  <div key={tpl.id} className="p-5 rounded-3xl border border-border/20 bg-secondary flex flex-col justify-between hover:border-border/40 transition-all">
+                  <div key={tpl.id} className="p-5 rounded-3xl border border-border-subtle bg-secondary flex flex-col justify-between hover:border-border transition-all">
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm text-neutral-250 truncate max-w-[180px]">{tpl.nome}</span>
-                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-border">
                           {tpl.categoria}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-card p-3 rounded-xl border border-border/10 font-mono mt-3">
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 bg-card p-3 rounded-xl border border-border-subtle font-mono mt-3">
                         {tpl.corpo}
                       </p>
                     </div>
 
-                    <div className="flex gap-2 border-t border-border/10 pt-4 mt-4">
+                    <div className="flex gap-2 border-t border-border-subtle pt-4 mt-4">
                       <button
                         onClick={() => handleEditTemplate(tpl)}
-                        className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border/50 text-foreground"
+                        className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border text-foreground"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteTemplate(tpl.id)}
-                        className="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500 hover:text-primary-foreground text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20 transition-colors"
+                        className="flex-1 py-1.5 bg-destructive/10 hover:bg-destructive hover:text-primary-foreground text-destructive text-xs font-semibold rounded-lg border border-destructive/20 transition-colors"
                       >
                         Excluir
                       </button>
@@ -3067,7 +3067,7 @@ function SettingsContent() {
                 ))}
 
                 {templates.length === 0 && (
-                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border/25 rounded-2xl bg-secondary">
+                  <div className="col-span-2 text-center py-10 text-muted-foreground border border-dashed border-border-subtle rounded-2xl bg-secondary">
                     Nenhum template de mensagem criado.
                   </div>
                 )}

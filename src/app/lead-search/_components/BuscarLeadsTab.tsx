@@ -307,7 +307,7 @@ export default function BuscarLeadsTab() {
               <button
                 type="button"
                 onClick={() => { setShowBulkModal(null); handleCriarAcaoCaixaRapido() }}
-                className="w-full py-3 px-4 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-all flex items-center justify-center gap-2 group"
+                className="w-full py-3 px-4 rounded-xl border border-primary/70 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-all flex items-center justify-center gap-2 group"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -352,7 +352,7 @@ export default function BuscarLeadsTab() {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-border/20">
+          <div className="flex justify-end gap-2 pt-4 border-t border-border-subtle">
             <button
               onClick={() => setShowBulkModal(null)}
               className="px-4 py-2 rounded-xl border border-border text-muted-foreground hover:bg-secondary text-xs font-bold transition-all"
@@ -375,26 +375,26 @@ export default function BuscarLeadsTab() {
     <div className="space-y-6 animate-fade-in relative">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl border border-border/30 bg-card backdrop-blur-md flex flex-col gap-1">
+        <div className="p-4 rounded-2xl border border-border-subtle bg-card backdrop-blur-md flex flex-col gap-1">
           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Total Minerados</span>
           <span className="text-2xl font-black text-foreground">{leadsData?.kpis?.total || 0}</span>
         </div>
-        <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 flex flex-col gap-1">
+        <div className="p-4 rounded-2xl border border-border bg-primary/5 flex flex-col gap-1">
           <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Novos</span>
           <span className="text-2xl font-black text-primary">{leadsData?.kpis?.novos || 0}</span>
         </div>
-        <div className="p-4 rounded-2xl border border-border/30 bg-card flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">Importados CRM</span>
-          <span className="text-2xl font-black text-emerald-400">{leadsData?.kpis?.importados || 0}</span>
+        <div className="p-4 rounded-2xl border border-border-subtle bg-card flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-bold text-success tracking-wider">Importados CRM</span>
+          <span className="text-2xl font-black text-success">{leadsData?.kpis?.importados || 0}</span>
         </div>
-        <div className="p-4 rounded-2xl border border-border/30 bg-card flex flex-col gap-1">
-          <span className="text-[10px] uppercase font-bold text-rose-500 tracking-wider">Descartados</span>
-          <span className="text-2xl font-black text-rose-400">{leadsData?.kpis?.descartados || 0}</span>
+        <div className="p-4 rounded-2xl border border-border-subtle bg-card flex flex-col gap-1">
+          <span className="text-[10px] uppercase font-bold text-destructive tracking-wider">Descartados</span>
+          <span className="text-2xl font-black text-destructive">{leadsData?.kpis?.descartados || 0}</span>
         </div>
       </div>
 
       {/* Buscar Form */}
-      <div className="p-5 rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent">
+      <div className="p-5 rounded-3xl border border-border bg-gradient-to-br from-primary/10 to-transparent">
         <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
           <Search className="w-4 h-4 text-primary" /> Disparar Automação N8N
         </h3>
@@ -462,7 +462,7 @@ export default function BuscarLeadsTab() {
               disabled={isTriggering || triggerSuccess}
               className={`w-full py-2.5 rounded-xl font-extrabold hover:shadow-lg active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed ${
                 triggerSuccess 
-                  ? 'bg-emerald-500 text-primary-foreground shadow-lg shadow-emerald-500/20' 
+                  ? 'bg-success text-primary-foreground shadow-lg shadow-success/20' 
                   : isTriggering 
                     ? 'bg-muted text-muted-foreground' 
                     : 'bg-primary text-primary-foreground hover:shadow-primary/20'
@@ -501,7 +501,7 @@ export default function BuscarLeadsTab() {
             <Database className="w-5 h-5 text-muted-foreground" />
             <h2 className="text-lg font-bold">Central de Leads Minerados</h2>
             {refreshCountdown !== null && (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-[10px] text-primary font-bold animate-pulse select-none">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-border bg-primary/5 text-[10px] text-primary font-bold animate-pulse select-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                 Atualizando lista em {refreshCountdown}s...
               </span>
@@ -546,10 +546,10 @@ export default function BuscarLeadsTab() {
 
         {/* Selected Context Bar — flutuante no topo */}
         {selectedLeads.size > 0 && (
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-card backdrop-blur-xl border border-primary/30 rounded-2xl px-5 py-3.5 flex items-center gap-4 shadow-[0_8px_40px_rgba(0,230,118,0.20)] animate-slide-down" style={{ maxWidth: 'calc(100vw - 32px)' }}>
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-card backdrop-blur-xl border border-border rounded-2xl px-5 py-3.5 flex items-center gap-4 shadow-[0_8px_40px_rgba(0,230,118,0.20)] animate-slide-down" style={{ maxWidth: 'calc(100vw - 32px)' }}>
             {/* Count badge */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="w-7 h-7 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-black text-sm">
+              <span className="w-7 h-7 rounded-xl bg-primary/20 border border-border flex items-center justify-center text-primary font-black text-sm">
                 {selectedLeads.size}
               </span>
               <span className="text-xs font-black text-primary whitespace-nowrap hidden sm:block">
@@ -574,13 +574,13 @@ export default function BuscarLeadsTab() {
               <button onClick={() => setShowBulkModal('deals')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap shrink-0">
                 + Negócios
               </button>
-              <button onClick={() => executeBulkAction('importar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-emerald-400 shrink-0">
+              <button onClick={() => executeBulkAction('importar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-success shrink-0">
                 CRM
               </button>
-              <button onClick={() => executeBulkAction('descartar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-amber-400 shrink-0">
+              <button onClick={() => executeBulkAction('descartar')} className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-xs font-bold transition-colors whitespace-nowrap text-warning shrink-0">
                 Descartar
               </button>
-              <button onClick={() => executeBulkAction('delete')} className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors shrink-0" title="Excluir Definitivo">
+              <button onClick={() => executeBulkAction('delete')} className="p-1.5 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors shrink-0" title="Excluir Definitivo">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -595,7 +595,7 @@ export default function BuscarLeadsTab() {
 
         <div className="rounded-2xl border border-border overflow-hidden bg-card/30">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-card border-b border-border/50 text-[10px] text-muted-foreground font-black tracking-widest uppercase">
+            <thead className="bg-card border-b border-border text-[10px] text-muted-foreground font-black tracking-widest uppercase">
               <tr>
                 <th className="p-4 w-12 text-center">
                   <button onClick={() => handleSelectAll(selectedLeads.size !== leadsData?.leads?.length)}>
@@ -640,7 +640,7 @@ export default function BuscarLeadsTab() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[10px] bg-secondary flex items-center justify-center font-black text-primary-foreground text-lg shrink-0 border border-border/50">
+                        <div className="w-10 h-10 rounded-[10px] bg-secondary flex items-center justify-center font-black text-primary-foreground text-lg shrink-0 border border-border">
                           {(lead.nome || lead.empresa || 'S').charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
@@ -659,7 +659,7 @@ export default function BuscarLeadsTab() {
                           {lead.status === 'NOVO' ? 'LEAD' : lead.status}
                         </span>
                         {lead.notas?.includes('[listado]') && (
-                          <span className="px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 text-[9px] font-black uppercase tracking-wider">
+                          <span className="px-2 py-0.5 rounded-full bg-brand-ink/15 text-info border border-brand-ink/30 text-[9px] font-black uppercase tracking-wider">
                             📋 LISTADO
                           </span>
                         )}
@@ -698,7 +698,7 @@ export default function BuscarLeadsTab() {
                     <td className="p-4">
                       <div className="flex items-center justify-center gap-2">
                         <button 
-                          className="w-8 h-8 rounded-full border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                          className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                           onClick={() => {
                             if(lead.site) window.open(lead.site, '_blank')
                             else alert('Lead não possui site registrado.')
@@ -708,7 +708,7 @@ export default function BuscarLeadsTab() {
                           <ExternalLink className="w-4 h-4" />
                         </button>
                         <button 
-                          className="w-8 h-8 rounded-full border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                          className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                           onClick={() => {
                             setSelectedLeads(new Set([lead.id]))
                             executeBulkAction('importar')
@@ -727,7 +727,7 @@ export default function BuscarLeadsTab() {
           
           {/* Pagination */}
           {(leadsData?.totalPages ?? 0) > 1 && (
-            <div className="p-4 border-t border-border/50 flex justify-end gap-2 bg-card">
+            <div className="p-4 border-t border-border flex justify-end gap-2 bg-card">
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}

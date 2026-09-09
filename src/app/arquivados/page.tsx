@@ -144,19 +144,19 @@ export default function ArquivadosPage() {
 
   const TABS: { id: StatusTab; label: string; count: number; color: string }[] = [
     { id: 'all', label: 'Todos', count: archivedDeals.length, color: 'text-muted-foreground' },
-    { id: 'WON', label: 'Ganhos', count: wonDeals.length, color: 'text-emerald-400' },
-    { id: 'LOST', label: 'Perdidos', count: lostDeals.length, color: 'text-rose-400' },
+    { id: 'WON', label: 'Ganhos', count: wonDeals.length, color: 'text-success' },
+    { id: 'LOST', label: 'Perdidos', count: lostDeals.length, color: 'text-destructive' },
     { id: 'EXCLUIDO', label: 'Excluídos', count: excludedDeals.length, color: 'text-muted-foreground' }
   ]
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full bg-card text-foreground select-none overflow-hidden">
+      <div className="flex flex-col h-full bg-background text-foreground select-none overflow-hidden">
         {/* HEADER */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border/20 bg-card backdrop-blur-md sticky top-0 z-10 shrink-0">
+        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border-subtle bg-card backdrop-blur-md sticky top-0 z-10 shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-border text-primary">
                 <Archive className="w-6 h-6" />
               </div>
               <div>
@@ -168,15 +168,15 @@ export default function ArquivadosPage() {
             </div>
 
             {/* KPIs */}
-            <div className="flex items-center bg-secondary p-1.5 rounded-2xl border border-border/20 shrink-0">
+            <div className="flex items-center bg-secondary p-1.5 rounded-2xl border border-border-subtle shrink-0">
               <div className="px-4 py-1.5 flex flex-col items-center">
                 <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-0.5">Ganhos</span>
-                <span className="text-sm font-black text-emerald-400">{wonDeals.length}</span>
+                <span className="text-sm font-black text-success">{wonDeals.length}</span>
               </div>
               <div className="w-px h-8 bg-border/40 mx-1" />
               <div className="px-4 py-1.5 flex flex-col items-center">
                 <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-0.5">Perdidos</span>
-                <span className="text-sm font-black text-rose-400">{lostDeals.length}</span>
+                <span className="text-sm font-black text-destructive">{lostDeals.length}</span>
               </div>
               <div className="w-px h-8 bg-border/40 mx-1" />
               <div className="px-4 py-1.5 flex flex-col items-center">
@@ -194,14 +194,14 @@ export default function ArquivadosPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   activeTab === tab.id
-                    ? 'bg-muted text-foreground border border-border/50'
+                    ? 'bg-muted text-foreground border border-border'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 {tab.label}
                 <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
                   activeTab === tab.id ? tab.color : 'text-muted-foreground'
-                } bg-secondary border border-border/30`}>
+                } bg-secondary border border-border-subtle`}>
                   {tab.count}
                 </span>
               </button>
@@ -224,7 +224,7 @@ export default function ArquivadosPage() {
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Buscar..."
-                className="pl-9 pr-8 py-2 w-52 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+                className="pl-9 pr-8 py-2 w-52 rounded-xl border border-border-subtle bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
               />
               {searchText && (
                 <button
@@ -239,7 +239,7 @@ export default function ArquivadosPage() {
             <select
               value={filterOwner}
               onChange={(e) => setFilterOwner(e.target.value)}
-              className="bg-secondary border border-border/30 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+              className="bg-secondary border border-border-subtle rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
             >
               <option value="all">Vendedor: Todos</option>
               <option value="unassigned">Sem responsável</option>
@@ -251,7 +251,7 @@ export default function ArquivadosPage() {
             <select
               value={filterProduct}
               onChange={(e) => setFilterProduct(e.target.value)}
-              className="bg-secondary border border-border/30 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+              className="bg-secondary border border-border-subtle rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
             >
               <option value="all">Produto: Todos</option>
               {categoriesStore.categories.products.map((p) => (
@@ -266,7 +266,7 @@ export default function ArquivadosPage() {
                 type="date"
                 value={filterDateFrom}
                 onChange={(e) => setFilterDateFrom(e.target.value)}
-                className="bg-secondary border border-border/30 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="bg-secondary border border-border-subtle rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
             <div className="flex items-center gap-1.5">
@@ -275,7 +275,7 @@ export default function ArquivadosPage() {
                 type="date"
                 value={filterDateTo}
                 onChange={(e) => setFilterDateTo(e.target.value)}
-                className="bg-secondary border border-border/30 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="bg-secondary border border-border-subtle rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
 
@@ -308,10 +308,10 @@ export default function ArquivadosPage() {
             </div>
           ) : (
             !isMobile ? (
-              <div className="bg-secondary border border-border/20 rounded-3xl overflow-hidden">
+              <div className="dl-paper rounded-3xl overflow-hidden">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-border/20 bg-card">
+                    <tr className="border-b border-border-subtle bg-card">
                       <th className="p-4 font-semibold text-muted-foreground tracking-wider uppercase text-[10px]">Status</th>
                       <th className="p-4 font-semibold text-muted-foreground tracking-wider uppercase text-[10px]">Título</th>
                       <th className="p-4 font-semibold text-muted-foreground tracking-wider uppercase text-[10px]">Contato</th>
@@ -350,8 +350,8 @@ export default function ArquivadosPage() {
                           <td className="p-4">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               isWon
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                ? 'bg-success/10 text-success border border-success/20'
+                                : 'bg-destructive/10 text-destructive border border-destructive/20'
                             }`}>
                               {isWon ? 'GANHO' : 'PERDIDO'}
                             </span>
@@ -359,7 +359,7 @@ export default function ArquivadosPage() {
                           <td className="p-4 font-semibold text-foreground">
                             {deal.titulo}
                             {deal.motivoPerda && (
-                              <span className="block text-[10px] text-rose-400/80 font-medium mt-0.5" title={deal.motivoPerdaCustom || deal.motivoPerda}>
+                              <span className="block text-[10px] text-destructive/80 font-medium mt-0.5" title={deal.motivoPerdaCustom || deal.motivoPerda}>
                                 Motivo: {deal.motivoPerda}
                               </span>
                             )}
@@ -373,18 +373,18 @@ export default function ArquivadosPage() {
                           <td className="p-4">
                             <div className="flex flex-col gap-1">
                               {deal.produtoInteresse ? (
-                                <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-md self-start font-bold">
+                                <span className="text-[10px] bg-primary/10 text-primary border border-border px-1.5 py-0.5 rounded-md self-start font-bold">
                                   {deal.produtoInteresse}
                                 </span>
                               ) : '-'}
                               {deal.origem ? (
-                                <span className="text-[10px] bg-muted text-muted-foreground border border-border/40 px-1.5 py-0.5 rounded-md self-start">
+                                <span className="text-[10px] bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded-md self-start">
                                   {deal.origem}
                                 </span>
                               ) : ''}
                             </div>
                           </td>
-                          <td className="p-4 text-right font-bold text-emerald-400">
+                          <td className="p-4 text-right font-bold text-success">
                             {BRL(deal.valorEstimado)}
                           </td>
                           <td className="p-4">
@@ -418,14 +418,14 @@ export default function ArquivadosPage() {
                   return (
                     <div
                       key={deal.id}
-                      className="p-4.5 rounded-2xl border border-border/20 bg-secondary space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
+                      className="p-4.5 rounded-2xl border border-border-subtle bg-secondary space-y-3 cursor-pointer hover:border-border transition-colors"
                       onClick={() => router.push(`/pipeline?dealId=${deal.id}`)}
                     >
                       <div className="flex justify-between items-start gap-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-extrabold ${
                           isWon
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            ? 'bg-success/10 text-success border border-success/20'
+                            : 'bg-destructive/10 text-destructive border border-destructive/20'
                         }`}>
                           {isWon ? 'GANHO' : 'PERDIDO'}
                         </span>
@@ -437,13 +437,13 @@ export default function ArquivadosPage() {
                       <div>
                         <h4 className="font-bold text-xs text-foreground">{deal.titulo}</h4>
                         {deal.motivoPerda && (
-                          <span className="block text-[10px] text-rose-400/80 font-medium mt-0.5">
+                          <span className="block text-[10px] text-destructive/80 font-medium mt-0.5">
                             Motivo: {deal.motivoPerda}
                           </span>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-border/10 pt-3">
+                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-border-subtle pt-3">
                         <div>
                           <span className="text-[10px] text-muted-foreground block font-medium">Contato</span>
                           <span className="text-muted-foreground font-semibold truncate block">
@@ -455,13 +455,13 @@ export default function ArquivadosPage() {
                         </div>
                         <div className="text-right">
                           <span className="text-[10px] text-muted-foreground block font-medium">Valor</span>
-                          <span className="text-sm font-bold text-emerald-400 block">
+                          <span className="text-sm font-bold text-success block">
                             {BRL(deal.valorEstimado)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 border-t border-border/10 pt-3 text-xs">
+                      <div className="flex items-center justify-between gap-2 border-t border-border-subtle pt-3 text-xs">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {owner ? (
                             <>
@@ -477,12 +477,12 @@ export default function ArquivadosPage() {
 
                         <div className="flex gap-1.5 shrink-0">
                           {deal.produtoInteresse && (
-                            <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-md font-bold">
+                            <span className="text-[9px] bg-primary/10 text-primary border border-border px-1.5 py-0.5 rounded-md font-bold">
                               {deal.produtoInteresse}
                             </span>
                           )}
                           {deal.origem && (
-                            <span className="text-[9px] bg-muted text-neutral-350 border border-border/40 px-1.5 py-0.5 rounded-md">
+                            <span className="text-[9px] bg-muted text-neutral-350 border border-border px-1.5 py-0.5 rounded-md">
                               {deal.origem}
                             </span>
                           )}

@@ -218,8 +218,8 @@ export default function BussolaPage() {
     }, 1000)
   }
 
-  const scoreColor = (s: number) => s >= 80 ? 'text-primary' : s >= 50 ? 'text-yellow-400' : 'text-destructive'
-  const scoreBg = (s: number) => s >= 80 ? 'bg-primary/10 border-primary/20' : s >= 50 ? 'bg-yellow-400/10 border-yellow-400/20' : 'bg-destructive/10 border-destructive/20'
+  const scoreColor = (s: number) => s >= 80 ? 'text-primary' : s >= 50 ? 'text-warning' : 'text-destructive'
+  const scoreBg = (s: number) => s >= 80 ? 'bg-primary/10 border-border' : s >= 50 ? 'bg-warning/10 border-warning/20' : 'bg-destructive/10 border-destructive/20'
 
   const totalUTMLeads = utmSources.reduce((s, u) => s + u.leads, 0)
   const totalUTMReceita = utmSources.reduce((s, u) => s + u.receita, 0)
@@ -244,20 +244,20 @@ export default function BussolaPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex flex-col h-full min-h-screen bg-secondary text-foreground select-none">
+      <div className="flex flex-col h-full min-h-screen bg-background text-foreground select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────────── */}
-        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-primary/20 bg-secondary backdrop-blur-md sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-4 border-b border-border bg-secondary backdrop-blur-md sticky top-0 z-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-border text-primary shrink-0">
                 <Compass className="w-5 h-5" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-xl font-bold tracking-tight text-primary-foreground">Bússola</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">Atribuição de fontes · Insights IA · Relatórios precisos</p>
               </div>
-              <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full shrink-0">
+              <span className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-border px-2.5 py-1 rounded-full shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 LIVE
               </span>
@@ -267,9 +267,9 @@ export default function BussolaPage() {
             {!utmLoading && (
               <div className="hidden lg:flex items-center gap-4">
                 {[
-                  { label: 'Total Leads', value: totalUTMLeads, color: 'text-blue-400' },
+                  { label: 'Total Leads', value: totalUTMLeads, color: 'text-info' },
                   { label: 'Receita', value: BRL(totalUTMReceita), color: 'text-primary' },
-                  { label: 'Conv. Média', value: PCT(utmSources.length > 0 ? utmSources.reduce((s, u) => s + (u.leads > 0 ? (u.deals / u.leads * 100) : 0), 0) / utmSources.length : 0), color: 'text-yellow-400' },
+                  { label: 'Conv. Média', value: PCT(utmSources.length > 0 ? utmSources.reduce((s, u) => s + (u.leads > 0 ? (u.deals / u.leads * 100) : 0), 0) / utmSources.length : 0), color: 'text-warning' },
                 ].map(kpi => (
                   <div key={kpi.label} className="text-center">
                     <p className={`text-base font-bold ${kpi.color}`}>{kpi.value}</p>
@@ -282,7 +282,7 @@ export default function BussolaPage() {
 
           {/* Tab switcher — scrollable on mobile */}
           <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary border border-primary/20 w-max min-w-full sm:w-fit sm:min-w-0">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary border border-border w-max min-w-full sm:w-fit sm:min-w-0">
               {TABS.map(tab => {
                 const Icon = tab.icon
                 const active = activeTab === tab.id
@@ -292,7 +292,7 @@ export default function BussolaPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0 ${
                       active
-                        ? 'bg-primary/15 text-primary border border-primary/30 shadow-sm'
+                        ? 'bg-primary/15 text-primary border border-border shadow-sm'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
@@ -326,7 +326,7 @@ export default function BussolaPage() {
                     const pct = totalUTMLeads > 0 ? (src.leads / totalUTMLeads * 100) : 0
                     const cpl = src.custo > 0 && src.leads > 0 ? src.custo / src.leads : null
                     return (
-                      <div key={src.id} className="ocr-card card-padding relative overflow-hidden group hover:border-primary/30 transition-all">
+                      <div key={src.id} className="ocr-card card-padding relative overflow-hidden group hover:border-border transition-all">
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `radial-gradient(ellipse at top left, ${src.color}08, transparent 70%)` }} />
                         <div className="flex items-center justify-between mb-3">
                           <div className="p-2 rounded-lg border" style={{ background: `${src.color}15`, borderColor: `${src.color}30` }}>
@@ -449,7 +449,7 @@ export default function BussolaPage() {
                 {/* Pipeline */}
                 <div className="relative">
                   <button onClick={() => setShowPipelineDD(!showPipelineDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Target className="w-4 h-4 text-muted-foreground" />
                     <span>Pipeline: {activePipelineName}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -457,7 +457,7 @@ export default function BussolaPage() {
                   {showPipelineDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowPipelineDD(false)} />
-                      <div className="absolute left-0 mt-2 w-56 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-56 rounded-xl border border-border bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         {pipelines.map(p => (
                           <button key={p.id} onClick={() => { setActivePipelineId(p.id); setShowPipelineDD(false) }}
                             className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${activePipelineId === p.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-primary-foreground'}`}>
@@ -472,7 +472,7 @@ export default function BussolaPage() {
                 {/* Period */}
                 <div className="relative">
                   <button onClick={() => setShowPeriodDD(!showPeriodDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>Período: {periodLabel}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -480,7 +480,7 @@ export default function BussolaPage() {
                   {showPeriodDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowPeriodDD(false)} />
-                      <div className="absolute left-0 mt-2 w-64 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-64 rounded-xl border border-border bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         {[
                           ['hoje', 'Hoje'], ['ontem', 'Ontem'], ['7d', 'Últimos 7 dias'],
                           ['15d', 'Últimos 15 dias'], ['30d', 'Últimos 30 dias'],
@@ -495,9 +495,9 @@ export default function BussolaPage() {
                         {preset === 'customizado' && (
                           <div className="flex gap-2 mt-2 px-2">
                             <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
-                              className="flex-1 bg-secondary border border-primary/20 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground" />
                             <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
-                              className="flex-1 bg-secondary border border-primary/20 rounded-lg px-2 py-1 text-xs text-foreground" />
+                              className="flex-1 bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground" />
                           </div>
                         )}
                       </div>
@@ -508,7 +508,7 @@ export default function BussolaPage() {
                 {/* Sellers */}
                 <div className="relative">
                   <button onClick={() => setShowSellersDD(!showSellersDD)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                     <Users className="w-4 h-4 text-muted-foreground" />
                     <span>Vendedores: {ownerIds.length === 0 ? 'Todos' : ownerIds.length + ' sel.'}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
@@ -516,7 +516,7 @@ export default function BussolaPage() {
                   {showSellersDD && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowSellersDD(false)} />
-                      <div className="absolute left-0 mt-2 w-52 rounded-xl border border-primary/20 bg-secondary p-2 shadow-xl z-40 animate-scale-in">
+                      <div className="absolute left-0 mt-2 w-52 rounded-xl border border-border bg-secondary p-2 shadow-xl z-40 animate-scale-in">
                         <button onClick={() => setOwnerIds([])} className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-primary-foreground flex items-center justify-between">
                           Todos os vendedores {ownerIds.length === 0 && <Check className="w-3.5 h-3.5 text-primary" />}
                         </button>
@@ -545,17 +545,17 @@ export default function BussolaPage() {
               ) : overviewData && (
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                   {[
-                    { label: 'Criados', value: overviewData.created, icon: Target, color: 'text-blue-400' },
+                    { label: 'Criados', value: overviewData.created, icon: Target, color: 'text-info' },
                     { label: 'Ganhos', value: overviewData.won, icon: CheckCircle2, color: 'text-primary' },
                     { label: 'Perdidos', value: overviewData.lost, icon: XCircle, color: 'text-destructive' },
-                    { label: 'Conversão', value: PCT(overviewData.taxaConversao), icon: TrendingUp, color: 'text-yellow-400' },
+                    { label: 'Conversão', value: PCT(overviewData.taxaConversao), icon: TrendingUp, color: 'text-warning' },
                     { label: 'Ticket Médio', value: BRL(overviewData.ticketMedio), icon: DollarSign, color: 'text-primary' },
-                    { label: 'Em Aberto', value: BRL(overviewData.receitaEmAberto), icon: Activity, color: 'text-blue-400' },
-                    { label: 'Tempo Atrib.', value: formatHours(overviewData.avgAssignmentHours), icon: Clock, color: 'text-orange-400' },
-                    { label: 'Pipeline', value: activePipelineName, icon: BarChart3, color: 'text-purple-400' },
+                    { label: 'Em Aberto', value: BRL(overviewData.receitaEmAberto), icon: Activity, color: 'text-info' },
+                    { label: 'Tempo Atrib.', value: formatHours(overviewData.avgAssignmentHours), icon: Clock, color: 'text-warning' },
+                    { label: 'Pipeline', value: activePipelineName, icon: BarChart3, color: 'text-brand-ink' },
                   ].map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="ocr-card card-padding">
-                      <div className={`p-2 rounded-xl bg-secondary border border-primary/20 ${color} w-fit mb-2`}>
+                      <div className={`p-2 rounded-xl bg-secondary border border-border ${color} w-fit mb-2`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">{label}</p>
@@ -640,14 +640,14 @@ export default function BussolaPage() {
                       {sellersData.map(s => (
                         <div key={s.sellerId} className="grid grid-cols-5 gap-1 px-2 py-2.5 rounded-xl hover:bg-secondary transition-colors">
                           <div className="col-span-2 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] flex items-center justify-center font-bold shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 border border-border text-primary text-[9px] flex items-center justify-center font-bold shrink-0">
                               {s.sellerNome.split(' ').map((w: string) => w[0]).join('').slice(0, 2)}
                             </div>
                             <span className="text-xs font-medium text-foreground truncate">{s.sellerNome}</span>
                           </div>
                           <span className="text-xs text-right text-muted-foreground">{s.leadsAtribuidos}</span>
                           <span className="text-xs text-right font-semibold text-primary">{s.dealsGanhos}</span>
-                          <span className={`text-xs text-right font-bold ${s.conversao >= 30 ? 'text-primary' : s.conversao >= 15 ? 'text-yellow-400' : 'text-destructive'}`}>
+                          <span className={`text-xs text-right font-bold ${s.conversao >= 30 ? 'text-primary' : s.conversao >= 15 ? 'text-warning' : 'text-destructive'}`}>
                             {PCT(s.conversao)}
                           </span>
                         </div>

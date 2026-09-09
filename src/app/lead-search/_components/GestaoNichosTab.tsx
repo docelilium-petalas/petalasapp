@@ -151,7 +151,7 @@ export default function GestaoNichosTab() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="p-6 rounded-3xl border border-primary/20 bg-primary/5 space-y-4 animate-scale-in">
+        <form onSubmit={handleSubmit} className="p-6 rounded-3xl border border-border bg-primary/5 space-y-4 animate-scale-in">
           <span className="text-xs font-bold text-primary block uppercase tracking-wider">
             {editingId ? 'Editar Nicho' : 'Novo Nicho'}
           </span>
@@ -191,7 +191,7 @@ export default function GestaoNichosTab() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 text-xs pt-4 border-t border-border/20">
+          <div className="flex justify-end gap-2 text-xs pt-4 border-t border-border-subtle">
             <button
               type="button"
               onClick={handleCloseForm}
@@ -215,17 +215,17 @@ export default function GestaoNichosTab() {
         {isLoading ? (
           <div className="text-center py-8 text-xs text-muted-foreground italic">Carregando nichos...</div>
         ) : !Array.isArray(niches) || niches.length === 0 ? (
-          <div className="text-center py-10 text-xs text-muted-foreground italic border border-dashed border-border/20 rounded-3xl bg-secondary">
+          <div className="text-center py-10 text-xs text-muted-foreground italic border border-dashed border-border-subtle rounded-3xl bg-secondary">
             Nenhum nicho configurado. Crie o primeiro nicho acima.
           </div>
         ) : (
           niches.map((niche: any) => (
-            <div key={niche.id} className="p-5 rounded-2xl border border-border/30 bg-card backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-border/60 transition-all">
+            <div key={niche.id} className="p-5 rounded-2xl border border-border-subtle bg-card backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-border transition-all">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-foreground text-sm">{niche.nome}</h3>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    niche.status === 'ativo' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-muted text-muted-foreground border border-border'
+                    niche.status === 'ativo' ? 'bg-primary/10 text-primary border border-border' : 'bg-muted text-muted-foreground border border-border'
                   }`}>
                     {niche.status}
                   </span>
@@ -246,7 +246,7 @@ export default function GestaoNichosTab() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                     niche.status === 'ativo' 
                       ? 'border-border text-muted-foreground hover:bg-secondary' 
-                      : 'border-primary/30 text-primary bg-primary/5 hover:bg-primary/10'
+                      : 'border-border text-primary bg-primary/5 hover:bg-primary/10'
                   }`}
                 >
                   {niche.status === 'ativo' ? 'Desativar' : 'Ativar'}
@@ -260,7 +260,7 @@ export default function GestaoNichosTab() {
                 </button>
                 <button
                   onClick={() => handleDelete(niche.id)}
-                  className="p-2 rounded-xl bg-secondary border border-border hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400 transition-all"
+                  className="p-2 rounded-xl bg-secondary border border-border hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />

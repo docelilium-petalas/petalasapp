@@ -32,7 +32,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
 
   // Class names for styling
   const selectBaseClass =
-    'w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground text-left flex items-center justify-between cursor-pointer'
+    'w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground text-left flex items-center justify-between cursor-pointer'
 
   return (
     <>
@@ -42,7 +42,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className={`w-full px-3.5 py-2.5 rounded-xl border border-border/30 bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+          className={`w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-secondary text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
         >
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((opt) => (
@@ -74,7 +74,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full max-h-[60vh] bg-card border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
+            className="w-full max-h-[60vh] bg-card border-t border-border rounded-t-3xl p-6 flex flex-col space-y-4 mobile-bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag Handle */}
@@ -82,7 +82,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
               <div className="w-12 h-1.5 rounded-full bg-muted" />
             </div>
 
-            <div className="flex items-center justify-between pb-2 border-b border-border/20 shrink-0">
+            <div className="flex items-center justify-between pb-2 border-b border-border-subtle shrink-0">
               <span className="ocr-label text-[11px] font-bold text-muted-foreground">{label}</span>
               <button
                 type="button"
@@ -103,7 +103,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
                   }}
                   className={`w-full p-3.5 text-left rounded-xl text-xs font-semibold flex items-center justify-between ${
                     value === ''
-                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      ? 'bg-primary/10 text-primary border border-border'
                       : 'border border-transparent text-muted-foreground active:bg-secondary'
                   }`}
                 >
@@ -124,7 +124,7 @@ export const MobileActionSelect: React.FC<MobileActionSelectProps> = ({
                     }}
                     className={`w-full p-3.5 text-left rounded-xl text-xs font-semibold flex items-center justify-between ${
                       isSelected
-                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        ? 'bg-primary/10 text-primary border border-border'
                         : 'border border-transparent text-foreground active:bg-secondary'
                     }`}
                   >

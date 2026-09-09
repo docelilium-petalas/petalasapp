@@ -407,7 +407,7 @@ export default function CadenciasPage() {
             <Workflow className="w-3.5 h-3.5" />
             <span>Automação Comercial</span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight md:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-foreground via-neutral-100 to-neutral-500">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
             Cadências de Mensagens
           </h1>
           <p className="text-xs text-muted-foreground mt-1 max-w-xl">
@@ -428,31 +428,31 @@ export default function CadenciasPage() {
       {/* KPI GLOBAL STATS */}
       {view === 'list' && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 rounded-2xl border border-border/30 bg-card">
+          <div className="p-4 rounded-2xl border border-border-subtle bg-card">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Total Cadências</span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black">{cadences.length}</span>
               <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded font-bold">Fluxos</span>
             </div>
           </div>
-          <div className="p-4 rounded-2xl border border-border/30 bg-card">
+          <div className="p-4 rounded-2xl border border-border-subtle bg-card">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Leads Ativos</span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black text-primary">{globalStats.totalAtivos}</span>
               <span className="text-[10px] text-muted-foreground">aguardando envio</span>
             </div>
           </div>
-          <div className="p-4 rounded-2xl border border-border/30 bg-card">
+          <div className="p-4 rounded-2xl border border-border-subtle bg-card">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Saídas por Resposta</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-amber-400">{globalStats.totalParados}</span>
+              <span className="text-2xl font-black text-warning">{globalStats.totalParados}</span>
               <span className="text-[10px] text-muted-foreground">interagiram</span>
             </div>
           </div>
-          <div className="p-4 rounded-2xl border border-border/30 bg-card">
+          <div className="p-4 rounded-2xl border border-border-subtle bg-card">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Concluídas com Sucesso</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-emerald-400">{globalStats.totalConcluidos}</span>
+              <span className="text-2xl font-black text-success">{globalStats.totalConcluidos}</span>
               <span className="text-[10px] text-muted-foreground">toda sequência</span>
             </div>
           </div>
@@ -461,7 +461,7 @@ export default function CadenciasPage() {
 
       {/* LOADING STATE */}
       {loading && view === 'list' && (
-        <div className="flex flex-col items-center justify-center py-20 border border-border/20 rounded-2xl bg-background">
+        <div className="flex flex-col items-center justify-center py-20 border border-border-subtle rounded-2xl bg-background">
           <RefreshCw className="w-8 h-8 text-primary animate-spin mb-3" />
           <span className="text-xs text-muted-foreground font-medium">Carregando cadências...</span>
         </div>
@@ -469,8 +469,8 @@ export default function CadenciasPage() {
 
       {/* EMPTY STATE */}
       {!loading && cadences.length === 0 && view === 'list' && (
-        <div className="flex flex-col items-center justify-center text-center py-20 px-4 border border-border/20 rounded-2xl bg-background">
-          <div className="w-12 h-12 rounded-2xl bg-card border border-border/40 flex items-center justify-center text-muted-foreground mb-4">
+        <div className="flex flex-col items-center justify-center text-center py-20 px-4 border border-border-subtle rounded-2xl bg-background">
+          <div className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground mb-4">
             <Workflow className="w-6 h-6 text-muted-foreground" />
           </div>
           <h3 className="text-sm font-bold text-foreground">Nenhuma cadência configurada</h3>
@@ -479,7 +479,7 @@ export default function CadenciasPage() {
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-primary/50 text-xs font-semibold text-muted-foreground transition-colors cursor-pointer"
+            className="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-primary/70 text-xs font-semibold text-muted-foreground transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-primary" />
             <span>Criar primeira cadência</span>
@@ -487,124 +487,118 @@ export default function CadenciasPage() {
         </div>
       )}
 
-      {/* GRID OF CADENCES (LIST VIEW) */}
+      {/* LISTA DE CADÊNCIAS
+          Era uma grade de cards. Card é bom para UM item; para COMPARAR vários,
+          ele obriga o olho a pular de bloco em bloco procurando o mesmo número
+          em posições diferentes. Em lista, cada métrica tem sua coluna e a
+          comparação vira uma varredura vertical — nenhuma informação do card
+          se perdeu, só mudou de lugar. */}
       {!loading && cadences.length > 0 && view === 'list' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          {/* Cabeçalho de colunas — some no mobile, onde a linha vira bloco */}
+          <div className="hidden md:grid grid-cols-[minmax(0,1fr)_5rem_5rem_6rem_6rem_6.5rem] gap-3 items-center px-5 py-2.5 border-b border-border bg-muted/60">
+            <span className="ocr-label">Cadência</span>
+            <span className="ocr-label text-right">Etapas</span>
+            <span className="ocr-label text-right">Ativos</span>
+            <span className="ocr-label text-right">Respostas</span>
+            <span className="ocr-label text-right">Concluídas</span>
+            <span className="ocr-label text-right">Ações</span>
+          </div>
+
           {cadences.map(cadence => {
             const activeLeads = cadence.leads?.filter(l => l.status === 'ATIVO').length || 0
             const respondedLeads = cadence.leads?.filter(l => l.status === 'RESPONDIDA').length || 0
             const completedLeads = cadence.leads?.filter(l => l.status === 'CONCLUIDA').length || 0
             const pipe = pipelines.find(p => p.id === cadence.pipelineId)
+            const ativa = cadence.status === 'ATIVO'
 
             return (
               <div
                 key={cadence.id}
-                className="group relative flex flex-col justify-between rounded-2xl border border-border/30 bg-card hover:border-primary/30 transition-all duration-300 overflow-hidden shadow-sm"
+                className="group grid md:grid-cols-[minmax(0,1fr)_5rem_5rem_6rem_6rem_6.5rem] gap-3 items-center px-5 py-3.5 border-b border-border-subtle last:border-b-0 hover:bg-muted/40 transition-colors"
               >
-                {/* Accent status light */}
-                <div className={`absolute top-0 left-0 right-0 h-0.5 ${cadence.status === 'ATIVO' ? 'bg-primary/60' : 'bg-neutral-600'}`} />
+                {/* IDENTIDADE — estado, nome, tipo e pipeline */}
+                <div className="flex items-start gap-3 min-w-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleStatus(cadence)
+                    }}
+                    className={`mt-0.5 shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-medium transition-colors cursor-pointer ${
+                      ativa
+                        ? 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                        : 'bg-muted text-muted-foreground border-border-subtle hover:bg-accent'
+                    }`}
+                    title={ativa ? 'Pausar cadência' : 'Ativar cadência'}
+                  >
+                    {ativa ? <Play className="w-2.5 h-2.5 fill-current" /> : <Pause className="w-2.5 h-2.5 fill-current" />}
+                    <span>{ativa ? 'Ativa' : 'Pausada'}</span>
+                  </button>
 
-                <div className="p-5 flex-1">
-                  {/* Card Title & Type */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div>
-                      <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors truncate max-w-[200px]" title={cadence.nome}>
-                        {cadence.nome}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">
-                          {cadence.tipo}
-                        </span>
-                        {pipe && (
-                          <>
-                            <span className="text-[9px] text-muted-foreground">•</span>
-                            <span className="text-[9px] text-primary/80 font-medium truncate max-w-[100px]">
-                              {pipe.nome}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status Badge Toggle */}
+                  <div className="min-w-0">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleToggleStatus(cadence)
-                      }}
-                      className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase transition-all shrink-0 flex items-center gap-1 border ${
-                        cadence.status === 'ATIVO'
-                          ? 'bg-primary/10 text-primary border-primary/20'
-                          : 'bg-muted text-muted-foreground border-border/30'
-                      }`}
-                      title={cadence.status === 'ATIVO' ? 'Pausar cadência' : 'Ativar cadência'}
+                      onClick={() => handleViewDetail(cadence)}
+                      className="block text-left text-sm font-medium text-foreground hover:text-brand-ink transition-colors truncate cursor-pointer"
+                      title={cadence.nome}
                     >
-                      {cadence.status === 'ATIVO' ? (
+                      {cadence.nome}
+                    </button>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-muted-foreground truncate">
+                      <span className="uppercase tracking-wide">{cadence.tipo}</span>
+                      {pipe && (
                         <>
-                          <Play className="w-2.5 h-2.5 fill-primary" />
-                          <span>Ativa</span>
-                        </>
-                      ) : (
-                        <>
-                          <Pause className="w-2.5 h-2.5 fill-muted-foreground" />
-                          <span>Pausada</span>
+                          <span aria-hidden>·</span>
+                          <span className="truncate">{pipe.nome}</span>
                         </>
                       )}
-                    </button>
-                  </div>
-
-                  {/* Summary of Steps */}
-                  <div className="bg-background rounded-xl p-3 border border-border/10 mb-4 flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground font-medium">Etapas da régua</span>
-                    <span className="font-bold text-foreground bg-card border border-border/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-primary" />
-                      <span>{cadence.etapas?.length || 0} etapas</span>
-                    </span>
-                  </div>
-
-                  {/* Inline Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-                    <div className="py-2 rounded-lg bg-background border border-border/15">
-                      <span className="block font-black text-sm text-primary">{activeLeads}</span>
-                      <span className="text-muted-foreground uppercase font-bold text-[8px] tracking-wider">Ativos</span>
-                    </div>
-                    <div className="py-2 rounded-lg bg-background border border-border/15">
-                      <span className="block font-black text-sm text-amber-400">{respondedLeads}</span>
-                      <span className="text-muted-foreground uppercase font-bold text-[8px] tracking-wider">Respostas</span>
-                    </div>
-                    <div className="py-2 rounded-lg bg-background border border-border/15">
-                      <span className="block font-black text-sm text-emerald-400">{completedLeads}</span>
-                      <span className="text-muted-foreground uppercase font-bold text-[8px] tracking-wider">Concluídas</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Actions Footer */}
-                <div className="px-5 py-3 bg-background border-t border-border/20 flex items-center justify-between">
+                {/* NÚMEROS — coluna no desktop; faixa rotulada no mobile, porque
+                    sem o cabeçalho o número sozinho não diz o que é. */}
+                <div className="hidden md:flex items-center justify-end gap-1.5 text-sm text-foreground tabular">
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>{cadence.etapas?.length || 0}</span>
+                </div>
+                <div className="hidden md:block text-right text-sm font-medium text-foreground tabular">{activeLeads}</div>
+                <div className="hidden md:block text-right text-sm font-medium tabular">
+                  <span className={respondedLeads > 0 ? 'text-warning' : 'text-muted-foreground'}>{respondedLeads}</span>
+                </div>
+                <div className="hidden md:block text-right text-sm font-medium tabular">
+                  <span className={completedLeads > 0 ? 'text-success' : 'text-muted-foreground'}>{completedLeads}</span>
+                </div>
+
+                <div className="md:hidden flex flex-wrap items-center gap-1.5">
+                  <span className="dl-chip"><Clock className="w-3 h-3" />{cadence.etapas?.length || 0} etapas</span>
+                  <span className="dl-chip">{activeLeads} ativos</span>
+                  <span className="dl-chip" data-tom={respondedLeads > 0 ? 'alerta' : undefined}>{respondedLeads} respostas</span>
+                  <span className="dl-chip" data-tom={completedLeads > 0 ? 'positivo' : undefined}>{completedLeads} concluídas</span>
+                </div>
+
+                {/* AÇÕES */}
+                <div className="flex items-center justify-start md:justify-end gap-0.5">
                   <button
                     onClick={() => handleViewDetail(cadence)}
-                    className="flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary-glow transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                    title="Acompanhamento"
                   >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Acompanhamento</span>
+                    <Eye className="w-4 h-4" />
                   </button>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEditModal(cadence)}
-                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-                      title="Editar cadência"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(cadence.id)}
-                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-rose-400 transition-all cursor-pointer"
-                      title="Excluir cadência"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleOpenEditModal(cadence)}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                    title="Editar cadência"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cadence.id)}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                    title="Excluir cadência"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             )
@@ -616,7 +610,7 @@ export default function CadenciasPage() {
       {view === 'detail' && selectedCadence && (
         <div className="space-y-6">
           {/* Detail Header & Return button */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/20 pb-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-subtle pb-5">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
@@ -624,7 +618,7 @@ export default function CadenciasPage() {
                   setSelectedCadence(null)
                   setDashboardData(null)
                 }}
-                className="p-2 rounded-xl border border-border/40 bg-card text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 title="Voltar para a lista"
               >
                 <ArrowLeft className="w-4.5 h-4.5" />
@@ -632,7 +626,7 @@ export default function CadenciasPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-foreground">{selectedCadence.nome}</h2>
-                  <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded border bg-card text-muted-foreground border-border/30">
+                  <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded border bg-card text-muted-foreground border-border-subtle">
                     {selectedCadence.tipo}
                   </span>
                 </div>
@@ -647,8 +641,8 @@ export default function CadenciasPage() {
                 onClick={() => handleToggleStatus(selectedCadence)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                   selectedCadence.status === 'ATIVO'
-                    ? 'bg-primary/10 text-primary border-primary/20'
-                    : 'bg-muted text-muted-foreground border-border/30'
+                    ? 'bg-primary/10 text-primary border-border'
+                    : 'bg-muted text-muted-foreground border-border-subtle'
                 }`}
               >
                 {selectedCadence.status === 'ATIVO' ? (
@@ -665,7 +659,7 @@ export default function CadenciasPage() {
               </button>
               <button
                 onClick={() => handleOpenEditModal(selectedCadence)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border/40 hover:border-primary/50 text-xs font-bold text-muted-foreground transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border hover:border-primary/70 text-xs font-bold text-muted-foreground transition-colors cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5 text-primary" />
                 <span>Editar Fluxo</span>
@@ -675,23 +669,23 @@ export default function CadenciasPage() {
 
           {/* DETAIL SPECIFIC KPIS */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl border border-border/30 bg-card">
+            <div className="p-4 rounded-2xl border border-border-subtle bg-card">
               <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block mb-0.5">Ativos</span>
               <div className="text-xl font-black text-primary">{dashboardData?.totalAtivos ?? 0}</div>
             </div>
-            <div className="p-4 rounded-2xl border border-border/30 bg-card">
+            <div className="p-4 rounded-2xl border border-border-subtle bg-card">
               <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block mb-0.5">Saídas por Resposta</span>
-              <div className="text-xl font-black text-amber-400">{dashboardData?.totalParados ?? 0}</div>
+              <div className="text-xl font-black text-warning">{dashboardData?.totalParados ?? 0}</div>
             </div>
-            <div className="p-4 rounded-2xl border border-border/30 bg-card">
+            <div className="p-4 rounded-2xl border border-border-subtle bg-card">
               <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground block mb-0.5">Concluídas</span>
-              <div className="text-xl font-black text-emerald-400">{dashboardData?.totalConcluidos ?? 0}</div>
+              <div className="text-xl font-black text-success">{dashboardData?.totalConcluidos ?? 0}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* TIMELINE OF STEPS */}
-            <div className="lg:col-span-1 border border-border/30 rounded-2xl p-5 bg-card space-y-4">
+            <div className="lg:col-span-1 border border-border-subtle rounded-2xl p-5 bg-card space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary" />
                 <span>Régua e Conversões</span>
@@ -707,7 +701,7 @@ export default function CadenciasPage() {
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                       </span>
 
-                      <div className="p-3.5 rounded-xl border border-border/20 bg-background relative">
+                      <div className="p-3.5 rounded-xl border border-border-subtle bg-background relative">
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="font-bold text-foreground">Etapa {etapa.ordem}</span>
                           <span className="text-[9px] px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">
@@ -717,7 +711,7 @@ export default function CadenciasPage() {
                         <p className="text-[11px] text-muted-foreground line-clamp-2 italic" title={etapa.mensagem}>
                           &ldquo;{etapa.mensagem}&rdquo;
                         </p>
-                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-border/10">
+                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-border-subtle">
                           <span className="text-[10px] text-muted-foreground">Condição de parada</span>
                           <span className="text-[10px] font-semibold text-muted-foreground">
                             {etapa.pararAoResponder ? 'Resposta Lead' : 'Nenhuma'}
@@ -736,7 +730,7 @@ export default function CadenciasPage() {
             </div>
 
             {/* LEADS LIST / MONITORING TABLE */}
-            <div className="lg:col-span-2 border border-border/30 rounded-2xl p-5 bg-card space-y-4">
+            <div className="lg:col-span-2 border border-border-subtle rounded-2xl p-5 bg-card space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <Users className="w-4 h-4 text-primary" />
@@ -773,11 +767,11 @@ export default function CadenciasPage() {
                   <span className="text-xs font-medium">Nenhum lead encontrado</span>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-border/10">
+                <div className="overflow-x-auto rounded-xl border border-border-subtle">
                   {/* Desktop Table View */}
                   <table className="hidden md:table w-full text-left border-collapse text-xs select-text">
                     <thead>
-                      <tr className="border-b border-border/20 bg-background text-muted-foreground uppercase font-bold text-[9px] tracking-wider">
+                      <tr className="border-b border-border-subtle bg-background text-muted-foreground uppercase font-bold text-[9px] tracking-wider">
                         <th className="p-3">Nome / Telefone</th>
                         <th className="p-3">Etapa Atual</th>
                         <th className="p-3">Próximo Envio</th>
@@ -788,9 +782,9 @@ export default function CadenciasPage() {
                     <tbody className="divide-y divide-border/10">
                       {filteredLeads.map((lead: CadenceLead) => {
                         const statusColors: Record<string, string> = {
-                          ATIVO: 'bg-primary/10 text-primary border-primary/20',
-                          CONCLUIDA: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
-                          RESPONDIDA: 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+                          ATIVO: 'bg-primary/10 text-primary border-border',
+                          CONCLUIDA: 'bg-success/10 text-success border-success/20',
+                          RESPONDIDA: 'bg-warning/10 text-warning border-warning/20'
                         }
                         
                         return (
@@ -813,7 +807,7 @@ export default function CadenciasPage() {
                               )}
                             </td>
                             <td className="p-3 text-center">
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${statusColors[lead.status] || 'bg-muted text-muted-foreground border-border/20'}`}>
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${statusColors[lead.status] || 'bg-muted text-muted-foreground border-border-subtle'}`}>
                                 {lead.status === 'RESPONDIDA' ? 'RESPONDIDA (PARADO)' : lead.status}
                               </span>
                             </td>
@@ -821,7 +815,7 @@ export default function CadenciasPage() {
                               {lead.status === 'ATIVO' ? (
                                 <button
                                   onClick={() => handleUpdateLeadStatus(lead.id, 'RESPONDIDA')}
-                                  className="px-2 py-1 rounded bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/25 text-[10px] font-bold text-amber-400 transition-colors cursor-pointer"
+                                  className="px-2 py-1 rounded bg-warning/10 hover:bg-warning/20 border border-warning/25 text-[10px] font-bold text-warning transition-colors cursor-pointer"
                                   title="Parar envio de mensagens"
                                 >
                                   Parar
@@ -829,7 +823,7 @@ export default function CadenciasPage() {
                               ) : lead.status === 'RESPONDIDA' ? (
                                 <button
                                   onClick={() => handleUpdateLeadStatus(lead.id, 'ATIVO')}
-                                  className="px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 border border-primary/25 text-[10px] font-bold text-primary transition-colors cursor-pointer"
+                                  className="px-2 py-1 rounded bg-primary/10 hover:bg-primary/20 border border-border text-[10px] font-bold text-primary transition-colors cursor-pointer"
                                   title="Retomar a sequência"
                                 >
                                   Retomar
@@ -838,7 +832,7 @@ export default function CadenciasPage() {
 
                               <button
                                 onClick={() => handleRemoveLead(lead.id)}
-                                className="p-1 rounded bg-card border border-border hover:border-rose-500 text-muted-foreground hover:text-rose-500 transition-all cursor-pointer inline-flex items-center justify-center"
+                                className="p-1 rounded bg-card border border-border hover:border-destructive text-muted-foreground hover:text-destructive transition-all cursor-pointer inline-flex items-center justify-center"
                                 title="Remover da cadência"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -854,24 +848,24 @@ export default function CadenciasPage() {
                   <div className="flex flex-col gap-3 md:hidden p-3.5">
                     {filteredLeads.map((lead: CadenceLead) => {
                       const statusColors: Record<string, string> = {
-                        ATIVO: 'bg-primary/10 text-primary border-primary/20',
-                        CONCLUIDA: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
-                        RESPONDIDA: 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+                        ATIVO: 'bg-primary/10 text-primary border-border',
+                        CONCLUIDA: 'bg-success/10 text-success border-success/20',
+                        RESPONDIDA: 'bg-warning/10 text-warning border-warning/20'
                       }
                       
                       return (
-                        <div key={lead.id} className="p-4 rounded-xl border border-border/20 bg-background space-y-3">
+                        <div key={lead.id} className="p-4 rounded-xl border border-border-subtle bg-background space-y-3">
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="font-bold text-foreground text-xs block">{lead.nome}</span>
                               <span className="text-[10px] text-muted-foreground font-mono block mt-0.5">{lead.telefone}</span>
                             </div>
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${statusColors[lead.status] || 'bg-muted text-muted-foreground border-border/20'}`}>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${statusColors[lead.status] || 'bg-muted text-muted-foreground border-border-subtle'}`}>
                               {lead.status === 'RESPONDIDA' ? 'RESPONDIDA' : lead.status}
                             </span>
                           </div>
 
-                          <div className="flex justify-between text-[11px] border-t border-border/10 pt-2.5">
+                          <div className="flex justify-between text-[11px] border-t border-border-subtle pt-2.5">
                             <div>
                               <span className="text-muted-foreground text-[9px] block">Etapa Atual</span>
                               <span className="font-semibold text-muted-foreground">Etapa {lead.etapaAtual} / {selectedCadence.etapas.length}</span>
@@ -886,18 +880,18 @@ export default function CadenciasPage() {
                             )}
                           </div>
 
-                          <div className="flex justify-end gap-2 border-t border-border/10 pt-2.5">
+                          <div className="flex justify-end gap-2 border-t border-border-subtle pt-2.5">
                             {lead.status === 'ATIVO' ? (
                               <button
                                 onClick={() => handleUpdateLeadStatus(lead.id, 'RESPONDIDA')}
-                                className="px-3 py-1.5 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/25 text-[10px] font-bold text-amber-400 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-warning/10 hover:bg-warning/20 border border-warning/25 text-[10px] font-bold text-warning transition-colors cursor-pointer"
                               >
                                 Parar
                               </button>
                             ) : lead.status === 'RESPONDIDA' ? (
                               <button
                                 onClick={() => handleUpdateLeadStatus(lead.id, 'ATIVO')}
-                                className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/25 text-[10px] font-bold text-primary transition-colors cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-border text-[10px] font-bold text-primary transition-colors cursor-pointer"
                               >
                                 Retomar
                               </button>
@@ -905,7 +899,7 @@ export default function CadenciasPage() {
 
                             <button
                               onClick={() => handleRemoveLead(lead.id)}
-                              className="p-1.5 rounded-xl bg-card border border-border/40 hover:border-rose-500 text-muted-foreground hover:text-rose-500 transition-all cursor-pointer inline-flex items-center justify-center"
+                              className="p-1.5 rounded-xl bg-card border border-border hover:border-destructive text-muted-foreground hover:text-destructive transition-all cursor-pointer inline-flex items-center justify-center"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -928,10 +922,10 @@ export default function CadenciasPage() {
           <div className="fixed inset-0 bg-background backdrop-blur-md" onClick={() => setModalOpen(false)} />
 
           {/* Modal Content */}
-          <div className="w-full max-w-3xl rounded-2xl border border-border/80 bg-background p-5 shadow-2xl z-10 flex flex-col max-h-[90vh] ocr-glass-strong animate-scale-in">
+          <div className="w-full max-w-3xl rounded-2xl border border-border bg-background p-5 shadow-2xl z-10 flex flex-col max-h-[90vh] ocr-glass-strong animate-scale-in">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border/20 shrink-0">
+            <div className="flex items-center justify-between pb-4 border-b border-border-subtle shrink-0">
               <h3 className="text-base font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Workflow className="w-5 h-5 text-primary" />
                 <span>{editingId ? 'Editar Cadência' : 'Nova Régua de Cadência'}</span>
@@ -1040,7 +1034,7 @@ export default function CadenciasPage() {
               </div>
 
               {/* DYNAMIC STEPS BUILDER */}
-              <div className="space-y-4 pt-3 border-t border-border/20">
+              <div className="space-y-4 pt-3 border-t border-border-subtle">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -1053,7 +1047,7 @@ export default function CadenciasPage() {
                   <button
                     type="button"
                     onClick={handleAddStep}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-primary/50 text-xs font-semibold text-muted-foreground transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-primary/70 text-xs font-semibold text-muted-foreground transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5 text-primary" />
                     <span>Adicionar Etapa</span>
@@ -1066,18 +1060,18 @@ export default function CadenciasPage() {
                     return (
                       <div
                         key={index}
-                        className="p-4 rounded-xl border border-border/20 bg-background relative flex flex-col gap-3 hover:border-border/40 transition-colors"
+                        className="p-4 rounded-xl border border-border-subtle bg-background relative flex flex-col gap-3 hover:border-border transition-colors"
                       >
                         {/* Step Header Indicator */}
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-foreground bg-card px-2 py-0.5 rounded border border-border/30">
+                          <span className="font-bold text-foreground bg-card px-2 py-0.5 rounded border border-border-subtle">
                             Etapa {index + 1}
                           </span>
 
                           <button
                             type="button"
                             onClick={() => handleRemoveStep(index)}
-                            className="p-1.5 rounded bg-card text-muted-foreground hover:text-rose-500 border border-border/30 hover:border-rose-500/30 transition-all cursor-pointer"
+                            className="p-1.5 rounded bg-card text-muted-foreground hover:text-destructive border border-border-subtle hover:border-destructive/30 transition-all cursor-pointer"
                             title="Remover etapa"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1179,7 +1173,7 @@ export default function CadenciasPage() {
             </form>
 
             {/* Modal Actions Footer */}
-            <div className="pt-4 border-t border-border/20 flex items-center justify-end gap-3 shrink-0">
+            <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}

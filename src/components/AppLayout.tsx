@@ -39,7 +39,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Contatos', href: '/contacts', icon: Users },
   { name: 'Atividades', href: '/activities', icon: Calendar },
   { name: 'Busca de Leads', href: '/lead-search', icon: Search },
-  { name: 'Doce LILiUM', href: '/caixa-rapido', icon: Zap },
+  { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
   { name: 'Cadências', href: '/cadencias', icon: Workflow },
   { name: 'Bússola', href: '/bussola', icon: Compass },
   { name: 'Configurações', href: '/settings', icon: Settings }
@@ -78,15 +78,15 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border select-none">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-primary/30 overflow-hidden shrink-0">
+        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border overflow-hidden shrink-0">
           {/* Motion blur light background effect */}
           <div className="absolute inset-0 bg-primary/20 blur-md scale-150 animate-pulse mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent blur-sm" />
           
-          <img src="/logo.png" alt="Logo Doce LILiUM" className="w-full h-full object-cover relative z-10" />
+          <img src="/logo.png" alt="Logo Doce Lilium" className="w-full h-full object-cover relative z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Doce LILiUM</span>
+          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Doce Lilium</span>
           <span className="text-[9px] text-sidebar-foreground/60 font-semibold uppercase tracking-[0.2em]">Operação CRM</span>
         </div>
       </div>
@@ -272,10 +272,10 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   // Get Page Title
   const getPageTitle = () => {
-    if (pathname === '/') return 'Doce LILiUM'
+    if (pathname === '/') return 'Doce Lilium'
     const name = pathname?.split('/')[1]
     if (name === 'dashboard') return 'Home'
-    return name?.replace('-', ' ') || 'Doce LILiUM'
+    return name?.replace('-', ' ') || 'Doce Lilium'
   }
 
   // Handle mobile header context actions
@@ -302,7 +302,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       <div className="flex flex-col flex-1 overflow-hidden md:pl-64">
         
         {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-border/20 bg-background/80 backdrop-blur-md z-10 sticky top-0">
+        <header className="hidden md:flex items-center justify-between h-16 px-6 border-b border-border-subtle bg-background/80 backdrop-blur-md z-10 sticky top-0">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold tracking-tight md:text-xl capitalize select-none">
               {getPageTitle()}
@@ -313,11 +313,11 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border/40 bg-secondary text-xs text-muted-foreground hover:border-primary/50 transition-all select-none"
+              className="flex items-center gap-2 px-3 py-1.5 w-64 text-left rounded-xl border border-border bg-secondary text-xs text-muted-foreground hover:border-primary/70 transition-all select-none"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
               <span>Buscar...</span>
-              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-muted border border-border/60 text-[9px]">⌘K</kbd>
+              <kbd className="ml-auto px-1.5 py-0.5 rounded bg-muted border border-border text-[9px]">⌘K</kbd>
             </button>
 
             <button
@@ -332,7 +332,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-secondary text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-border hover:border-primary/70 hover:bg-secondary text-muted-foreground hover:text-foreground relative transition-colors cursor-pointer"
               >
                 <Bell className="w-4.5 h-4.5" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
@@ -344,8 +344,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border bg-popover p-4 shadow-2xl z-40 ocr-glass-strong animate-scale-in">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Alertas Recentes</h3>
                     <div className="space-y-3">
-                      <div className="flex gap-2.5 text-xs pb-3 border-b border-border/50">
-                        <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                      <div className="flex gap-2.5 text-xs pb-3 border-b border-border">
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 border border-border flex items-center justify-center text-primary shrink-0">
                           <Coins className="w-4.5 h-4.5" />
                         </div>
                         <div>
@@ -369,7 +369,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             </div>
 
             {/* Discreet Logo */}
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-border/30 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-border-subtle flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
@@ -377,21 +377,21 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         </header>
 
         {/* Mobile Header (Fixed context actions) */}
-        <header className="flex md:hidden items-center justify-between h-16 px-4 border-b border-border/30 bg-background/90 backdrop-blur-lg z-30 sticky top-0 safe-top">
+        <header className="flex md:hidden items-center justify-between h-16 px-4 border-b border-border-subtle bg-background/90 backdrop-blur-lg z-30 sticky top-0 safe-top">
           <h1 className="text-base font-extrabold tracking-tight capitalize select-none text-foreground">
             {getPageTitle()}
           </h1>
 
           <div className="flex items-center gap-3">
             {/* Discreet Logo Mobile */}
-            <div className="w-7 h-7 rounded-lg overflow-hidden border border-border/30 flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-border-subtle flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             {/* Search Trigger */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-xl border border-border/40 text-muted-foreground active:text-foreground"
+              className="p-2 rounded-xl border border-border text-muted-foreground active:text-foreground"
             >
               <Search className="w-4.5 h-4.5" />
             </button>
@@ -400,7 +400,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             {(pathname === '/pipeline' || pathname === '/contacts') && (
               <button
                 onClick={triggerMobileFilter}
-                className="p-2 rounded-xl border border-border/40 text-muted-foreground active:text-foreground"
+                className="p-2 rounded-xl border border-border text-muted-foreground active:text-foreground"
               >
                 <Filter className="w-4.5 h-4.5" />
               </button>
@@ -432,7 +432,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       </div>
 
       {/* Mobile Fixed Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border/40 flex justify-around items-center h-16 md:hidden safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border flex justify-around items-center h-16 md:hidden safe-bottom">
         {[
           { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
           { name: 'Pipeline', href: '/pipeline', icon: Kanban },
@@ -468,14 +468,14 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {menuSheetOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="fixed inset-0 bg-card backdrop-blur-sm" onClick={() => setMenuSheetOpen(false)} />
-          <div className="fixed inset-x-0 bottom-0 bg-popover border-t border-border/40 rounded-t-3xl p-6 flex flex-col space-y-4 max-h-[70vh] overflow-y-auto mobile-bottom-sheet">
+          <div className="fixed inset-x-0 bottom-0 bg-popover border-t border-border rounded-t-3xl p-6 flex flex-col space-y-4 max-h-[70vh] overflow-y-auto mobile-bottom-sheet">
             
             {/* Sheet Handle */}
             <div className="flex justify-center shrink-0 -mt-2 mb-2">
               <div className="w-12 h-1.5 rounded-full bg-border" />
             </div>
 
-            <div className="flex items-center justify-between pb-3 border-b border-border/20 shrink-0">
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle shrink-0">
               <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Mais Opções</h3>
               <button
                 onClick={() => setMenuSheetOpen(false)}
@@ -487,7 +487,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
             <div className="grid grid-cols-2 gap-3.5 py-2">
               {[
-                { name: 'Doce LILiUM', href: '/caixa-rapido', icon: Zap },
+                { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
                 { name: 'Busca de Leads', href: '/lead-search', icon: Search },
                 { name: 'Cadências', href: '/cadencias', icon: Workflow },
                 { name: 'Arquivados', href: '/arquivados', icon: Archive },
@@ -500,7 +500,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                     key={item.href}
                     href={item.href}
                     onClick={() => setMenuSheetOpen(false)}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted border border-border/20 hover:border-primary/20 text-center space-y-2 group active:bg-muted/80"
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted border border-border-subtle hover:border-border text-center space-y-2 group active:bg-muted/80"
                   >
                     <Icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     <span className="text-xs font-bold text-foreground">{item.name}</span>
@@ -509,9 +509,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               })}
             </div>
 
-            <div className="border-t border-border/25 pt-4 flex flex-col gap-2 shrink-0">
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border/20 bg-muted/40">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
+            <div className="border-t border-border-subtle pt-4 flex flex-col gap-2 shrink-0">
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border-subtle bg-muted/40">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center font-bold text-xs text-primary border border-border">
                   {user.nome[0]}{user.sobrenome[0]}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -528,7 +528,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-secondary transition-colors"
                   title="Sair"
                 >
-                  <LogOut className="w-4.5 h-4.5 text-rose-500" />
+                  <LogOut className="w-4.5 h-4.5 text-destructive" />
                 </button>
               </div>
             </div>
@@ -556,7 +556,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       {searchOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 max-md:pt-16 max-md:px-2">
           <div className="fixed inset-0 bg-card backdrop-blur-md" onClick={() => setSearchOpen(false)} />
-          <div className="w-full max-w-lg rounded-2xl border border-border/80 bg-popover p-4 shadow-2xl z-10 ocr-glass-strong animate-scale-in max-md:max-h-[80vh] flex flex-col">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-popover p-4 shadow-2xl z-10 ocr-glass-strong animate-scale-in max-md:max-h-[80vh] flex flex-col">
             {/* Search Input */}
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-border bg-muted/40 focus-within:border-primary transition-all shrink-0">
               <Search className="w-5 h-5 text-muted-foreground" />

@@ -95,17 +95,17 @@ function LoadingSkeleton() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-secondary rounded-2xl border border-border/30 animate-pulse" />
+            <div key={i} className="h-24 bg-secondary rounded-2xl border border-border-subtle animate-pulse" />
           ))}
         </div>
-        <div className="flex gap-2 p-1.5 bg-secondary rounded-2xl border border-border/30 w-fit">
+        <div className="flex gap-2 p-1.5 bg-secondary rounded-2xl border border-border-subtle w-fit">
           {[80, 96, 88, 104, 88, 80].map((w, i) => (
             <div key={i} style={{ width: w }} className="h-9 bg-muted rounded-xl animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-44 bg-secondary rounded-2xl border border-border/30 animate-pulse" />
+            <div key={i} className="h-44 bg-secondary rounded-2xl border border-border-subtle animate-pulse" />
           ))}
         </div>
       </div>
@@ -116,9 +116,9 @@ function LoadingSkeleton() {
 // ─── Priority helpers ─────────────────────────────────────────────────────────
 
 const PRIORITY_META: Record<string, { label: string; dot: string; badge: string }> = {
-  maxima: { label: 'Máxima',  dot: 'bg-red-400',    badge: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  media:  { label: 'Média',   dot: 'bg-orange-400', badge: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
-  baixa:  { label: 'Baixa',   dot: 'bg-yellow-400', badge: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
+  maxima: { label: 'Máxima',  dot: 'bg-destructive',    badge: 'bg-destructive/10 text-destructive border-destructive/20' },
+  media:  { label: 'Média',   dot: 'bg-warning', badge: 'bg-warning/10 text-warning border-warning/20' },
+  baixa:  { label: 'Baixa',   dot: 'bg-warning', badge: 'bg-warning/10 text-warning border-warning/20' },
 }
 
 function PriorityBadge({ prioridade }: { prioridade?: string }) {
@@ -253,7 +253,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
 
       {/* Builder */}
       {showBuilder && (
-        <div className="ocr-card p-6 rounded-2xl space-y-5 border border-primary/20">
+        <div className="ocr-card p-6 rounded-2xl space-y-5 border border-border">
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" />
@@ -307,7 +307,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                     key={rt.tipo}
                     type="button"
                     onClick={() => addRegra(rt.tipo)}
-                    className="flex flex-col items-start gap-1 p-3 rounded-xl border border-border/50 bg-secondary hover:border-primary/50 hover:bg-primary/5 text-left transition-all group"
+                    className="flex flex-col items-start gap-1 p-3 rounded-xl border border-border bg-secondary hover:border-primary/70 hover:bg-primary/5 text-left transition-all group"
                   >
                     <Icon className="w-4 h-4 text-primary" />
                     <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors leading-tight">{rt.label}</span>
@@ -323,7 +323,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Regras Configuradas ({form.regras.length})</label>
               {form.regras.map((regra, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-secondary border border-border/40">
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-secondary border border-border">
                   <div className="flex-1 space-y-2">
                     <p className="text-xs font-bold text-primary">
                       {RULE_TYPES.find(r => r.tipo === regra.tipo)?.label || regra.tipo}
@@ -443,7 +443,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
             </div>
           )}
 
-          <div className="flex gap-3 pt-2 border-t border-border/40">
+          <div className="flex gap-3 pt-2 border-t border-border">
             <button onClick={resetForm} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-all">
               Cancelar
             </button>
@@ -463,7 +463,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
           {[1,2,3].map(i => <div key={i} className="h-36 bg-secondary rounded-2xl animate-pulse" />)}
         </div>
       ) : segmentos.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
+        <div className="text-center py-16 border border-dashed border-border rounded-2xl bg-card">
           <Filter className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
           <h3 className="font-bold text-foreground mb-2">Nenhum segmento criado</h3>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">Crie segmentos de público com regras baseadas no comportamento dos leads no pipeline.</p>
@@ -486,13 +486,13 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{group.label}</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {group.items.map(seg => (
-                      <div key={seg.id} className="ocr-card p-5 rounded-2xl flex flex-col gap-3 group hover:border-primary/30 transition-all">
+                      <div key={seg.id} className="ocr-card p-5 rounded-2xl flex flex-col gap-3 group hover:border-border transition-all">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
                               <PriorityBadge prioridade={seg.prioridade} />
                               {seg.tipo === 'template' && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border/50 uppercase tracking-wider">Template</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border uppercase tracking-wider">Template</span>
                               )}
                             </div>
                             <h3 className="font-bold text-primary text-sm leading-snug">{seg.nome}</h3>
@@ -512,13 +512,13 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
 
                         <div className="flex flex-wrap gap-1.5">
                           {seg.regras.map((r, i) => (
-                            <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] bg-primary/10 text-primary border border-primary/20 rounded-md font-medium">
+                            <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] bg-primary/10 text-primary border border-border rounded-md font-medium">
                               {RULE_TYPES.find(rt => rt.tipo === r.tipo)?.label || r.tipo}
                             </span>
                           ))}
                         </div>
 
-                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border-subtle">
                           <span className="text-[10px] text-muted-foreground">
                             {evalCounts[seg.id] !== undefined
                               ? <span className="text-primary font-bold">{evalCounts[seg.id]} leads</span>
@@ -527,7 +527,7 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
                           <button
                             onClick={() => handleEvaluate(seg.id)}
                             disabled={evaluating === seg.id}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30 disabled:opacity-50"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border hover:border-border disabled:opacity-50"
                           >
                             {evaluating === seg.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <BarChart3 className="w-3 h-3" />}
                             Avaliar
@@ -633,7 +633,7 @@ function TemplatesTab() {
           value={searchQ}
           onChange={e => setSearchQ(e.target.value)}
           placeholder="Buscar templates..."
-          className="w-full pl-9 pr-3 py-2 rounded-xl border border-border/30 bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
+          className="w-full pl-9 pr-3 py-2 rounded-xl border border-border-subtle bg-secondary text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground"
         />
       </div>
 
@@ -642,13 +642,13 @@ function TemplatesTab() {
           {[1,2,3,4].map(i => <div key={i} className="h-40 bg-secondary rounded-2xl animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
+        <div className="text-center py-16 border border-dashed border-border rounded-2xl bg-card">
           <FileText className="w-8 h-8 mx-auto text-muted-foreground/40 mb-3" />
           <h3 className="font-bold text-foreground mb-2">
             {searchQ ? 'Nenhum template encontrado' : 'Nenhum template criado'}
           </h3>
           {!searchQ && (
-            <button onClick={openNew} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
+            <button onClick={openNew} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-border rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
               Criar primeiro template
             </button>
           )}
@@ -656,7 +656,7 @@ function TemplatesTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map(tpl => (
-            <div key={tpl.id} className="ocr-card p-5 rounded-2xl flex flex-col gap-3 group hover:border-primary/30 transition-all">
+            <div key={tpl.id} className="ocr-card p-5 rounded-2xl flex flex-col gap-3 group hover:border-border transition-all">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="font-bold text-primary text-sm truncate">{tpl.nome}</h3>
@@ -674,11 +674,11 @@ function TemplatesTab() {
                 </div>
               </div>
 
-              <div className="bg-card p-3 rounded-lg border border-border/30 flex-1">
+              <div className="bg-card p-3 rounded-lg border border-border-subtle flex-1">
                 <p className="text-xs text-muted-foreground font-mono whitespace-pre-wrap line-clamp-4">{tpl.corpo}</p>
               </div>
 
-              <div className="pt-1 border-t border-border/30">
+              <div className="pt-1 border-t border-border-subtle">
                 <p className="text-[9px] text-muted-foreground font-bold uppercase mb-1">Preview</p>
                 <p className="text-xs text-foreground/80 line-clamp-2">{getPreview(tpl.corpo)}</p>
               </div>
@@ -690,7 +690,7 @@ function TemplatesTab() {
       {/* Template Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
-          <div className="w-full max-w-xl bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-xl bg-card border border-border rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold tracking-tight">{editingTemplate ? 'Editar Template' : 'Novo Template'}</h3>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
@@ -726,7 +726,7 @@ function TemplatesTab() {
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                     <button key={v} type="button" onClick={() => setForm(f => ({ ...f, corpo: f.corpo + v }))}
-                      className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-colors">
+                      className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-border text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-colors">
                       {v}
                     </button>
                   ))}
@@ -742,7 +742,7 @@ function TemplatesTab() {
               </div>
 
               {form.corpo && (
-                <div className="p-3 rounded-xl bg-secondary border border-border/20">
+                <div className="p-3 rounded-xl bg-secondary border border-border-subtle">
                   <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                   <p className="text-xs text-foreground whitespace-pre-wrap">{getPreview(form.corpo)}</p>
                 </div>
@@ -908,11 +908,11 @@ function CadenciasTab() {
           </div>
 
           {cadences.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card">
+            <div className="text-center py-16 border border-dashed border-border rounded-2xl bg-card">
               <Workflow className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
               <h3 className="font-bold text-foreground mb-2">Nenhuma cadência criada</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">Cadências enviam sequências de mensagens automaticamente para nutrir seus leads.</p>
-              <button onClick={() => setView('builder')} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
+              <button onClick={() => setView('builder')} className="mt-4 px-4 py-2 bg-primary/10 text-primary border border-border rounded-xl text-sm font-bold hover:bg-primary hover:text-primary-foreground transition-all">
                 Criar primeira cadência
               </button>
             </div>
@@ -922,11 +922,11 @@ function CadenciasTab() {
                 const activeLeads = cad.leads.filter(l => l.status === 'ATIVO').length
                 const totalLeads = cad.leads.length
                 return (
-                  <div key={cad.id} className="ocr-card p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-4 group hover:border-primary/30 transition-all">
+                  <div key={cad.id} className="ocr-card p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-4 group hover:border-border transition-all">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-bold text-foreground text-sm truncate">{cad.nome}</h3>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${cad.status === 'ATIVO' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'}`}>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${cad.status === 'ATIVO' ? 'bg-success/10 text-success border-success/20' : 'bg-muted text-muted-foreground border-border'}`}>
                           {cad.status}
                         </span>
                       </div>
@@ -939,7 +939,7 @@ function CadenciasTab() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => { setSelectedCadence(cad); setView('monitor') }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-xl transition-colors border border-border/50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-xl transition-colors border border-border"
                       >
                         <Eye className="w-3.5 h-3.5" /> Monitor
                       </button>
@@ -1009,7 +1009,7 @@ function CadenciasTab() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-foreground">Etapas da Cadência</h4>
-              <button onClick={addStep} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all">
+              <button onClick={addStep} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-border rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all">
                 <Plus className="w-3.5 h-3.5" /> Adicionar Etapa
               </button>
             </div>
@@ -1017,7 +1017,7 @@ function CadenciasTab() {
             {steps.map((step, idx) => (
               <div key={idx} className="flex gap-3">
                 <div className="flex flex-col items-center gap-0 shrink-0">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 border border-border flex items-center justify-center text-[10px] font-bold text-primary">
                     {idx + 1}
                   </div>
                   {idx < steps.length - 1 && <div className="w-px flex-1 bg-border/30 my-1" />}
@@ -1105,9 +1105,9 @@ function CadenciasTab() {
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Ativos', value: selectedCadence.leads.filter(l => l.status === 'ATIVO').length, color: 'text-emerald-400' },
+              { label: 'Ativos', value: selectedCadence.leads.filter(l => l.status === 'ATIVO').length, color: 'text-success' },
               { label: 'Concluídos', value: selectedCadence.leads.filter(l => l.status === 'CONCLUIDA').length, color: 'text-primary' },
-              { label: 'Parados', value: selectedCadence.leads.filter(l => l.status === 'RESPONDIDA').length, color: 'text-amber-400' },
+              { label: 'Parados', value: selectedCadence.leads.filter(l => l.status === 'RESPONDIDA').length, color: 'text-warning' },
             ].map(s => (
               <div key={s.label} className="ocr-card p-4 rounded-xl text-center">
                 <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -1122,7 +1122,7 @@ function CadenciasTab() {
               const count = selectedCadence.leads.filter(l => l.status === 'ATIVO' && l.etapaAtual === etapa.ordem).length
               return (
                 <div key={etapa.ordem} className="flex flex-col items-center gap-1 shrink-0">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-sm font-bold text-primary">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-border flex items-center justify-center text-sm font-bold text-primary">
                     {etapa.ordem}
                   </div>
                   <p className="text-[10px] text-muted-foreground">{count} leads</p>
@@ -1135,7 +1135,7 @@ function CadenciasTab() {
           </div>
 
           {selectedCadence.leads.length === 0 && (
-            <div className="text-center py-10 border border-dashed border-border/40 rounded-2xl">
+            <div className="text-center py-10 border border-dashed border-border rounded-2xl">
               <Users className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
               <p className="text-sm text-muted-foreground">Nenhum lead adicionado ainda.</p>
               <p className="text-xs text-muted-foreground mt-1">Adicione leads pela Pipeline usando seleção em lote.</p>
@@ -1734,7 +1734,7 @@ export default function CaixaRapidoPage() {
   return (
     <AppLayout>
       <Toaster theme="dark" position="top-right" closeButton />
-      <div className="flex flex-col h-full bg-card text-foreground overflow-y-auto scrollbar-thin">
+      <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto scrollbar-thin">
         <div className="p-4 sm:p-6 md:p-8 space-y-6">
 
           {/* Header */}
@@ -1752,14 +1752,14 @@ export default function CaixaRapidoPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label: 'Ações Ativas', value: acoes.filter(a => a.status === 'ATIVA').length + listas.filter(l => l.status === 'ATIVA').length, icon: Play, color: 'text-primary', bg: 'bg-primary/10' },
-              { label: 'Segmentos', value: segmentos.length, icon: Filter, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-              { label: 'Templates', value: templates.length, icon: FileText, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+              { label: 'Segmentos', value: segmentos.length, icon: Filter, color: 'text-info', bg: 'bg-info/10' },
+              { label: 'Templates', value: templates.length, icon: FileText, color: 'text-warning', bg: 'bg-warning/10' },
               { label: 'Total Disparado', value: listas.reduce((a, l) => a + (l.enviados || 0), 0) + acoes.reduce((a: number, acao: any) => a + acao.listas.reduce((b: number, l: any) => b + (l.enviados || 0), 0), 0), icon: Zap, color: 'text-primary', bg: 'bg-primary/10' },
             ].map(stat => {
               const Icon = stat.icon
               return (
                 <div key={stat.label} className="ocr-card p-4 rounded-2xl flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${stat.bg} border border-border/30 flex items-center justify-center shrink-0`}>
+                  <div className={`w-10 h-10 rounded-xl ${stat.bg} border border-border-subtle flex items-center justify-center shrink-0`}>
                     <Icon className={`w-5 h-5 ${stat.color}`} />
                   </div>
                   <div className="min-w-0">
@@ -1773,7 +1773,7 @@ export default function CaixaRapidoPage() {
 
           {/* Tabs */}
           <div
-            className="flex gap-1.5 p-1.5 bg-secondary rounded-2xl border border-border/30 overflow-x-auto"
+            className="flex gap-1.5 p-1.5 bg-secondary rounded-2xl border border-border-subtle overflow-x-auto"
             style={{ scrollbarWidth: 'none' } as React.CSSProperties}
           >
             {TABS.map(tab => {
@@ -1801,15 +1801,15 @@ export default function CaixaRapidoPage() {
             {activeTab === 'listas' && (
               <div className="space-y-4 animate-fade-in">
                 {acoes.length === 0 && listas.length === 0 ? (
-                  <div className="text-center py-16 ocr-card rounded-2xl border border-dashed border-border/60">
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <div className="text-center py-16 ocr-card rounded-2xl border border-dashed border-border">
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/10 border border-border flex items-center justify-center">
                       <Zap className="w-7 h-7 text-primary opacity-60" />
                     </div>
                     <h3 className="text-lg font-bold text-foreground">Nenhuma Ação Ativa</h3>
                     <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">Crie sua primeira máquina de disparos para recuperar leads perdidos ou contatos da base.</p>
                     <button
                       onClick={() => { setActiveTab('wizard'); setWizardStep(1) }}
-                      className="mt-6 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold text-sm hover:bg-primary hover:text-primary-foreground transition-all"
+                      className="mt-6 px-5 py-2.5 bg-primary/10 text-primary border border-border rounded-xl font-bold text-sm hover:bg-primary hover:text-primary-foreground transition-all"
                     >
                       Criar Primeira Ação
                     </button>
@@ -1844,7 +1844,7 @@ export default function CaixaRapidoPage() {
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <h3 className="font-bold text-foreground text-sm truncate">{acao.nome}</h3>
                                       <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md shrink-0 ${
-                                        acao.status === 'ATIVA' ? 'bg-primary/20 text-primary border border-primary/30' :
+                                        acao.status === 'ATIVA' ? 'bg-primary/20 text-primary border border-border' :
                                         acao.status === 'CANCELADA' ? 'bg-destructive/20 text-destructive border border-destructive/30' :
                                         'bg-muted text-muted-foreground border border-border'
                                       }`}>{acao.status}</span>
@@ -1891,19 +1891,19 @@ export default function CaixaRapidoPage() {
 
                                 {/* Sub-lists */}
                                 {isExpanded && (
-                                  <div className="border-t border-border/40">
+                                  <div className="border-t border-border">
                                     {acao.listas.map((lista: any, idx: number) => {
                                       const statusColors: Record<string, string> = {
-                                        AGENDADA: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                                        ATIVA: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-                                        EM_ANDAMENTO: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-                                        CONCLUIDA: 'bg-primary/20 text-primary border-primary/30',
+                                        AGENDADA: 'bg-warning/10 text-warning border-warning/20',
+                                        ATIVA: 'bg-info/10 text-info border-info/20',
+                                        EM_ANDAMENTO: 'bg-info/20 text-info border-info/30',
+                                        CONCLUIDA: 'bg-primary/20 text-primary border-border',
                                         CANCELADA: 'bg-muted text-muted-foreground border-border',
                                         PAUSADA: 'bg-muted text-muted-foreground border-border',
                                       }
                                       return (
-                                        <div key={lista.id} className={`flex items-center gap-3 px-4 py-3 ${idx < acao.listas.length - 1 ? 'border-b border-border/30' : ''}`}>
-                                          <div className="w-7 h-7 rounded-lg bg-muted border border-border/50 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                                        <div key={lista.id} className={`flex items-center gap-3 px-4 py-3 ${idx < acao.listas.length - 1 ? 'border-b border-border-subtle' : ''}`}>
+                                          <div className="w-7 h-7 rounded-lg bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
                                             {lista.etapaNumero ?? idx + 1}
                                           </div>
                                           <div className="flex-1 min-w-0">
@@ -1994,8 +1994,8 @@ export default function CaixaRapidoPage() {
                                   <h3 className="font-bold text-foreground text-base group-hover:text-primary transition-colors leading-snug flex-1 min-w-0 truncate">{lista.nomeLista}</h3>
                                   <div className="flex items-center gap-1 shrink-0">
                                     <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded-md ${
-                                      lista.status === 'EM_ANDAMENTO' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                                      lista.status === 'CONCLUIDA' ? 'bg-primary/20 text-primary border border-primary/30' :
+                                      lista.status === 'EM_ANDAMENTO' ? 'bg-info/20 text-info border border-info/30' :
+                                      lista.status === 'CONCLUIDA' ? 'bg-primary/20 text-primary border border-border' :
                                       'bg-muted text-muted-foreground border border-border'
                                     }`}>
                                       {lista.status.replace(/_/g, ' ')}
@@ -2017,26 +2017,26 @@ export default function CaixaRapidoPage() {
                                     { label: 'Enviados', value: lista.enviados, color: 'text-primary' },
                                     { label: 'Erros', value: lista.erros, color: 'text-destructive' },
                                   ].map(stat => (
-                                    <div key={stat.label} className="bg-secondary p-2 rounded-lg border border-border/50 text-center">
+                                    <div key={stat.label} className="bg-secondary p-2 rounded-lg border border-border text-center">
                                       <p className="text-[10px] text-muted-foreground uppercase">{stat.label}</p>
                                       <p className={`font-bold ${stat.color}`}>{stat.value}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
-                              <div className="flex gap-2 border-t border-border/50 pt-4 mt-auto">
+                              <div className="flex gap-2 border-t border-border pt-4 mt-auto">
                                 {lista.status === 'ATIVA' && (
                                   <button onClick={() => openEditTemplateModal(lista)}
                                     className="flex-1 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90 transition-colors">
                                     Editar Template
                                   </button>
                                 )}
-                                <button className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border/50">
+                                <button className="flex-1 py-1.5 bg-muted hover:bg-muted text-xs font-semibold rounded-lg transition-colors border border-border">
                                   Pausar
                                 </button>
                                 <button
                                   onClick={() => openReutilizarModal(lista)}
-                                  className="flex items-center justify-center gap-1 flex-1 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border/50 hover:border-primary/30"
+                                  className="flex items-center justify-center gap-1 flex-1 py-1.5 bg-muted hover:bg-primary/10 hover:text-primary text-xs font-semibold rounded-lg transition-colors border border-border hover:border-border"
                                 >
                                   <RefreshCw className="w-3 h-3" /> Reutilizar
                                 </button>
@@ -2053,7 +2053,7 @@ export default function CaixaRapidoPage() {
                                     }
                                   }}
                                   disabled={loadingRelatorio}
-                                  className="flex-1 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-lg border border-primary/20 transition-colors disabled:opacity-50">
+                                  className="flex-1 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-lg border border-border transition-colors disabled:opacity-50">
                                   {loadingRelatorio ? '...' : 'Relatório'}
                                 </button>
                               </div>
@@ -2084,7 +2084,7 @@ export default function CaixaRapidoPage() {
                     <div key={s.step} className="relative flex flex-col items-center gap-2 z-10 bg-background px-1.5 sm:px-2">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                         wizardStep === s.step ? 'bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.5)]' :
-                        wizardStep > s.step ? 'bg-primary/20 text-primary border border-primary/50' :
+                        wizardStep > s.step ? 'bg-primary/20 text-primary border border-primary/70' :
                         'bg-muted text-muted-foreground border border-border'
                       }`}>
                         {wizardStep > s.step ? <CheckCircle className="w-4 h-4" /> : s.step}
@@ -2110,19 +2110,19 @@ export default function CaixaRapidoPage() {
                       </div>
                       <div>
                         <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Segmento de Público</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1">
+                        <div className="rounded-xl border border-border overflow-hidden max-h-[420px] overflow-y-auto divide-y divide-border-subtle bg-card">
                           {/* Opção: sem segmento */}
                           {(() => {
                             const noSeg = !novaLista.segmentosAplicados?.length
                             return (
                               <div onClick={() => setNovaLista({ ...novaLista, segmentosAplicados: [] })}
-                                className={`p-4 rounded-xl border cursor-pointer transition-all ${noSeg ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
-                                <div className="flex items-start justify-between gap-2">
-                                  <div>
-                                    <span className={`font-bold text-sm leading-snug block ${noSeg ? 'text-primary' : 'text-foreground'}`}>Sem segmento</span>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5">Adicionar contatos manualmente na etapa seguinte</p>
-                                  </div>
-                                  {noSeg && <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />}
+                                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${noSeg ? 'bg-primary/8' : 'hover:bg-muted/60'}`}>
+                                <span className={`shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${noSeg ? 'border-primary' : 'border-border-strong/70'}`}>
+                                  {noSeg && <span className="w-2 h-2 rounded-full bg-primary" />}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <span className={`text-sm font-medium leading-snug block ${noSeg ? 'text-primary' : 'text-foreground'}`}>Sem segmento</span>
+                                  <p className="text-[11px] text-muted-foreground truncate">Adicionar contatos manualmente na etapa seguinte</p>
                                 </div>
                               </div>
                             )
@@ -2133,17 +2133,15 @@ export default function CaixaRapidoPage() {
                               <div key={seg.id} onClick={() => {
                                 setNovaLista({ ...novaLista, segmentosAplicados: [seg.id] })
                               }}
-                                className={`p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
-                                <div className="flex items-start justify-between gap-2 mb-1">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                                      <PriorityBadge prioridade={seg.prioridade} />
-                                    </div>
-                                    <span className={`font-bold text-sm leading-snug block ${selected ? 'text-primary' : 'text-foreground'}`}>{seg.nome}</span>
-                                  </div>
-                                  {selected && <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />}
+                                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${selected ? 'bg-primary/8' : 'hover:bg-muted/60'}`}>
+                                <span className={`shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selected ? 'border-primary' : 'border-border-strong/70'}`}>
+                                  {selected && <span className="w-2 h-2 rounded-full bg-primary" />}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <span className={`text-sm font-medium leading-snug block truncate ${selected ? 'text-primary' : 'text-foreground'}`}>{seg.nome}</span>
+                                  {seg.descricao && <p className="text-[11px] text-muted-foreground truncate">{seg.descricao}</p>}
                                 </div>
-                                {seg.descricao && <p className="text-[10px] text-muted-foreground line-clamp-2">{seg.descricao}</p>}
+                                <span className="shrink-0"><PriorityBadge prioridade={seg.prioridade} /></span>
                               </div>
                             )
                           })}
@@ -2192,7 +2190,7 @@ export default function CaixaRapidoPage() {
                         {[1,2,3].map(i => <div key={i} className="h-14 bg-secondary rounded-xl animate-pulse" />)}
                       </div>
                     ) : (dealsPreview.length === 0 && manualLeads.length === 0) ? (
-                      <div className="text-center py-12 border border-dashed border-border/50 rounded-2xl bg-card">
+                      <div className="text-center py-12 border border-dashed border-border rounded-2xl bg-card">
                         <Users className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
                         <p className="text-sm font-semibold text-foreground">Nenhum lead encontrado</p>
                         <p className="text-xs text-muted-foreground mt-1">Adicione contatos/negócios manualmente abaixo ou altere o segmento.</p>
@@ -2233,7 +2231,7 @@ export default function CaixaRapidoPage() {
                                   }))
                                 }
                               }}
-                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
+                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/70' : 'bg-secondary border-border hover:border-border'}`}
                             >
                               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-primary border-primary' : 'border-border'}`}>
                                 {selected && <Check className="w-3 h-3 text-primary-foreground" />}
@@ -2254,12 +2252,12 @@ export default function CaixaRapidoPage() {
                     )}
 
                     {/* Manual Lead Addition Form */}
-                    <div className="mt-4 border-t border-border/20 pt-4">
+                    <div className="mt-4 border-t border-border-subtle pt-4">
                       {!showManualAddForm ? (
                         <button
                           type="button"
                           onClick={() => setShowManualAddForm(true)}
-                          className="flex items-center gap-1.5 px-3.5 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all"
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-primary/10 text-primary border border-border rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all"
                         >
                           <Plus className="w-3.5 h-3.5" /> Adicionar Contato ou Negócio Manualmente
                         </button>
@@ -2299,7 +2297,7 @@ export default function CaixaRapidoPage() {
                                     className="w-full pl-8 pr-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
-                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-card divide-y divide-border/20">
+                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border bg-card divide-y divide-border/20">
                                   {allSystemContacts
                                     .filter(c =>
                                       contactSearchQ === '' ||
@@ -2343,7 +2341,7 @@ export default function CaixaRapidoPage() {
                                     className="w-full pl-8 pr-3 py-1.5 bg-secondary border border-border rounded-lg text-xs text-foreground focus:border-primary outline-none"
                                   />
                                 </div>
-                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border/50 bg-card divide-y divide-border/20">
+                                <div className="max-h-36 overflow-y-auto rounded-lg border border-border bg-card divide-y divide-border/20">
                                   {allSystemDeals
                                     .filter(d =>
                                       dealSearchQ === '' ||
@@ -2455,10 +2453,10 @@ export default function CaixaRapidoPage() {
                     </div>
 
                     {cadences.length === 0 ? (
-                      <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-start gap-3">
-                        <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <div className="p-4 rounded-xl border border-warning/20 bg-warning/5 flex items-start gap-3">
+                        <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-amber-300">Nenhuma cadência criada</p>
+                          <p className="text-sm font-semibold text-warning">Nenhuma cadência criada</p>
                           <button onClick={() => setActiveTab('cadencias')} className="mt-1 text-xs text-primary underline font-semibold">Criar cadência →</button>
                         </div>
                       </div>
@@ -2467,7 +2465,7 @@ export default function CaixaRapidoPage() {
                         {/* Option: skip cadence */}
                         <div
                           onClick={() => setNovaLista((p: any) => ({ ...p, selectedCadenceId: null }))}
-                          className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${!novaLista.selectedCadenceId ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
+                          className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${!novaLista.selectedCadenceId ? 'bg-primary/5 border-primary/70' : 'bg-secondary border-border hover:border-border'}`}
                         >
                           <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${!novaLista.selectedCadenceId ? 'border-primary' : 'border-border'}`}>
                             {!novaLista.selectedCadenceId && <div className="w-2 h-2 rounded-full bg-primary" />}
@@ -2484,7 +2482,7 @@ export default function CaixaRapidoPage() {
                             <div
                               key={cad.id}
                               onClick={() => setNovaLista((p: any) => ({ ...p, selectedCadenceId: cad.id }))}
-                              className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/40' : 'bg-secondary border-border/40 hover:border-primary/30'}`}
+                              className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${selected ? 'bg-primary/5 border-primary/70' : 'bg-secondary border-border hover:border-border'}`}
                             >
                               <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-primary' : 'border-border'}`}>
                                 {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
@@ -2493,7 +2491,7 @@ export default function CaixaRapidoPage() {
                                 <div className="flex items-center gap-2 mb-0.5">
                                   <p className="text-sm font-semibold text-foreground">{cad.nome}</p>
                                   {cad.tipoOrigem === 'template' && (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border/50 uppercase">Template</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded border border-border uppercase">Template</span>
                                   )}
                                 </div>
                                 <p className="text-[10px] text-muted-foreground">
@@ -2534,8 +2532,8 @@ export default function CaixaRapidoPage() {
                             <p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Sequência da cadência "{cad.nome}"</p>
                             <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                               {cad.etapas?.sort((a: any, b: any) => a.ordem - b.ordem).map((etapa: any) => (
-                                <div key={etapa.ordem} className="flex gap-3 p-3.5 rounded-xl bg-secondary border border-border/40">
-                                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">{etapa.ordem}</div>
+                                <div key={etapa.ordem} className="flex gap-3 p-3.5 rounded-xl bg-secondary border border-border">
+                                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-border flex items-center justify-center text-[10px] font-bold text-primary shrink-0">{etapa.ordem}</div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-[10px] text-muted-foreground mb-1">
                                       {etapa.ordem === 1 ? 'Imediato' : `+${etapa.prazoValor} ${etapa.prazoUnidade}`}
@@ -2558,7 +2556,7 @@ export default function CaixaRapidoPage() {
                             {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                               <button key={v} type="button"
                                 onClick={() => setNovaLista((p: any) => ({ ...p, mensagemManual: (p.mensagemManual || '') + v, mensagemTemplateId: null }))}
-                                className="px-2 py-1 rounded-lg bg-secondary border border-border/30 text-[10px] text-primary hover:bg-muted transition-colors font-mono">
+                                className="px-2 py-1 rounded-lg bg-secondary border border-border-subtle text-[10px] text-primary hover:bg-muted transition-colors font-mono">
                                 {v}
                               </button>
                             ))}
@@ -2586,7 +2584,7 @@ export default function CaixaRapidoPage() {
                         {!novaLista.mensagemManual ? (
                           /* Template picker */
                           templates.length === 0 ? (
-                            <div className="p-4 rounded-xl border border-dashed border-border/50 text-center text-xs text-muted-foreground">
+                            <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
                               Nenhum template criado. <button onClick={() => setActiveTab('templates')} className="text-primary underline font-semibold">Criar template →</button>
                             </div>
                           ) : (
@@ -2594,7 +2592,7 @@ export default function CaixaRapidoPage() {
                               {/* Opção: sem template */}
                               <div
                                 onClick={() => setNovaLista((p: any) => ({ ...p, mensagemTemplateId: null }))}
-                                className={`p-3 rounded-xl border cursor-pointer transition-all ${!novaLista.mensagemTemplateId ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}
+                                className={`p-3 rounded-xl border cursor-pointer transition-all ${!novaLista.mensagemTemplateId ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/70'}`}
                               >
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-bold text-xs text-muted-foreground">Sem template</span>
@@ -2606,7 +2604,7 @@ export default function CaixaRapidoPage() {
                                 const sel = novaLista.mensagemTemplateId === tpl.id
                                 return (
                                   <div key={tpl.id} onClick={() => setNovaLista((p: any) => ({ ...p, mensagemTemplateId: tpl.id }))}
-                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
+                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/70'}`}>
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="font-bold text-xs text-primary">{tpl.nome}</span>
                                       {sel && <CheckCircle className="w-3.5 h-3.5 text-primary" />}
@@ -2625,10 +2623,10 @@ export default function CaixaRapidoPage() {
                               onChange={e => setNovaLista((p: any) => ({ ...p, mensagemManual: e.target.value }))}
                               rows={7}
                               placeholder="Olá {nome}, tudo bem?&#10;&#10;Vi que você demonstrou interesse em nossos serviços..."
-                              className="w-full px-3 py-2.5 bg-secondary border border-border/50 rounded-xl text-xs focus:outline-none focus:border-primary font-mono resize-none transition-colors"
+                              className="w-full px-3 py-2.5 bg-secondary border border-border rounded-xl text-xs focus:outline-none focus:border-primary font-mono resize-none transition-colors"
                             />
                             {novaLista.mensagemManual?.trim() && (
-                              <div className="p-3 rounded-xl bg-secondary border border-border/20">
+                              <div className="p-3 rounded-xl bg-secondary border border-border-subtle">
                                 <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                                 <p className="text-xs whitespace-pre-wrap text-foreground/80">
                                   {(novaLista.mensagemManual || '')
@@ -2661,7 +2659,7 @@ export default function CaixaRapidoPage() {
                           return (
                             <div key={opt.label}
                               onClick={() => setNovaLista({ ...novaLista, agendamento: opt.value ? { dataHoraInicio: fromSPLocalValue(suggestSPDateTime()) } : undefined })}
-                              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${active ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/50'}`}>
+                              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${active ? 'bg-primary/10 border-primary' : 'bg-secondary border-border hover:border-primary/70'}`}>
                               <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? 'border-primary' : 'border-border'}`}>
                                 {active && <div className="w-2 h-2 rounded-full bg-primary" />}
                               </div>
@@ -2673,7 +2671,7 @@ export default function CaixaRapidoPage() {
                           )
                         })}
                         {novaLista.agendamento && (
-                          <div className="p-3 rounded-xl bg-secondary border border-primary/30 space-y-1">
+                          <div className="p-3 rounded-xl bg-secondary border border-border space-y-1">
                             <label className="text-[10px] font-bold uppercase text-muted-foreground block">Data e Hora (São Paulo — UTC-3)</label>
                             <input
                               type="datetime-local"
@@ -2700,7 +2698,7 @@ export default function CaixaRapidoPage() {
                           </div>
 
                           {/* Intervalo */}
-                          <div className="border-t border-border/40 pt-3">
+                          <div className="border-t border-border pt-3">
                             <label className="text-xs font-bold uppercase text-muted-foreground mb-1.5 block">Intervalo entre mensagens (seg)</label>
                             <input type="number" min="5" value={novaLista.configEnvio?.intervaloSegundos ?? 30}
                               onChange={e => setNovaLista({ ...novaLista, configEnvio: { ...novaLista.configEnvio, intervaloSegundos: Number(e.target.value) } })}
@@ -2708,7 +2706,7 @@ export default function CaixaRapidoPage() {
                           </div>
 
                           {/* Webhook */}
-                          <div className="border-t border-border/40 pt-3 space-y-2">
+                          <div className="border-t border-border pt-3 space-y-2">
                             <label className="text-xs font-bold uppercase text-muted-foreground block">Webhook de Disparo</label>
                             <select
                               value={novaLista.configEnvio?.webhookUrl || ''}
@@ -2729,7 +2727,7 @@ export default function CaixaRapidoPage() {
                                 + Cadastrar novo webhook
                               </button>
                             ) : (
-                              <div className="space-y-2 p-3 rounded-xl bg-card border border-primary/20">
+                              <div className="space-y-2 p-3 rounded-xl bg-card border border-border">
                                 <input type="text" placeholder="Nome (ex: Disparo Prospecção)"
                                   value={newWebhookForm.nome}
                                   onChange={e => setNewWebhookForm(f => ({ ...f, nome: e.target.value }))}
@@ -2770,7 +2768,7 @@ export default function CaixaRapidoPage() {
                   const leadCount = novaLista.selectedDealIds?.length || dealsPreview.length
                   return (
                     <div className="space-y-5">
-                      <div className="p-6 bg-secondary rounded-xl border border-primary/30 relative overflow-hidden">
+                      <div className="p-6 bg-secondary rounded-xl border border-border relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" style={{ background: 'hsl(var(--primary) / 0.1)' }} />
                         <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
                           <Sparkles className="w-5 h-5 text-primary" /> Confirmar e Disparar
@@ -2792,7 +2790,7 @@ export default function CaixaRapidoPage() {
                         const startTime = novaLista.agendamento?.dataHoraInicio ? new Date(novaLista.agendamento.dataHoraInicio) : new Date()
                         let cumulativeMs = 0
                         return (
-                          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                          <div className="p-4 rounded-xl bg-primary/5 border border-border space-y-3">
                             <p className="text-xs font-bold text-primary flex items-center gap-2">
                               <Calendar className="w-3.5 h-3.5" /> Cronograma de Disparos — {selectedCad.etapas.length} etapas
                             </p>
@@ -2824,11 +2822,11 @@ export default function CaixaRapidoPage() {
                         const tplBody = templates.find((t: any) => t.id === novaLista.mensagemTemplateId)?.corpo
                         const msg = novaLista.mensagemManual?.trim() || tplBody || 'Sem mensagem configurada.'
                         return (
-                          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                          <div className="p-4 rounded-xl bg-primary/5 border border-border space-y-3">
                             <p className="text-xs font-bold text-primary flex items-center gap-2">
                               <Calendar className="w-3.5 h-3.5" /> Disparo Único
                             </p>
-                            <div className="p-3.5 rounded-xl bg-secondary border border-border/40">
+                            <div className="p-3.5 rounded-xl bg-secondary border border-border">
                               <p className="text-xs text-foreground whitespace-pre-wrap">{msg}</p>
                             </div>
                           </div>
@@ -2839,7 +2837,7 @@ export default function CaixaRapidoPage() {
                 })()}
 
                 {/* Wizard Actions */}
-                <div className="flex flex-col gap-3 mt-8 pt-6 border-t border-border/50">
+                <div className="flex flex-col gap-3 mt-8 pt-6 border-t border-border">
                   {wizardError && (
                     <div className="rounded-2xl border-2 border-destructive bg-destructive/10 overflow-hidden">
                       <div className="flex items-center gap-2 px-4 py-3 bg-destructive/20 border-b border-destructive/30">
@@ -2901,7 +2899,7 @@ export default function CaixaRapidoPage() {
             {activeTab === 'historico' && (
               <div className="animate-fade-in ocr-card rounded-2xl overflow-hidden">
                 {/* Header */}
-                <div className="px-5 py-3.5 border-b border-border/40 bg-secondary grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
+                <div className="px-5 py-3.5 border-b border-border bg-secondary grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Ação / Lista</span>
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground text-right w-20">Enviados</span>
                   <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground text-right w-28">Data Disparo</span>
@@ -2919,10 +2917,10 @@ export default function CaixaRapidoPage() {
                     {historico.map((item: any, idx: number) => {
                       const dispatchDate = item.dataAgendamento || item.updatedAt || item.createdAt
                       const statusColors: Record<string, string> = {
-                        AGENDADA:     'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                        ATIVA:        'bg-blue-500/10 text-blue-400 border-blue-500/20',
-                        EM_ANDAMENTO: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-                        CONCLUIDA:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                        AGENDADA:     'bg-warning/10 text-warning border-warning/20',
+                        ATIVA:        'bg-info/10 text-info border-info/20',
+                        EM_ANDAMENTO: 'bg-info/20 text-info border-info/30',
+                        CONCLUIDA:    'bg-success/10 text-success border-success/20',
                         CANCELADA:    'bg-muted text-muted-foreground border-border',
                         PAUSADA:      'bg-muted text-muted-foreground border-border',
                       }
@@ -2944,7 +2942,7 @@ export default function CaixaRapidoPage() {
 
                           {/* Enviados/Total */}
                           <div className="text-right w-20">
-                            <span className="text-xs font-bold text-emerald-400">{item.enviados ?? 0}</span>
+                            <span className="text-xs font-bold text-success">{item.enviados ?? 0}</span>
                             <span className="text-[10px] text-muted-foreground">/{item.totalLeads ?? 0}</span>
                           </div>
 
@@ -2971,7 +2969,7 @@ export default function CaixaRapidoPage() {
                 )}
 
                 {historico.length > 0 && (
-                  <div className="px-5 py-3 border-t border-border/30 bg-card flex items-center justify-between">
+                  <div className="px-5 py-3 border-t border-border-subtle bg-card flex items-center justify-between">
                     <p className="text-[10px] text-muted-foreground">{historico.length} registro{historico.length !== 1 ? 's' : ''}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {historico.filter((h: any) => h.status === 'CONCLUIDA').length} concluído{historico.filter((h: any) => h.status === 'CONCLUIDA').length !== 1 ? 's' : ''} · {' '}
@@ -2988,7 +2986,7 @@ export default function CaixaRapidoPage() {
       {/* Editing template modal */}
       {editingListTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
-          <div className="w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-lg bg-card border border-border rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold">Editar Template da Ação</h3>
               <button onClick={() => setEditingListTemplate(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
@@ -3001,7 +2999,7 @@ export default function CaixaRapidoPage() {
                 <div className="flex flex-wrap gap-2">
                   {['{nome}', '{primeiro_nome}', '{ramo}', '{faturamento}'].map(v => (
                     <button key={v} onClick={() => setTempTemplateText(p => p + v)}
-                      className="px-2 py-1 rounded bg-secondary border border-border/20 text-xs text-primary hover:bg-muted transition-colors">
+                      className="px-2 py-1 rounded bg-secondary border border-border-subtle text-xs text-primary hover:bg-muted transition-colors">
                       {v}
                     </button>
                   ))}
@@ -3010,9 +3008,9 @@ export default function CaixaRapidoPage() {
               <div>
                 <label className="text-xs font-bold uppercase text-muted-foreground mb-1 block">Corpo</label>
                 <textarea value={tempTemplateText} onChange={e => setTempTemplateText(e.target.value)} rows={6}
-                  className="w-full px-3 py-2 bg-secondary border border-border/30 rounded-xl text-xs focus:outline-none font-mono" />
+                  className="w-full px-3 py-2 bg-secondary border border-border-subtle rounded-xl text-xs focus:outline-none font-mono" />
               </div>
-              <div className="p-3.5 rounded-xl bg-secondary border border-border/20">
+              <div className="p-3.5 rounded-xl bg-secondary border border-border-subtle">
                 <p className="text-[10px] font-bold uppercase text-primary mb-1">Preview</p>
                 <p className="text-xs whitespace-pre-wrap">{getPreviewText(tempTemplateText) || 'Escreva algo...'}</p>
               </div>
@@ -3028,7 +3026,7 @@ export default function CaixaRapidoPage() {
       {/* Modal: editar contatos de lista agendada */}
       {editingListContacts && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
-          <div className="w-full max-w-lg bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-lg bg-card border border-border rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-base font-extrabold">Contatos do Disparo</h3>
@@ -3043,14 +3041,14 @@ export default function CaixaRapidoPage() {
                 <div className="text-center py-10 text-sm text-muted-foreground">Nenhum contato nesta lista.</div>
               ) : (
                 (editingListContacts.leads ?? []).map((lead: any) => (
-                  <div key={lead.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border/40">
+                  <div key={lead.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{lead.nomeSnapshot}</p>
                       <p className="text-xs text-muted-foreground">{lead.telefoneSnapshot}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      lead.statusEnvio === 'PENDENTE' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                      lead.statusEnvio === 'ENVIADO' ? 'bg-primary/10 text-primary border-primary/20' :
+                      lead.statusEnvio === 'PENDENTE' ? 'bg-warning/10 text-warning border-warning/20' :
+                      lead.statusEnvio === 'ENVIADO' ? 'bg-primary/10 text-primary border-border' :
                       'bg-muted text-muted-foreground border-border'
                     }`}>{lead.statusEnvio}</span>
                     {lead.statusEnvio === 'PENDENTE' && (
@@ -3076,7 +3074,7 @@ export default function CaixaRapidoPage() {
                 ))
               )}
             </div>
-            <div className="pt-2 border-t border-border/40 shrink-0">
+            <div className="pt-2 border-t border-border shrink-0">
               <button onClick={() => setEditingListContacts(null)}
                 className="w-full py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted">
                 Fechar
@@ -3089,7 +3087,7 @@ export default function CaixaRapidoPage() {
       {/* Edit lista meta modal */}
       {editingListaMeta && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card backdrop-blur-md">
-          <div className="w-full max-w-md bg-card border border-border/40 rounded-2xl p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold">Editar Ação</h3>
               <button onClick={() => setEditingListaMeta(null)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
@@ -3128,7 +3126,7 @@ export default function CaixaRapidoPage() {
       {/* Modal Reutilizar */}
       {reutilizarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-card backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-card rounded-2xl border border-border/40 p-6 space-y-5 shadow-2xl animate-scale-in">
+          <div className="w-full max-w-lg bg-card rounded-2xl border border-border p-6 space-y-5 shadow-2xl animate-scale-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -3141,7 +3139,7 @@ export default function CaixaRapidoPage() {
             </div>
 
             {/* Leads info */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border/30">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border-subtle">
               <Users className="w-4 h-4 text-muted-foreground shrink-0" />
               <p className="text-xs text-muted-foreground">
                 <span className="font-bold text-foreground">{reutilizarModal.lista.leads?.length ?? reutilizarModal.lista.totalLeads ?? 0} leads</span>
@@ -3224,7 +3222,7 @@ export default function CaixaRapidoPage() {
       {/* Relatórios Modal */}
       {selectedRelatorioLista && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-card backdrop-blur-sm p-4">
-          <div className="w-full max-w-3xl bg-card rounded-2xl border border-primary/30 p-6 flex flex-col max-h-[90vh] animate-scale-in">
+          <div className="w-full max-w-3xl bg-card rounded-2xl border border-border p-6 flex flex-col max-h-[90vh] animate-scale-in">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-xl font-black text-foreground">Relatório da Lista</h2>
@@ -3236,25 +3234,25 @@ export default function CaixaRapidoPage() {
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-secondary p-4 rounded-xl border border-border/50 flex flex-col items-center">
+              <div className="bg-secondary p-4 rounded-xl border border-border flex flex-col items-center">
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Total Alvos</span>
                 <span className="text-2xl font-black">{selectedRelatorioLista.totalLeads}</span>
               </div>
-              <div className="bg-primary/10 p-4 rounded-xl border border-primary/20 flex flex-col items-center">
+              <div className="bg-primary/10 p-4 rounded-xl border border-border flex flex-col items-center">
                 <span className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Enviados</span>
                 <span className="text-2xl font-black text-primary">{selectedRelatorioLista.enviados || selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'ENVIADO').length || 0}</span>
               </div>
-              <div className="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 flex flex-col items-center">
-                <span className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-1">Erros</span>
-                <span className="text-2xl font-black text-rose-500">{selectedRelatorioLista.erros || selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'ERRO').length || 0}</span>
+              <div className="bg-destructive/10 p-4 rounded-xl border border-destructive/20 flex flex-col items-center">
+                <span className="text-xs font-bold text-destructive uppercase tracking-wider mb-1">Erros</span>
+                <span className="text-2xl font-black text-destructive">{selectedRelatorioLista.erros || selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'ERRO').length || 0}</span>
               </div>
-              <div className="bg-secondary p-4 rounded-xl border border-border/50 flex flex-col items-center">
+              <div className="bg-secondary p-4 rounded-xl border border-border flex flex-col items-center">
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Pendentes</span>
                 <span className="text-2xl font-black">{selectedRelatorioLista.leads?.filter((l: any) => l.statusEnvio === 'PENDENTE').length || 0}</span>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto rounded-xl border border-border/50 bg-card">
+            <div className="flex-1 overflow-auto rounded-xl border border-border bg-card">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-secondary text-[10px] text-muted-foreground font-bold tracking-widest uppercase sticky top-0">
                   <tr>
@@ -3271,15 +3269,15 @@ export default function CaixaRapidoPage() {
                           <span className="font-bold text-foreground">{lead.nomeSnapshot}</span>
                           <span className="text-xs text-muted-foreground">{lead.telefoneSnapshot}</span>
                           {lead.mensagemErro && (
-                            <span className="text-[10px] text-rose-400 mt-0.5 font-mono line-clamp-2">{lead.mensagemErro}</span>
+                            <span className="text-[10px] text-destructive mt-0.5 font-mono line-clamp-2">{lead.mensagemErro}</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4 text-center">
                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
                           lead.statusEnvio === 'ENVIADO' ? 'bg-primary/20 text-primary' :
-                          lead.statusEnvio === 'ERRO' ? 'bg-rose-500/20 text-rose-500' :
-                          lead.statusEnvio === 'ENVIANDO' ? 'bg-amber-500/20 text-amber-500' :
+                          lead.statusEnvio === 'ERRO' ? 'bg-destructive/20 text-destructive' :
+                          lead.statusEnvio === 'ENVIANDO' ? 'bg-warning/20 text-warning' :
                           'bg-muted text-muted-foreground'
                         }`}>
                           {lead.statusEnvio}
