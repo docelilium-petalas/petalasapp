@@ -25,7 +25,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import {
   MessageSquare, ShoppingBag, Package, Sparkles, Heart, Rocket, Check,
-  CheckCircle2, AlertTriangle, ArrowLeft, Pencil, RotateCcw, X, Loader2, Database,
+  CheckCircle2, AlertTriangle, ArrowLeft, Pencil, RotateCcw, X, Loader2, Database, Undo2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { AppToaster } from '@/components/ui/AppToaster'
@@ -108,7 +108,11 @@ export default function TemplatesPage() {
         comentario: comCorpo ? comentario : (rev(t.nome)?.comentario ?? null),
       })
       if (!r.ok) { setErros(r.erros ?? ['Não foi possível salvar.']); return }
-      toast.success(status === 'APROVADO' ? 'Mensagem aprovada.' : status === 'AJUSTAR' ? 'Marcada para ajuste.' : 'Salvo.')
+      toast.success(
+        status === 'APROVADO' ? 'Mensagem aprovada.'
+          : status === 'AJUSTAR' ? 'Marcada para ajuste.'
+          : 'Marcação removida — a mensagem voltou para "não lida".',
+      )
       setEditando(null)
       await carregar()
     } finally {
@@ -256,6 +260,13 @@ export default function TemplatesPage() {
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors cursor-pointer disabled:opacity-40">
                             <Pencil className="w-3.5 h-3.5" />Reescrever
                           </button>
+                          {st !== 'PENDENTE' && (
+                            <button onClick={() => decidir(t, 'PENDENTE')} disabled={salvando || !migrado}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-40"
+                              title="Volta a mensagem para 'não lida', sem apagar o que voce escreveu">
+                              <Undo2 className="w-3.5 h-3.5" />Tirar marcação
+                            </button>
+                          )}
                           {editado && (
                             <button onClick={() => desfazer(t.nome)}
                               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
