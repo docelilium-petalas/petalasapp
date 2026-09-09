@@ -153,11 +153,18 @@ export default function MaquinaDeVendasPage() {
                 Recupera carrinho abandonado, acompanha pedido e reativa quem sumiu — no ritmo e na janela que você definir.
               </p>
             </div>
-            <Link href="/resultados"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0">
-              <TrendingUp className="w-3.5 h-3.5" />
-              Ver resultados
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link href="/maquina-vendas/templates"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors">
+                <MessageSquare className="w-3.5 h-3.5" />
+                Mensagens
+              </Link>
+              <Link href="/resultados"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors">
+                <TrendingUp className="w-3.5 h-3.5" />
+                Resultados
+              </Link>
+            </div>
           </div>
 
           {carregando ? (
