@@ -22,6 +22,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/webhook') ||
     pathname.startsWith('/api/cron') ||
+    // Callback do OAuth da Nuvemshop. Publico POR NATUREZA: a loja redireciona
+    // o NAVEGADOR para ca, e quem instala pode nao ter sessao no CRM — se
+    // cair no login, o codigo de autorizacao se perde, e ele vale 5 minutos.
+    // A protecao nao e sessao: e o codigo so existir se a Nuvemshop o emitiu,
+    // e a troca por token exigir o nosso client secret.
+    pathname === '/api/nuvemshop/oauth' ||
     pathname.startsWith('/_next') ||
     pathname.includes('.')
 
