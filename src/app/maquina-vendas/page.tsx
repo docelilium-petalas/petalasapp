@@ -3,30 +3,40 @@
 /**
  * MÁQUINA DE VENDAS — a tela do que VAI acontecer.
  *
- * Ela responde três perguntas, nesta ordem, porque é nesta ordem que a
- * operação pergunta:
+ * Estrutura em abas, no modelo da CarBoss (decisão da reunião de 09/09/2026):
  *
- *   1. a Máquina está ligada, e pode falar agora?
- *   2. o que sai a seguir, e com que texto exatamente?
- *   3. quais réguas existem e quanta gente está em cada uma?
+ *   Mensagens programadas · Por conversa · Cadências · Ritmo e limites
  *
- * O texto mostrado é o MESMO que vai sair — congelado na inscrição. Nenhum
- * LLM reescreve nada no caminho, justamente para que esta tela não prometa
- * uma coisa e o WhatsApp entregue outra.
+ * A CarBoss tem três dessas; "Por conversa" é acréscimo pedido na mesma
+ * reunião, e resolve um problema real da aba plana: ordenada por horário, a
+ * fila mistura pessoas, e quem olha não consegue responder "o que exatamente
+ * essa cliente vai receber?". Agrupada por pessoa, essa pergunta tem resposta.
  *
- * "Resultados" é a tela irmã, e responde a pergunta oposta: o que JÁ aconteceu.
+ * O texto mostrado é o MESMO que vai sair — congelado na inscrição. Nenhum LLM
+ * reescreve nada no caminho, justamente para que esta tela não prometa uma
+ * coisa e o WhatsApp entregue outra.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
   Rocket, Play, Pause, Clock, Users, Send, MessageSquare, ShoppingBag,
-  UserMinus, AlertTriangle, Loader2, Save, TrendingUp, Database,
+  UserMinus, AlertTriangle, Loader2, Save, TrendingUp, Database, Bot,
+  SlidersHorizontal, ChevronDown, ChevronRight, CheckCircle2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { AppToaster } from '@/components/ui/AppToaster'
 import { getEstadoMaquina, alternarPausa, salvarAjustes, type EstadoMaquina } from '@/app/actions/maquina-vendas'
+
+type Aba = 'tabela' | 'conversa' | 'cadencias' | 'ritmo'
+
+const ABAS = [
+  { id: 'tabela' as const, nome: 'Mensagens programadas', Icone: MessageSquare },
+  { id: 'conversa' as const, nome: 'Por conversa', Icone: Users },
+  { id: 'cadencias' as const, nome: 'Cadências', Icone: Bot },
+  { id: 'ritmo' as const, nome: 'Ritmo e limites', Icone: SlidersHorizontal },
+]
 
 const GATILHO_ROTULO: Record<string, string> = {
   carrinho_abandonado: 'Carrinho abandonado',
@@ -36,19 +46,31 @@ const GATILHO_ROTULO: Record<string, string> = {
   nao_agendou: 'Sem agendamento',
 }
 
+const ORIGEM_ROTULO: Record<string, string> = {
+  carrinho: 'Carrinho',
+  pedido: 'Pedido',
+  pipeline: 'Funil',
+}
+
 function quandoLegivel(iso: string): string {
   const d = new Date(iso)
   const min = Math.round((d.getTime() - Date.now()) / 60000)
+  if (min < -60 * 24) return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
   if (min < 0) return 'vencida'
   if (min < 60) return `em ${min} min`
   if (min < 60 * 24) return `em ${Math.round(min / 60)} h`
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
+const horaCurta = (iso: string) =>
+  new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+
 export default function MaquinaDeVendasPage() {
   const [estado, setEstado] = useState<EstadoMaquina | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
+  const [aba, setAba] = useState<Aba>('tabela')
+  const [abertas, setAbertas] = useState<Set<string>>(new Set())
   const [form, setForm] = useState({ tetoDiario: 40, intervaloMinMinutos: 3, intervaloMaxMinutos: 12, janelaInicio: '09:00', janelaFim: '20:00' })
 
   const carregar = useCallback(async () => {
@@ -71,6 +93,19 @@ export default function MaquinaDeVendasPage() {
 
   useEffect(() => { void carregar() }, [carregar])
 
+  /** Agrupa a fila por INSCRIÇÃO — uma conversa por pessoa, com a sequência inteira. */
+  const conversas = useMemo(() => {
+    const m = new Map<string, { nome: string; telefone: string; cadencia: string; origem: string; msgs: EstadoMaquina['proximas'] }>()
+    for (const p of estado?.proximas ?? []) {
+      const atual = m.get(p.inscricaoId)
+      if (atual) atual.msgs.push(p)
+      else m.set(p.inscricaoId, { nome: p.nome, telefone: p.telefone, cadencia: p.cadencia, origem: p.origem, msgs: [p] })
+    }
+    return [...m.entries()].map(([id, v]) => ({ id, ...v }))
+  }, [estado?.proximas])
+
+  const agendadas = useMemo(() => (estado?.proximas ?? []).filter((p) => p.status === 'AGENDADA'), [estado?.proximas])
+
   const pausar = async (proximo: boolean) => {
     const r = await alternarPausa(proximo)
     if (!r.ok) return toast.error('Módulo ainda não migrado.')
@@ -91,6 +126,13 @@ export default function MaquinaDeVendasPage() {
     }
   }
 
+  const alternarConversa = (id: string) =>
+    setAbertas((s) => {
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
+    })
+
   /** Quantas mensagens cabem por hora, na média do intervalo sorteado. */
   const porHora = Math.round(60 / ((form.intervaloMinMinutos + form.intervaloMaxMinutos) / 2))
 
@@ -100,7 +142,6 @@ export default function MaquinaDeVendasPage() {
       <div className="flex flex-col h-full bg-background text-foreground select-none overflow-y-auto scrollbar-thin">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] w-full mx-auto space-y-6">
 
-          {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider font-medium mb-1">
@@ -112,10 +153,8 @@ export default function MaquinaDeVendasPage() {
                 Recupera carrinho abandonado, acompanha pedido e reativa quem sumiu — no ritmo e na janela que você definir.
               </p>
             </div>
-            <Link
-              href="/resultados"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0"
-            >
+            <Link href="/resultados"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0">
               <TrendingUp className="w-3.5 h-3.5" />
               Ver resultados
             </Link>
@@ -127,15 +166,13 @@ export default function MaquinaDeVendasPage() {
             </div>
           ) : !estado ? null : (
             <>
-              {/* Módulo ainda sem tabelas */}
               {!estado.migrado && (
                 <div className="rounded-2xl border border-warning/35 bg-warning/8 p-5 flex items-start gap-3">
                   <Database className="w-5 h-5 text-warning shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium text-foreground">O módulo ainda não foi migrado no banco.</p>
                     <p className="text-muted-foreground mt-1">
-                      A tela já está pronta e os números aparecem sozinhos assim que as tabelas existirem.
-                      Falta rodar a migration <code className="font-mono text-xs">20260909000001_maquina_vendas</code> em produção.
+                      As abas já estão prontas e os números aparecem sozinhos assim que as tabelas existirem.
                     </p>
                   </div>
                 </div>
@@ -156,14 +193,12 @@ export default function MaquinaDeVendasPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => pausar(!estado.ajustes.envioPausado)}
+                  <button onClick={() => pausar(!estado.ajustes.envioPausado)}
                     className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 cursor-pointer ${
                       estado.ajustes.envioPausado
                         ? 'bg-primary text-primary-foreground hover:opacity-95'
                         : 'border border-border bg-card text-foreground hover:bg-accent'
-                    }`}
-                  >
+                    }`}>
                     {estado.ajustes.envioPausado ? <><Play className="w-3.5 h-3.5" />Liberar envio</> : <><Pause className="w-3.5 h-3.5" />Pausar</>}
                   </button>
                 </div>
@@ -176,7 +211,7 @@ export default function MaquinaDeVendasPage() {
                   { rot: 'Inscrições ativas', val: estado.indicadores.inscricoesAtivas, Icon: Users, tom: '' },
                   { rot: 'Enviadas hoje', val: estado.indicadores.enviadasHoje, Icon: Send, tom: '' },
                   { rot: 'Responderam', val: estado.indicadores.responderam, Icon: MessageSquare, tom: 'text-info' },
-                  { rot: 'Converteram', val: estado.indicadores.converteram, Icon: ShoppingBag, tom: 'text-success' },
+                  { rot: 'Compraram', val: estado.indicadores.converteram, Icon: ShoppingBag, tom: 'text-success' },
                   { rot: 'Saíram', val: estado.indicadores.optOuts, Icon: UserMinus, tom: 'text-muted-foreground' },
                 ]).map(({ rot, val, Icon, tom }) => (
                   <div key={rot} className="rounded-xl border border-border bg-card px-4 py-3">
@@ -189,15 +224,30 @@ export default function MaquinaDeVendasPage() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                {/* Fila */}
-                <div className="lg:col-span-2 rounded-2xl border border-border bg-card overflow-hidden">
+              {/* ── ABAS ─────────────────────────────────────────────────── */}
+              <div className="flex gap-1 border-b border-border overflow-x-auto hide-scrollbar">
+                {ABAS.map(({ id, nome, Icone }) => (
+                  <button key={id} onClick={() => setAba(id)}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 -mb-px transition-colors whitespace-nowrap cursor-pointer ${
+                      aba === id
+                        ? 'border-primary text-foreground'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}>
+                    <Icone className="w-3.5 h-3.5" />
+                    {nome}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── MENSAGENS PROGRAMADAS ────────────────────────────────── */}
+              {aba === 'tabela' && (
+                <div className="rounded-2xl border border-border bg-card overflow-hidden">
                   <div className="px-5 py-3 border-b border-border bg-muted/60 flex items-center justify-between">
-                    <span className="ocr-label">O que sai a seguir</span>
-                    <span className="text-[11px] text-muted-foreground">{estado.proximas.length} de {estado.indicadores.naFila}</span>
+                    <span className="ocr-label">Ordenadas por horário de saída</span>
+                    <span className="text-[11px] text-muted-foreground">{agendadas.length} agendadas</span>
                   </div>
-                  {estado.proximas.length === 0 ? (
-                    <div className="py-14 text-center">
+                  {agendadas.length === 0 ? (
+                    <div className="py-16 text-center">
                       <Clock className="w-7 h-7 mx-auto text-muted-foreground/50 mb-2" />
                       <p className="text-sm text-foreground">Nada agendado</p>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -205,7 +255,7 @@ export default function MaquinaDeVendasPage() {
                       </p>
                     </div>
                   ) : (
-                    estado.proximas.map((m) => (
+                    agendadas.map((m) => (
                       <div key={m.id} className="px-5 py-3.5 border-b border-border-subtle last:border-b-0 hover:bg-muted/40 transition-colors">
                         <div className="flex items-start justify-between gap-3 mb-1.5">
                           <div className="min-w-0">
@@ -218,93 +268,162 @@ export default function MaquinaDeVendasPage() {
                         <div className="flex items-center gap-1.5 mt-2">
                           <span className="dl-chip text-[10px]">{m.cadencia}</span>
                           <span className="dl-chip text-[10px]">toque {m.etapa}</span>
+                          <span className="dl-chip text-[10px]">{ORIGEM_ROTULO[m.origem] ?? m.origem}</span>
                         </div>
                       </div>
                     ))
                   )}
                 </div>
+              )}
 
-                <div className="space-y-6">
-                  {/* Ritmo */}
-                  <div className="rounded-2xl border border-border bg-card p-5">
-                    <span className="ocr-label">Ritmo e limites</span>
-                    <p className="text-[11px] text-muted-foreground mt-1 mb-4">
-                      Com {form.intervaloMinMinutos}–{form.intervaloMaxMinutos} min entre envios, saem cerca de{' '}
-                      <strong className="text-foreground">{porHora} por hora</strong>. É a conta que evita disparo em massa.
-                    </p>
-                    <div className="space-y-3">
-                      <label className="block">
-                        <span className="text-[11px] text-muted-foreground">Teto por dia</span>
-                        <input type="number" min={1} max={1000} value={form.tetoDiario}
-                          onChange={(e) => setForm({ ...form, tetoDiario: Number(e.target.value) })}
-                          className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <label className="block">
-                          <span className="text-[11px] text-muted-foreground">Intervalo mín.</span>
-                          <input type="number" min={1} value={form.intervaloMinMinutos}
-                            onChange={(e) => setForm({ ...form, intervaloMinMinutos: Number(e.target.value) })}
-                            className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-                        </label>
-                        <label className="block">
-                          <span className="text-[11px] text-muted-foreground">Intervalo máx.</span>
-                          <input type="number" min={1} value={form.intervaloMaxMinutos}
-                            onChange={(e) => setForm({ ...form, intervaloMaxMinutos: Number(e.target.value) })}
-                            className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-                        </label>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <label className="block">
-                          <span className="text-[11px] text-muted-foreground">Janela abre</span>
-                          <input type="time" value={form.janelaInicio}
-                            onChange={(e) => setForm({ ...form, janelaInicio: e.target.value })}
-                            className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-                        </label>
-                        <label className="block">
-                          <span className="text-[11px] text-muted-foreground">Janela fecha</span>
-                          <input type="time" value={form.janelaFim}
-                            onChange={(e) => setForm({ ...form, janelaFim: e.target.value })}
-                            className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
-                        </label>
-                      </div>
-                      <button onClick={gravar} disabled={salvando}
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:opacity-95 disabled:opacity-50 transition-opacity cursor-pointer">
-                        {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                        Salvar ritmo
-                      </button>
-                    </div>
+              {/* ── POR CONVERSA ─────────────────────────────────────────── */}
+              {aba === 'conversa' && (
+                <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                  <div className="px-5 py-3 border-b border-border bg-muted/60 flex items-center justify-between">
+                    <span className="ocr-label">Uma linha por pessoa, com a sequência inteira</span>
+                    <span className="text-[11px] text-muted-foreground">{conversas.length} conversas</span>
                   </div>
-
-                  {/* Cadências */}
-                  <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                    <div className="px-5 py-3 border-b border-border bg-muted/60">
-                      <span className="ocr-label">Réguas</span>
+                  {conversas.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <Users className="w-7 h-7 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-foreground">Nenhuma conversa em andamento</p>
                     </div>
-                    {estado.cadencias.length === 0 ? (
-                      <div className="py-10 px-5 text-center">
-                        <AlertTriangle className="w-6 h-6 mx-auto text-muted-foreground/50 mb-2" />
-                        <p className="text-xs text-muted-foreground">
-                          Nenhuma régua configurada. Sem régua ativa, o observador não inscreve ninguém.
-                        </p>
-                      </div>
-                    ) : (
-                      estado.cadencias.map((c) => (
-                        <div key={c.id} className="px-5 py-3 border-b border-border-subtle last:border-b-0 flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <span className="text-sm font-medium text-foreground block truncate">{c.nome}</span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {GATILHO_ROTULO[c.gatilho] ?? c.gatilho} · {c.etapas} toques · {c.inscricoes} inscritos
+                  ) : (
+                    conversas.map((c) => {
+                      const aberta = abertas.has(c.id)
+                      const enviadas = c.msgs.filter((m) => m.status === 'ENVIADA').length
+                      return (
+                        <div key={c.id} className="border-b border-border-subtle last:border-b-0">
+                          <button onClick={() => alternarConversa(c.id)}
+                            className="w-full text-left px-5 py-3.5 flex items-center gap-3 hover:bg-muted/40 transition-colors cursor-pointer">
+                            {aberta ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
+                            <div className="min-w-0 flex-1">
+                              <span className="text-sm font-medium text-foreground">{c.nome}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{c.telefone}</span>
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <span className="dl-chip text-[10px]">{c.cadencia}</span>
+                                <span className="dl-chip text-[10px]">{ORIGEM_ROTULO[c.origem] ?? c.origem}</span>
+                              </div>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground shrink-0 tabular">
+                              {enviadas}/{c.msgs.length} enviadas
                             </span>
-                          </div>
-                          <span className="dl-chip text-[10px] shrink-0" data-tom={c.ativo ? 'positivo' : undefined}>
+                          </button>
+
+                          {aberta && (
+                            <div className="px-5 pb-4 pl-12 space-y-2">
+                              {c.msgs.map((m) => (
+                                <div key={m.id} className="rounded-xl border border-border-subtle bg-muted/30 px-4 py-3">
+                                  <div className="flex items-center justify-between gap-3 mb-1.5">
+                                    <span className="text-[11px] font-medium text-foreground flex items-center gap-1.5">
+                                      {m.status === 'ENVIADA'
+                                        ? <><CheckCircle2 className="w-3 h-3 text-success" />Toque {m.etapa} · enviada</>
+                                        : <><Clock className="w-3 h-3 text-muted-foreground" />Toque {m.etapa} · {quandoLegivel(m.quando)}</>}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground tabular">{horaCurta(m.quando)}</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{m.texto}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* ── CADÊNCIAS ────────────────────────────────────────────── */}
+              {aba === 'cadencias' && (
+                <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                  <div className="hidden md:grid grid-cols-[minmax(0,1fr)_10rem_6rem_7rem_6rem] gap-3 items-center px-5 py-2.5 border-b border-border bg-muted/60">
+                    <span className="ocr-label">Régua</span>
+                    <span className="ocr-label">Gatilho</span>
+                    <span className="ocr-label text-right">Toques</span>
+                    <span className="ocr-label text-right">Inscritos</span>
+                    <span className="ocr-label text-right">Estado</span>
+                  </div>
+                  {estado.cadencias.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <AlertTriangle className="w-7 h-7 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-foreground">Nenhuma régua configurada</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sem régua ativa, o observador não inscreve ninguém — a Máquina fica parada mesmo liberada.
+                      </p>
+                    </div>
+                  ) : (
+                    estado.cadencias.map((c) => (
+                      <div key={c.id} className="grid md:grid-cols-[minmax(0,1fr)_10rem_6rem_7rem_6rem] gap-3 items-center px-5 py-3.5 border-b border-border-subtle last:border-b-0 hover:bg-muted/40 transition-colors">
+                        <span className="text-sm font-medium text-foreground truncate">{c.nome}</span>
+                        <span className="hidden md:block text-xs text-muted-foreground truncate">{GATILHO_ROTULO[c.gatilho] ?? c.gatilho}</span>
+                        <span className="hidden md:block text-right text-sm text-foreground tabular">{c.etapas}</span>
+                        <span className="hidden md:block text-right text-sm text-foreground tabular">{c.inscricoes}</span>
+                        <div className="flex md:justify-end">
+                          <span className="dl-chip text-[10px]" data-tom={c.ativo ? 'positivo' : undefined}>
                             {c.ativo ? 'Ativa' : 'Pausada'}
                           </span>
                         </div>
-                      ))
-                    )}
-                  </div>
+                        <div className="md:hidden flex flex-wrap gap-1.5">
+                          <span className="dl-chip text-[10px]">{GATILHO_ROTULO[c.gatilho] ?? c.gatilho}</span>
+                          <span className="dl-chip text-[10px]">{c.etapas} toques</span>
+                          <span className="dl-chip text-[10px]">{c.inscricoes} inscritos</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              </div>
+              )}
+
+              {/* ── RITMO E LIMITES ──────────────────────────────────────── */}
+              {aba === 'ritmo' && (
+                <div className="rounded-2xl border border-border bg-card p-5 max-w-2xl">
+                  <p className="text-sm text-foreground font-medium">Ritmo e limites</p>
+                  <p className="text-xs text-muted-foreground mt-1 mb-5">
+                    Com {form.intervaloMinMinutos}–{form.intervaloMaxMinutos} min entre envios saem cerca de{' '}
+                    <strong className="text-foreground">{porHora} mensagens por hora</strong>, e o teto de{' '}
+                    <strong className="text-foreground">{form.tetoDiario}/dia</strong> é o que impede a fila de sair
+                    toda de uma vez. Espaçamento não é educação: é o que separa follow-up de disparo em massa.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block sm:col-span-2">
+                      <span className="text-[11px] text-muted-foreground">Teto por dia</span>
+                      <input type="number" min={1} max={1000} value={form.tetoDiario}
+                        onChange={(e) => setForm({ ...form, tetoDiario: Number(e.target.value) })}
+                        className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] text-muted-foreground">Intervalo mínimo (min)</span>
+                      <input type="number" min={1} value={form.intervaloMinMinutos}
+                        onChange={(e) => setForm({ ...form, intervaloMinMinutos: Number(e.target.value) })}
+                        className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] text-muted-foreground">Intervalo máximo (min)</span>
+                      <input type="number" min={1} value={form.intervaloMaxMinutos}
+                        onChange={(e) => setForm({ ...form, intervaloMaxMinutos: Number(e.target.value) })}
+                        className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] text-muted-foreground">Janela abre</span>
+                      <input type="time" value={form.janelaInicio}
+                        onChange={(e) => setForm({ ...form, janelaInicio: e.target.value })}
+                        className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] text-muted-foreground">Janela fecha</span>
+                      <input type="time" value={form.janelaFim}
+                        onChange={(e) => setForm({ ...form, janelaFim: e.target.value })}
+                        className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                    </label>
+                  </div>
+                  <button onClick={gravar} disabled={salvando}
+                    className="mt-4 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:opacity-95 disabled:opacity-50 transition-opacity cursor-pointer">
+                    {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    Salvar ritmo
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

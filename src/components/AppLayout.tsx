@@ -45,7 +45,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Contatos', href: '/contacts', icon: Users },
   { name: 'Atividades', href: '/activities', icon: Calendar },
   { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
-  { name: 'Cadências', href: '/cadencias', icon: Workflow },
   { name: 'Arquivados', href: '/arquivados', icon: Archive },
   { name: 'Configurações', href: '/settings', icon: Settings }
 ]
@@ -497,8 +496,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 { name: 'Desafios', href: '/desafios', icon: Trophy },
                 { name: 'Radar', href: '/radar', icon: RadarIcon },
                 { name: 'Doce Lilium', href: '/caixa-rapido', icon: Zap },
-                { name: 'Cadências', href: '/cadencias', icon: Workflow },
-                { name: 'Atividades', href: '/activities', icon: Calendar },
+                              { name: 'Atividades', href: '/activities', icon: Calendar },
                 { name: 'Arquivados', href: '/arquivados', icon: Archive },
                 { name: 'Configurações', href: '/settings', icon: Settings }
               ].map((item) => {

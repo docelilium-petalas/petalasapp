@@ -45,12 +45,15 @@ export type EstadoMaquina = {
   }
   proximas: {
     id: string
+    inscricaoId: string
     nome: string
     telefone: string
     etapa: number
     quando: string
     texto: string
     cadencia: string
+    origem: string
+    status: string
   }[]
   cadencias: {
     id: string
@@ -97,10 +100,13 @@ export async function getEstadoMaquina(): Promise<EstadoMaquina> {
         prisma.mvInscricao.count({ where: { respondeuEm: { not: null } } }),
         prisma.mvInscricao.count({ where: { converteuEm: { not: null } } }),
         prisma.mvOptOut.count(),
+        // 200 e nao 25: a aba "por conversa" agrupa por pessoa, e cortar em 25
+        // mensagens cortaria conversas pela metade — a pessoa apareceria com
+        // uma sequencia incompleta, que e pior do que nao aparecer.
         prisma.mvMensagem.findMany({
-          where: { status: 'AGENDADA' },
+          where: { status: { in: ['AGENDADA', 'ENVIADA'] } },
           orderBy: { agendadaPara: 'asc' },
-          take: 25,
+          take: 200,
           include: { inscricao: { include: { cadencia: { select: { nome: true } } } } },
         }),
       ])
@@ -115,12 +121,15 @@ export async function getEstadoMaquina(): Promise<EstadoMaquina> {
       },
       proximas: proximas.map((m) => ({
         id: m.id,
+        inscricaoId: m.inscricaoId,
         nome: m.inscricao.nomeSnapshot,
         telefone: formatarExibicao(m.inscricao.telefoneE164),
         etapa: m.etapaOrdem,
         quando: m.agendadaPara.toISOString(),
         texto: m.mensagemFinal,
         cadencia: m.inscricao.cadencia.nome,
+        origem: m.inscricao.origem,
+        status: m.status,
       })),
       cadencias: cadencias.map((c) => ({
         id: c.id,
