@@ -1666,7 +1666,7 @@ export default function ContactsPage() {
                   value={mergeQuery}
                   onChange={e => setMergeQuery(e.target.value)}
                   placeholder="Buscar contato secundário..."
-                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none"
                 />
               </div>
             </div>

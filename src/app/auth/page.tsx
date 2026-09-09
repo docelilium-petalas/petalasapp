@@ -188,7 +188,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="seuemail@empresa.com"
-                  className="flex-1 bg-transparent text-sm text-primary-foreground focus:outline-none placeholder:text-muted-foreground"
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none placeholder:text-muted-foreground"
                 />
               </div>
             </div>
