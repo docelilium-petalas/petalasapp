@@ -25,6 +25,7 @@ import {
   Rocket, Trophy, Radar as RadarIcon, TrendingUp
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import * as crmActions from '@/app/actions/crm'
 
 
@@ -431,7 +432,15 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             pathname === '/pipeline' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
           }`}
         >
-          {children}
+          {/*
+            Puxar-para-atualizar. Só no mobile, e não é firula: o `globals.css`
+            fixa `html, body` com `position: fixed` para segurar o bounce do iOS,
+            e isso mata junto o gesto nativo do navegador. Sem isto, a única
+            forma de buscar dado novo no celular era trocar de aba e voltar.
+          */}
+          <PullToRefresh alvo={mainRef} ativo={isMobile}>
+            {children}
+          </PullToRefresh>
         </main>
       </div>
 

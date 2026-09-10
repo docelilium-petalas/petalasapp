@@ -19,6 +19,7 @@ import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
 import { MockDeal, MockContact, MockUser, MockActivity, MockPipeline, MockStage, MockDealStageHistory } from '@/lib/mockData'
 import { toast } from 'sonner'
 import { confirmar } from '@/components/ui/ConfirmSheet'
+import { useRegistrarAtualizacao } from '@/components/ui/PullToRefresh'
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { useCategories } from '@/lib/categories'
 
@@ -765,6 +766,11 @@ function PipelineContent() {
     if (!selectedPipelineId) return
     await loadPipelineData(selectedPipelineId)
   }
+
+  // Puxar-para-atualizar no celular. O pipeline não escuta o barramento de
+  // eventos do CRM — ele tem carregamento próprio — então precisa registrar
+  // qual função o gesto deve chamar.
+  useRegistrarAtualizacao(loadQuietly, [selectedPipelineId])
 
   async function loadPipelineData(pipelineId: string) {
     const [stgs, dls, allContacts, allActivities, allCadencias, teamUsers, allHistory, activeDealIds] = await Promise.all([
