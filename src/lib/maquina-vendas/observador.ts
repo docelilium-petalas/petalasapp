@@ -32,9 +32,12 @@
 import prisma from '@/lib/prisma'
 import { chaveTelefone, paraE164, primeiroNome } from './telefone'
 import { montarCopy, CopyIncompleta, type Contexto } from './copy'
+import { VARIAVEIS } from './catalogo-templates'
 import { obterAjustes, CURSOR_VARREDURA_CARRINHO, type Ajustes } from './config'
 import { agendarEtapas } from './agenda'
 import { listarCarrinhosAbandonados, telefoneDoCarrinho, ancoraDaPeca } from '@/lib/nuvemshop/loja'
+
+export { JaInscrito }
 
 export type ResultadoObservacao = {
   vistos: number
@@ -188,8 +191,12 @@ type EtapaMin = {
  *
  * Semear na inscrição, e não na hora do envio, é o que permite a tela mostrar
  * a fila inteira antes de qualquer coisa sair — e é o que congela a copy.
+ *
+ * Exportada porque não é exclusiva do carrinho: o gatilho de pedido pago vai
+ * chamar exatamente isto, com outra `origem` e outra `refExterna`. E é por ela
+ * que `scripts/mv-fluxo-conferir.ts` prova a régua sem depender da Nuvemshop.
  */
-async function inscrever(args: {
+export async function inscrever(args: {
   ajustes: Ajustes
   cadenciaId: string
   etapas: EtapaMin[]
@@ -224,6 +231,12 @@ async function inscrever(args: {
     ordem: etapa.ordem,
     texto: montarCopy(etapa.templateBase, args.contexto, `${args.refExterna}:${etapa.ordem}`),
     templateNome: etapa.templateNome,
+    // Os valores que a Meta vai receber, na ordem das variáveis do template.
+    // Congelados agora, ao lado da frase: é o mesmo instante e o mesmo
+    // contexto, então os dois não podem divergir depois.
+    variaveis: etapa.templateNome
+      ? (VARIAVEIS[etapa.templateNome] ?? []).map((nome) => String(args.contexto[nome] ?? ''))
+      : [],
     quando: datas[i],
   }))
 
@@ -246,6 +259,7 @@ async function inscrever(args: {
         inscricaoId: insc.id,
         etapaOrdem: t.ordem,
         mensagemFinal: t.texto,
+        variaveis: t.variaveis,
         agendadaPara: t.quando,
         templateNome: t.templateNome,
         status: 'AGENDADA',

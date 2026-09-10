@@ -912,6 +912,14 @@ model MvMensagem {
   /// A copy final, congelada na semeadura. A tabela mostra exatamente o texto
   /// que sai — por isso nenhum LLM reescreve nada no caminho do disparo.
   mensagemFinal String   @map("mensagem_final")
+  /// Os `{{n}}` do corpo, na ordem, congelados junto com a copy.
+  ///
+  /// O envio por template manda os VALORES de fora — quem monta a frase é a
+  /// Meta, com o texto aprovado. `mensagemFinal` é a mesma frase montada aqui,
+  /// e serve para a tela mostrar o que vai sair. Guardar os dois evita ter que
+  /// desmontar a frase de volta na hora do envio, que é impossível de fazer
+  /// com segurança quando a copy tem blocos de variação `[[a|b|c]]`.
+  variaveis     Json?
   agendadaPara  DateTime @map("agendada_para")
 
   /// AGENDADA | ENVIADA | CANCELADA | PULADA | VETADA | ERRO

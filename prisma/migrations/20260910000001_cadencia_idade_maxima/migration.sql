@@ -21,3 +21,13 @@ ALTER TABLE "maquina_vendas_cadencias"
 ALTER TABLE "maquina_vendas_ajustes"
   ADD COLUMN IF NOT EXISTS "cupom_carrinho" TEXT,
   ADD COLUMN IF NOT EXISTS "desconto_carrinho" TEXT;
+
+-- Os valores das variáveis, congelados junto com a copy.
+--
+-- O envio por template manda os VALORES de fora; `mensagem_final` é a mesma
+-- frase já montada, e serve para a tela. Sem esta coluna seria preciso
+-- desmontar a frase de volta na hora do envio — impossível de fazer com
+-- segurança quando a copy tem blocos de variação `[[a|b|c]]`, porque o
+-- esqueleto muda de mensagem para mensagem.
+ALTER TABLE "maquina_vendas_mensagens"
+  ADD COLUMN IF NOT EXISTS "variaveis" JSONB;

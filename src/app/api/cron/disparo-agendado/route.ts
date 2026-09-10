@@ -33,8 +33,9 @@ export async function GET(req: NextRequest) {
     try {
       await dispararListaInternal(lista.id, lista.userId)
       results.push({ id: lista.id, nome: lista.nomeLista, status: 'dispatched' })
-    } catch (e: any) {
-      results.push({ id: lista.id, nome: lista.nomeLista, status: 'error', error: e.message })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      results.push({ id: lista.id, nome: lista.nomeLista, status: 'error', error: msg })
     }
   }
 

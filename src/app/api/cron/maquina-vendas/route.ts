@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { observarCarrinhosAbandonados } from '@/lib/maquina-vendas/observador'
+import { despachar } from '@/lib/maquina-vendas/despachante'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -49,11 +50,11 @@ export async function GET(request: Request) {
 
     // FASE 2 — DESPACHAR: o que sai agora.
     //
-    // Ainda não ligada: depende do canal de WhatsApp, que hoje é uazapi por
-    // QR Code e não tem confirmação de entrega. Ligar o envio antes de existir
-    // caminho de volta é mandar mensagem sem saber quem respondeu — o pior
-    // defeito possível deste módulo, e o que queimou número na CarBoss.
-    const despacho = { enviadas: 0, motivo: 'canal ainda não configurado' }
+    // Ligada, e mesmo assim inerte por padrão: `envioPausado` nasce `true` e o
+    // canal nasce sem credencial, então os dois primeiros guards do
+    // despachante recusam. Ligar de verdade é uma decisão de quem opera — pela
+    // tela, sem deploy — e não um efeito colateral deste código existir.
+    const despacho = await despachar()
 
     const resultado = {
       ok: true,

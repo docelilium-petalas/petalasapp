@@ -118,7 +118,9 @@ export const CATALOGO: TemplateMeta[] = [
     categoria: 'MARKETING',
     idioma: 'pt_BR',
     trilha: 'carrinho',
-    quando: '1h após o abandono. O primeiro toque não vende — só devolve o link.',
+    quando:
+      'Assim que a loja publica o carrinho — o que leva horas, e não minutos. ' +
+      'O primeiro toque não vende: só devolve o link.',
     corpo:
       'Oi, {{1}}! Vi que você deixou {{2}} no carrinho aqui na Doce Lilium 🌸\n\n' +
       'Guardei tudo pra você. É só tocar no botão abaixo que ele volta do jeitinho que estava.',
@@ -134,9 +136,11 @@ export const CATALOGO: TemplateMeta[] = [
     categoria: 'MARKETING',
     idioma: 'pt_BR',
     trilha: 'carrinho',
-    quando: '24h. A hipótese muda: não foi distração, foi dúvida. Pergunta em vez de insistir.',
+    quando:
+      '24h depois do primeiro toque SAIR, não do abandono. A hipótese muda: ' +
+      'não foi distração, foi dúvida. Pergunta em vez de insistir.',
     corpo:
-      'Oi, {{1}}! Passando de novo por causa de {{2}} 💗\n\n' +
+      'Oi, {{1}}! Passando de novo aqui sobre {{2}} 💗\n\n' +
       'Ficou alguma dúvida de tamanho, cor ou prazo de entrega? Me conta aqui que eu te ajudo a escolher.',
     rodape: 'Doce Lilium',
     botoes: [{ tipo: 'QUICK_REPLY', texto: 'Tenho uma dúvida' }, SAIR],
@@ -148,7 +152,8 @@ export const CATALOGO: TemplateMeta[] = [
     idioma: 'pt_BR',
     trilha: 'carrinho',
     quando:
-      '48h e ÚLTIMO toque da trilha. Se anuncia como último de propósito — ' +
+      '48h depois do toque anterior, e ÚLTIMO da trilha. Se anuncia como último ' +
+      'de propósito — ' +
       'quem não responde a três não responde ao quarto, e o quarto queima o número.',
     corpo:
       'Oi, {{1}}! Esse é meu último toque sobre seu carrinho, prometo 🤍\n\n' +
@@ -338,6 +343,23 @@ export function validarCatalogo(): string[] {
     const temSaida = t.botoes?.some((b) => b.tipo === 'QUICK_REPLY' && b.texto === SAIR.texto)
     if (t.categoria === 'MARKETING' && !temSaida) erros.push(`${t.nome}: MARKETING sem botão de saída`)
     if (t.categoria === 'UTILITY' && temSaida) erros.push(`${t.nome}: UTILITY não leva botão de saída`)
+
+    // Preposição colada numa variável que já traz artigo produz "de o vestido".
+    // O defeito só existe com o valor preenchido, e por isso atravessa
+    // qualquer revisão humana: quem lê o template vê "por causa de {{2}}",
+    // que está certo. Medido em 10/09/2026, na régua de carrinho.
+    const comArtigo = new Set(['peca', 'colecao'])
+    const nomes = VARIAVEIS[t.nome] ?? []
+    for (const m of corpo.matchAll(/(\b[a-zà-ú]+)\s+\{\{(\d+)\}\}/gi)) {
+      const nomeVar = nomes[Number(m[2]) - 1]
+      if (!nomeVar || !comArtigo.has(nomeVar)) continue
+      if (/^(de|em|por|a|ao|à)$/i.test(m[1])) {
+        erros.push(
+          `${t.nome}: "${m[1]} {{${m[2]}}}" vira "${m[1]} o/a …" — ${nomeVar} vem com artigo. ` +
+            'Troque a preposição (por "sobre", por exemplo) ou reescreva a frase.',
+        )
+      }
+    }
 
     const nomeadas = VARIAVEIS[t.nome]
     if (!nomeadas) erros.push(`${t.nome}: sem mapa de variáveis em VARIAVEIS`)
