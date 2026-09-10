@@ -25,6 +25,9 @@ export type Ajustes = {
   janelaInicio: string
   janelaFim: string
   envioPausado: boolean
+  /// Nulos quando ninguém configurou um cupom vigente — ver o schema.
+  cupomCarrinho: string | null
+  descontoCarrinho: string | null
 }
 
 const PADRAO: Ajustes = {
@@ -36,6 +39,10 @@ const PADRAO: Ajustes = {
   // NASCE PAUSADO. A Máquina fala com cliente real; ela não deve começar a
   // falar por causa de um deploy, e sim porque alguém decidiu ligar.
   envioPausado: true,
+  // Sem cupom inventado por omissão: prometer desconto que não existe na loja
+  // é pior do que não mandar a última mensagem.
+  cupomCarrinho: null,
+  descontoCarrinho: null,
 }
 
 function daEnv(): Partial<Ajustes> {
@@ -49,6 +56,8 @@ function daEnv(): Partial<Ajustes> {
     intervaloMaxMinutos: num(process.env.MV_INTERVALO_MAX_MINUTOS),
     janelaInicio: process.env.MV_JANELA_INICIO || undefined,
     janelaFim: process.env.MV_JANELA_FIM || undefined,
+    cupomCarrinho: process.env.MV_CUPOM_CARRINHO || undefined,
+    descontoCarrinho: process.env.MV_DESCONTO_CARRINHO || undefined,
   }
 }
 
@@ -60,9 +69,11 @@ function daEnv(): Partial<Ajustes> {
  */
 export async function obterAjustes(): Promise<Ajustes> {
   let doBanco: Partial<Ajustes> = {}
+  let temLinha = false
   try {
     const linha = await prisma.mvAjustes.findUnique({ where: { id: 'unico' } })
     if (linha) {
+      temLinha = true
       doBanco = {
         tetoDiario: linha.tetoDiario,
         intervaloMinMinutos: linha.intervaloMinMinutos,
@@ -70,6 +81,8 @@ export async function obterAjustes(): Promise<Ajustes> {
         janelaInicio: linha.janelaInicio,
         janelaFim: linha.janelaFim,
         envioPausado: linha.envioPausado,
+        cupomCarrinho: linha.cupomCarrinho,
+        descontoCarrinho: linha.descontoCarrinho,
       }
     }
   } catch {
@@ -83,6 +96,14 @@ export async function obterAjustes(): Promise<Ajustes> {
     janelaInicio: doBanco.janelaInicio ?? env.janelaInicio ?? PADRAO.janelaInicio,
     janelaFim: doBanco.janelaFim ?? env.janelaFim ?? PADRAO.janelaFim,
     envioPausado: doBanco.envioPausado ?? PADRAO.envioPausado,
+    // Aqui a precedência é diferente das outras, de propósito. Nos números,
+    // ausência no banco significa "não configurei, use o padrão". No cupom,
+    // ausência significa "APAGUEI, não existe cupom vigente" — e apagar tem
+    // que ganhar do env, senão a tela não consegue desligar a promessa de
+    // desconto. Por isso: havendo linha no banco, o banco manda, inclusive
+    // quando o que ele diz é "vazio".
+    cupomCarrinho: temLinha ? doBanco.cupomCarrinho || null : env.cupomCarrinho ?? PADRAO.cupomCarrinho,
+    descontoCarrinho: temLinha ? doBanco.descontoCarrinho || null : env.descontoCarrinho ?? PADRAO.descontoCarrinho,
   }
 }
 

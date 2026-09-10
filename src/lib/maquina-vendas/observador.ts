@@ -10,29 +10,31 @@
  * fontes, e a inscrição carrega `origem` + `refExterna` em vez de só um
  * `dealId`.
  *
- * ── A ÂNCORA, que é a decisão mais importante deste arquivo ───────────────
- * Toda etapa conta a partir de `ancoraEm`, que é o instante do evento NO
- * RELÓGIO DA FONTE — o `created_at` do checkout na Nuvemshop, não o instante
- * em que a varredura o encontrou.
+ * ── A ÂNCORA, e o que ela decide ──────────────────────────────────────────
+ * `ancoraEm` é o instante do evento NO RELÓGIO DA FONTE — o `created_at` do
+ * checkout na Nuvemshop, nunca o instante em que a varredura o encontrou.
  *
- * Isso não é preciosismo: a Nuvemshop leva ATÉ 6 HORAS para publicar um
- * carrinho abandonado na API. Ancorar no relógio da varredura faria um
- * carrinho de 6h receber "esqueceu algo?" como se fosse recém-abandonado, e o
- * terceiro toque cairia três dias depois da compra que a pessoa já fez em
- * outro lugar.
+ * Ela decide DUAS coisas, e só duas:
+ *
+ *   1. se o evento é recente o bastante para entrar (`idadeMaximaHoras`)
+ *   2. quando sai a PRIMEIRA etapa
+ *
+ * O que ela deliberadamente NÃO decide é o resto da régua. A documentação da
+ * Nuvemshop fala em "até 6 horas" de atraso para publicar um carrinho
+ * abandonado; a medição de 09/09/2026 mostrou 27 horas no carrinho mais novo
+ * que a API entregava. Com todas as etapas contando da âncora, um carrinho
+ * assim chega com a régua inteira vencida e as três mensagens saem no mesmo
+ * minuto. As etapas seguintes contam da ENTREGA da anterior — ver `agenda.ts`,
+ * que é onde essa decisão mora.
  * ══════════════════════════════════════════════════════════════════════════
  */
 
 import prisma from '@/lib/prisma'
 import { chaveTelefone, paraE164, primeiroNome } from './telefone'
 import { montarCopy, CopyIncompleta, type Contexto } from './copy'
-import { obterAjustes, proximaAbertura, dentroDaJanela, CURSOR_VARREDURA_CARRINHO } from './config'
-import {
-  listarCarrinhosAbandonados,
-  telefoneDoCarrinho,
-  ancoraDaPeca,
-  type CarrinhoAbandonado,
-} from '@/lib/nuvemshop/loja'
+import { obterAjustes, CURSOR_VARREDURA_CARRINHO, type Ajustes } from './config'
+import { agendarEtapas } from './agenda'
+import { listarCarrinhosAbandonados, telefoneDoCarrinho, ancoraDaPeca } from '@/lib/nuvemshop/loja'
 
 export type ResultadoObservacao = {
   vistos: number
@@ -73,6 +75,7 @@ export async function observarCarrinhosAbandonados(): Promise<ResultadoObservaca
     : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
   const carrinhos = await listarCarrinhosAbandonados(desde)
+  const ajustes = await obterAjustes()
   let inscritos = 0
 
   for (const carrinho of carrinhos) {
@@ -102,14 +105,32 @@ export async function observarCarrinhosAbandonados(): Promise<ResultadoObservaca
     }
 
     const ancora = new Date(carrinho.created_at)
+
+    // Carrinho velho demais não entra. O corte é da cadência, não do código:
+    // a mesma varredura serve reativação, que quer justamente o evento antigo.
+    if (cadencia.idadeMaximaHoras != null) {
+      const idadeHoras = (Date.now() - ancora.getTime()) / 3_600_000
+      if (idadeHoras > cadencia.idadeMaximaHoras) {
+        contar(pulados, `mais velho que ${cadencia.idadeMaximaHoras}h`)
+        continue
+      }
+    }
+
     const contexto: Contexto = {
       primeiro_nome: nome,
       peca: ancoraDaPeca(carrinho),
       link: carrinho.abandoned_checkout_url,
+      // Vêm dos ajustes, não do carrinho: o cupom é de campanha, tem validade
+      // e é criado por uma pessoa na Nuvemshop. Nulos aqui só quebram a
+      // inscrição se a cadência tiver uma etapa que os cite — e o semeador
+      // (`scripts/mv-cadencia-carrinho.ts`) não cria essa etapa sem cupom.
+      cupom: ajustes.cupomCarrinho,
+      desconto: ajustes.descontoCarrinho,
     }
 
     try {
       await inscrever({
+        ajustes,
         cadenciaId: cadencia.id,
         etapas: cadencia.etapas,
         origem: 'carrinho',
@@ -154,7 +175,13 @@ class JaInscrito extends Error {
   }
 }
 
-type EtapaMin = { ordem: number; delayMinutos: number; templateBase: string; templateNome: string | null }
+type EtapaMin = {
+  ordem: number
+  delayMinutos: number
+  ancoradaEm: string
+  templateBase: string
+  templateNome: string | null
+}
 
 /**
  * Cria a inscrição e SEMEIA todas as mensagens de uma vez.
@@ -163,6 +190,7 @@ type EtapaMin = { ordem: number; delayMinutos: number; templateBase: string; tem
  * a fila inteira antes de qualquer coisa sair — e é o que congela a copy.
  */
 async function inscrever(args: {
+  ajustes: Ajustes
   cadenciaId: string
   etapas: EtapaMin[]
   origem: string
@@ -186,15 +214,17 @@ async function inscrever(args: {
   })
   if (existente) throw new JaInscrito()
 
-  const ajustes = await obterAjustes()
+  // A régua inteira de uma vez, em vez de etapa por etapa: é o encadeamento
+  // que impede a rajada quando o carrinho chega velho (ver `agenda.ts`).
+  const datas = agendarEtapas({ ancora: args.ancora, etapas: args.etapas, ajustes: args.ajustes })
 
   // Monta a copy ANTES de abrir a transação: se faltar placeholder, a
   // inscrição nem começa — em vez de nascer e ficar com mensagens quebradas.
-  const textos = args.etapas.map((etapa) => ({
+  const textos = args.etapas.map((etapa, i) => ({
     ordem: etapa.ordem,
     texto: montarCopy(etapa.templateBase, args.contexto, `${args.refExterna}:${etapa.ordem}`),
     templateNome: etapa.templateNome,
-    quando: quandoEnviar(args.ancora, etapa.delayMinutos, ajustes),
+    quando: datas[i],
   }))
 
   await prisma.$transaction(async (tx) => {
@@ -222,20 +252,6 @@ async function inscrever(args: {
       })),
     })
   })
-}
-
-/**
- * Quando a etapa deve sair.
- *
- * Etapa vencida (âncora antiga demais) NÃO sai imediatamente: ela é empurrada
- * para a próxima abertura da janela. Uma fila represada que se solta de uma
- * vez às 3h da manhã é exatamente o padrão que derruba número.
- */
-function quandoEnviar(ancora: Date, delayMinutos: number, ajustes: Awaited<ReturnType<typeof obterAjustes>>): Date {
-  const alvo = new Date(ancora.getTime() + delayMinutos * 60_000)
-  const agora = new Date()
-  const base = alvo < agora ? agora : alvo
-  return dentroDaJanela(ajustes, base) ? base : proximaAbertura(ajustes, base)
 }
 
 /** Fachada do tique: por ora só a loja. O funil entra quando houver cadência. */

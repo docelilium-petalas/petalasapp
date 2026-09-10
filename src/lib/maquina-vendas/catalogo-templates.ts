@@ -35,6 +35,8 @@
  *    que o pedido dela saiu para entrega)
  */
 
+import type { Contexto } from './copy'
+
 export type CategoriaMeta = 'MARKETING' | 'UTILITY'
 
 export type BotaoTemplate =
@@ -57,21 +59,50 @@ export type TemplateMeta = {
   exemplos: string[]
 }
 
-/** O `{{n}}` do corpo de cada template, em português, para quem montar o envio. */
-export const VARIAVEIS: Record<string, string[]> = {
-  dl_carrinho_lembrete_v1: ['primeiro_nome', 'nome_da_peca'],
-  dl_carrinho_duvida_v1: ['primeiro_nome', 'nome_da_peca'],
-  dl_carrinho_ultimo_v1: ['primeiro_nome', 'codigo_cupom', 'percentual_desconto'],
-  dl_pedido_confirmado_v1: ['primeiro_nome', 'numero_pedido'],
-  dl_pix_pendente_v1: ['primeiro_nome', 'numero_pedido', 'prazo_expiracao'],
-  dl_pagamento_aprovado_v1: ['primeiro_nome', 'numero_pedido'],
-  dl_pedido_enviado_v1: ['primeiro_nome', 'numero_pedido', 'codigo_rastreio'],
-  dl_pedido_entregue_v1: ['primeiro_nome', 'numero_pedido'],
-  dl_pos_entrega_avaliacao_v1: ['primeiro_nome', 'nome_da_peca'],
-  dl_troca_instrucoes_v1: ['primeiro_nome', 'numero_pedido', 'prazo_dias'],
-  dl_reativacao_60d_v1: ['primeiro_nome', 'nome_colecao'],
-  dl_colecao_nova_v1: ['primeiro_nome', 'nome_colecao'],
-  dl_lista_desejos_voltou_v1: ['primeiro_nome', 'nome_da_peca'],
+/**
+ * O `{{n}}` do corpo de cada template, com o NOME que o contexto usa.
+ *
+ * O tipo é `keyof Contexto` de propósito, e isso é o que impede o defeito que
+ * já estava plantado aqui: este mapa dizia `nome_da_peca` enquanto o contexto
+ * entregava `peca`. Ninguém teria notado até alguém escrever `{{nome_da_peca}}`
+ * numa cadência e a copy quebrar na hora do envio, para cliente real.
+ *
+ * Agora nome que não existe no contexto não compila.
+ */
+export const VARIAVEIS: Record<string, (keyof Contexto)[]> = {
+  dl_carrinho_lembrete_v1: ['primeiro_nome', 'peca'],
+  dl_carrinho_duvida_v1: ['primeiro_nome', 'peca'],
+  dl_carrinho_ultimo_v1: ['primeiro_nome', 'cupom', 'desconto'],
+  dl_pedido_confirmado_v1: ['primeiro_nome', 'pedido'],
+  dl_pix_pendente_v1: ['primeiro_nome', 'pedido', 'prazo'],
+  dl_pagamento_aprovado_v1: ['primeiro_nome', 'pedido'],
+  dl_pedido_enviado_v1: ['primeiro_nome', 'pedido', 'rastreio'],
+  dl_pedido_entregue_v1: ['primeiro_nome', 'pedido'],
+  dl_pos_entrega_avaliacao_v1: ['primeiro_nome', 'peca'],
+  dl_troca_instrucoes_v1: ['primeiro_nome', 'pedido', 'prazo'],
+  dl_reativacao_60d_v1: ['primeiro_nome', 'colecao'],
+  dl_colecao_nova_v1: ['primeiro_nome', 'colecao'],
+  dl_lista_desejos_voltou_v1: ['primeiro_nome', 'peca'],
+}
+
+/**
+ * O corpo do template com `{{1}}` trocado por `{{primeiro_nome}}`.
+ *
+ * É este texto que vira `templateBase` de uma etapa de cadência: a numeração
+ * da Meta serve para a Meta, e o esqueleto nomeado serve para a copy. Derivar
+ * um do outro — em vez de redigitar a mensagem no semeador — é o que garante
+ * que o texto revisado pela dona da marca e o texto que sai sejam o mesmo.
+ */
+export function esqueletoNomeado(nomeTemplate: string): string {
+  const t = CATALOGO.find((x) => x.nome === nomeTemplate)
+  if (!t) throw new Error(`Template desconhecido: ${nomeTemplate}`)
+  const nomes = VARIAVEIS[nomeTemplate]
+  if (!nomes) throw new Error(`Template sem mapa de variáveis: ${nomeTemplate}`)
+  return t.corpo.replace(/\{\{(\d+)\}\}/g, (_, n: string) => {
+    const nome = nomes[Number(n) - 1]
+    if (!nome) throw new Error(`${nomeTemplate}: {{${n}}} sem nome em VARIAVEIS`)
+    return `{{${nome}}}`
+  })
 }
 
 /** Botão de saída obrigatório em todo MARKETING. */

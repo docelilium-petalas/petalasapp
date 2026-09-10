@@ -785,6 +785,15 @@ model MvCadencia {
   pipelineId String? @map("pipeline_id")
   stageId    String? @map("stage_id")
 
+  /// Idade máxima do evento, em horas, para ele ainda poder entrar.
+  ///
+  /// Existe por causa da PRIMEIRA varredura: sem teto, ela inscreveria de uma
+  /// vez todo carrinho da janela inicial (7 dias) — dezenas de pessoas
+  /// recebendo "vi que você deixou algo no carrinho" sobre um carrinho de uma
+  /// semana atrás. Nulo = sem teto, que é o certo para reativação, onde o
+  /// evento antigo é justamente o alvo.
+  idadeMaximaHoras Int? @map("idade_maxima_horas")
+
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -998,6 +1007,16 @@ model MvAjustes {
   /// Desligar sem apagar cadência. NASCE PAUSADO de propósito: a Máquina não
   /// deve começar a falar com cliente real por causa de um deploy.
   envioPausado Boolean @default(true) @map("envio_pausado")
+
+  /// O cupom do último toque da trilha de carrinho, e o desconto que ele dá.
+  ///
+  /// Moram aqui, e não na etapa, porque são a única parte da copy que expira:
+  /// o cupom é criado na Nuvemshop por uma pessoa, tem validade, e muda de
+  /// campanha para campanha. Nulos = a trilha de carrinho é semeada sem o
+  /// último toque, e a etapa 2 é que se anuncia como última — nunca uma
+  /// mensagem prometendo um cupom que não existe.
+  cupomCarrinho    String? @map("cupom_carrinho")
+  descontoCarrinho String? @map("desconto_carrinho")
 
   atualizadoEm  DateTime @updatedAt @map("atualizado_em")
   atualizadoPor String?  @map("atualizado_por")
