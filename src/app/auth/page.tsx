@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useMarca } from '@/context/MarcaContext'
+import { LOGO_PADRAO } from '@/lib/marca'
 import { useRouter } from 'next/navigation'
 import { Zap, Coins, ArrowRight, ShieldCheck, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,6 +10,7 @@ import { toast } from 'sonner'
 type Mode = 'login' | 'register'
 
 export default function AuthPage() {
+  const marca = useMarca()
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
   const [nome, setNome] = useState('')
@@ -80,10 +83,10 @@ export default function AuthPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-border text-primary ocr-glow-soft shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img src={marca.logoDataUri || LOGO_PADRAO} alt={`Logo ${marca.nome}`} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-sm uppercase">Operação Doce Lilium</span>
+            <span className="font-bold tracking-tight text-sm uppercase">Operação {marca.nome}</span>
             <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] -mt-0.5">Máquina de Vendas</span>
           </div>
         </div>
@@ -125,9 +128,9 @@ export default function AuthPage() {
           <div className="lg:hidden flex items-center gap-2 justify-center mb-6">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-border flex items-center justify-center text-primary">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+              <img src={marca.logoDataUri || LOGO_PADRAO} alt={`Logo ${marca.nome}`} className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-xs uppercase tracking-wider">Doce Lilium</span>
+            <span className="font-bold text-xs uppercase tracking-wider">{marca.nome}</span>
           </div>
 
           {/* Mode toggle */}

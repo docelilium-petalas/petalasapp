@@ -1152,3 +1152,33 @@ model MvTemplateRevisao {
   @@index([status])
   @@map("maquina_vendas_template_revisao")
 }
+
+/// A MARCA — o que o CRM chama de "nós" nas telas e nas mensagens.
+///
+/// Linha única, como `MvAjustes`. Existe porque o nome, a logo e a assinatura
+/// estavam cravados em oito lugares do código: trocar a marca — ou atender uma
+/// segunda loja — exigia edição e deploy. E deploy aqui é manual.
+///
+/// Só tem campo que ALIMENTA alguma tela. Campo de marca que ninguém consome é
+/// decoração num formulário que a pessoa preenche achando que serve para algo.
+model Marca {
+  id String @id @default("unica")
+
+  /// Aparece na barra lateral, na tela de login e no título da página.
+  nome    String @default("Doce Lilium")
+  /// A linha pequena embaixo do nome, na barra lateral.
+  subtitulo String @default("Operação CRM")
+
+  /// A logo como data URI. Guardada no banco de propósito: o container não tem
+  /// volume persistente, então arquivo salvo em disco some no próximo deploy.
+  /// O limite de tamanho é conferido na tela, antes de chegar aqui.
+  logoDataUri String? @map("logo_data_uri")
+
+  /// A assinatura no rodapé das mensagens de WhatsApp.
+  assinatura String @default("Doce Lilium")
+
+  atualizadoEm  DateTime @updatedAt @map("atualizado_em")
+  atualizadoPor String?  @map("atualizado_por")
+
+  @@map("marca")
+}

@@ -3,6 +3,8 @@ import { DM_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { AppToaster } from '@/components/ui/AppToaster'
+import { MarcaProvider } from '@/context/MarcaContext'
+import { obterMarca } from '@/app/actions/marca'
 import { ConfirmHost } from '@/components/ui/ConfirmSheet'
 
 /**
@@ -38,11 +40,15 @@ export const metadata: Metadata = {
   description: 'CRM Operacional e Gestão de Leads',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Lida aqui, no servidor, para chegar no primeiro HTML: a barra lateral
+  // aparece em toda página, e buscá-la no cliente faria o nome padrão piscar
+  // antes de virar o verdadeiro.
+  const marca = await obterMarca()
   return (
     <html
       lang="pt-BR"
@@ -62,7 +68,9 @@ export default function RootLayout({
         das páginas esquece.
       */}
       <body className="min-h-full flex flex-col font-sans">
-        <AuthProvider>{children}</AuthProvider>
+        <MarcaProvider marca={marca}>
+          <AuthProvider>{children}</AuthProvider>
+        </MarcaProvider>
         <AppToaster />
         <ConfirmHost />
       </body>

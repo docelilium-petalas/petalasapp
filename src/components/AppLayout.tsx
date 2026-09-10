@@ -25,6 +25,8 @@ import {
   Rocket, Trophy, Radar as RadarIcon, TrendingUp
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useMarca } from '@/context/MarcaContext'
+import { LOGO_PADRAO } from '@/lib/marca'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import * as crmActions from '@/app/actions/crm'
 
@@ -75,6 +77,7 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ user, onItemClick }: SidebarContentProps) {
+  const marca = useMarca()
   const pathname = usePathname()
   const router = useRouter()
   const isActive = (href: string) => pathname === href
@@ -88,11 +91,16 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
           <div className="absolute inset-0 bg-primary/20 blur-md scale-150 animate-pulse mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent blur-sm" />
           
-          <img src="/logo.png" alt="Logo Doce Lilium" className="w-full h-full object-cover relative z-10" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={marca.logoDataUri || LOGO_PADRAO}
+            alt={`Logo ${marca.nome}`}
+            className="w-full h-full object-cover relative z-10"
+          />
         </div>
-        <div className="flex flex-col">
-          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight">Doce Lilium</span>
-          <span className="text-[9px] text-sidebar-foreground/60 font-semibold uppercase tracking-[0.2em]">Operação CRM</span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-bold tracking-tight text-sidebar-foreground text-sm uppercase leading-tight truncate">{marca.nome}</span>
+          <span className="text-[9px] text-sidebar-foreground/60 font-semibold uppercase tracking-[0.2em] truncate">{marca.subtitulo}</span>
         </div>
       </div>
 

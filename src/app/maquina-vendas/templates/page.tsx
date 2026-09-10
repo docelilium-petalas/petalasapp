@@ -21,6 +21,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMarca } from '@/context/MarcaContext'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
@@ -52,6 +53,7 @@ const preencher = (corpo: string, t: TemplateMeta) =>
   corpo.replace(/\{\{(\d+)\}\}/g, (_, n: string) => t.exemplos[Number(n) - 1] ?? '…')
 
 export default function TemplatesPage() {
+  const marca = useMarca()
   const [revisoes, setRevisoes] = useState<Map<string, Revisao>>(new Map())
   const [migrado, setMigrado] = useState(true)
   const [carregando, setCarregando] = useState(true)
@@ -223,7 +225,13 @@ export default function TemplatesPage() {
                         <div className="px-5 py-5 bg-muted/25">
                           <div className="max-w-[26rem] rounded-2xl rounded-tl-sm bg-card border border-border-subtle px-4 py-3 shadow-sm">
                             <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{preencher(corpoDe(t), t)}</p>
-                            {t.rodape && <p className="text-[11px] text-muted-foreground mt-2">{t.rodape}</p>}
+                            {t.rodape && (
+                              // A assinatura vem de Ajustes → Marca, e não do
+                              // catálogo: é ela que vai no rodapé quando os
+                              // templates forem submetidos, então a revisão
+                              // precisa mostrar o texto que vai valer.
+                              <p className="text-[11px] text-muted-foreground mt-2">{marca.assinatura}</p>
+                            )}
                             {t.botoes?.length ? (
                               <div className="mt-3 pt-2.5 border-t border-border-subtle flex flex-wrap gap-1.5">
                                 {t.botoes.map((b) => (

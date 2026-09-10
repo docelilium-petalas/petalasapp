@@ -1,10 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react'
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react'
+import { useRouter } from 'next/navigation'
+import { useMarca } from '@/context/MarcaContext'
+import { salvarMarca } from '@/app/actions/marca'
+import { LOGO_PADRAO, validarLogo, type Marca as MarcaTipo } from '@/lib/marca'
 import { AppLayout } from '@/components/AppLayout'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
-  User, Sliders, Zap, Key, ChevronRight,
+  User, Sliders, Zap, Key, ChevronRight, Sparkles,
   Plus, Trash2, Edit3, AlertTriangle,
   Workflow, Check, X, GripVertical, Shield, Users,
   Save, Settings2, Tag,
@@ -35,7 +39,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-type Tab = 'perfil' | 'pipeline' | 'integracao' | 'categorias' | 'disparo' | 'usuarios' | 'times' | 'templates'
+type Tab = 'marca' | 'perfil' | 'pipeline' | 'integracao' | 'categorias' | 'disparo' | 'usuarios' | 'times' | 'templates'
 type UserRole = 'USER' | 'MODERATOR' | 'ADMIN'
 type EndpointSourceSystem = 'elementor' | 'facebook_leads' | 'n8n' | 'custom'
 type IntegrationTipo = 'inbound_webhook' | 'outbound_api'
@@ -65,6 +69,7 @@ const DEFAULT_CHANNELS: DisparoChannel[] = []
 const DEFAULT_LOGS: DisparoLog[] = []
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; adminOnly?: boolean }[] = [
+  { id: 'marca', label: 'Marca', icon: Sparkles },
   { id: 'perfil', label: 'Perfil', icon: User },
   { id: 'pipeline', label: 'Funis & Etapas', icon: Sliders },
   { id: 'integracao', label: 'Integrações', icon: Zap },
@@ -170,7 +175,54 @@ function SortableStageItem({ stage, onEdit, onDelete, dealCount }: SortableStage
 function SettingsContent() {
   const isMobile = useIsMobile()
   const [mobileTabActive, setMobileTabActive] = useState(false)
-  const [tab, setTab] = useState<Tab>('perfil')
+  const [tab, setTab] = useState<Tab>('marca')
+
+  // ── MARCA ───────────────────────────────────────────────────────────────
+  const router = useRouter()
+  const marcaAtual = useMarca()
+  const [marcaForm, setMarcaForm] = useState<MarcaTipo>(marcaAtual)
+  const [salvandoMarca, setSalvandoMarca] = useState(false)
+  const [errosMarca, setErrosMarca] = useState<string[]>([])
+  const inputLogo = useRef<HTMLInputElement>(null)
+
+  function escolherLogo(arquivo: File) {
+    const leitor = new FileReader()
+    leitor.onload = () => {
+      const uri = String(leitor.result ?? '')
+      // Confere ANTES de entrar no formulário: uma logo de 4 MB aceita aqui só
+      // seria recusada no salvar, depois de a pessoa já a ter visto na prévia.
+      const erro = validarLogo(uri)
+      if (erro) {
+        setErrosMarca([erro])
+        return
+      }
+      setErrosMarca([])
+      setMarcaForm((m) => ({ ...m, logoDataUri: uri }))
+    }
+    leitor.onerror = () => setErrosMarca(['Não consegui ler esse arquivo.'])
+    leitor.readAsDataURL(arquivo)
+  }
+
+  async function salvarMarcaForm() {
+    setSalvandoMarca(true)
+    setErrosMarca([])
+    try {
+      const r = await salvarMarca(marcaForm)
+      if (!r.ok) {
+        setErrosMarca(r.erros ?? ['Não consegui salvar.'])
+        return
+      }
+      toast.success('Marca atualizada.')
+      // A marca chega pelo layout do servidor: sem recarregar, a barra lateral
+      // continuaria com o nome antigo até a próxima navegação completa.
+      router.refresh()
+    } catch (e) {
+      setErrosMarca([e instanceof Error ? e.message : 'Não consegui salvar.'])
+    } finally {
+      setSalvandoMarca(false)
+    }
+  }
+
   const [currentUser, setCurrentUser] = useState<MockUser | null>(null)
   
   // Perfil state
@@ -1323,6 +1375,124 @@ function SettingsContent() {
                 ← Voltar para Configurações
               </button>
             )}
+
+          {/* 0. MARCA */}
+          {tab === 'marca' && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <h2 className="text-xl font-bold tracking-wide text-foreground flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Marca
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  O nome, a logo e a assinatura que aparecem para quem usa o sistema — e para quem recebe as mensagens.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-3xl border border-border-subtle bg-card space-y-6">
+                {/* A prévia é o que transforma um formulário em consequência. */}
+                <div className="flex items-center gap-3 p-4 rounded-2xl border border-border-subtle bg-secondary">
+                  <div className="w-10 h-10 rounded-xl bg-card border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={marcaForm.logoDataUri || LOGO_PADRAO} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-bold tracking-tight text-foreground text-sm uppercase leading-tight truncate">
+                      {marcaForm.nome || '—'}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.2em] truncate">
+                      {marcaForm.subtitulo}
+                    </span>
+                  </div>
+                  <span className="ml-auto text-[10px] text-muted-foreground shrink-0 max-md:hidden">
+                    é assim que aparece na barra lateral
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-foreground">Nome</span>
+                    <input
+                      value={marcaForm.nome}
+                      onChange={(e) => setMarcaForm((m) => ({ ...m, nome: e.target.value }))}
+                      maxLength={40}
+                      className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-foreground">Linha de apoio</span>
+                    <input
+                      value={marcaForm.subtitulo}
+                      onChange={(e) => setMarcaForm((m) => ({ ...m, subtitulo: e.target.value }))}
+                      maxLength={40}
+                      className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                    />
+                  </label>
+                </div>
+
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-foreground">Assinatura das mensagens</span>
+                  <input
+                    value={marcaForm.assinatura}
+                    onChange={(e) => setMarcaForm((m) => ({ ...m, assinatura: e.target.value }))}
+                    maxLength={60}
+                    className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                  />
+                  <span className="text-[11px] text-muted-foreground">
+                    Vai no rodapé de cada mensagem de WhatsApp. A Meta aceita até 60 caracteres.
+                  </span>
+                </label>
+
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-foreground">Logo</span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={() => inputLogo.current?.click()}
+                      className="px-4 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+                    >
+                      Escolher imagem
+                    </button>
+                    {marcaForm.logoDataUri && (
+                      <button
+                        onClick={() => setMarcaForm((m) => ({ ...m, logoDataUri: null }))}
+                        className="text-xs font-semibold text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        Voltar à logo de fábrica
+                      </button>
+                    )}
+                    <input
+                      ref={inputLogo}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) escolherLogo(f) }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    PNG, JPG, WEBP ou SVG, até 300 KB. Ela viaja em toda página do sistema — por isso o limite.
+                  </span>
+                </div>
+
+                {errosMarca.length > 0 && (
+                  <div className="rounded-2xl border border-destructive/25 bg-destructive/5 p-4 space-y-1">
+                    {errosMarca.map((e, i) => (
+                      <p key={i} className="text-xs text-destructive">{e}</p>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-2 border-t border-border-subtle">
+                  <button
+                    onClick={salvarMarcaForm}
+                    disabled={salvandoMarca}
+                    className="dl-btn-rose px-5 py-2.5 rounded-xl text-xs font-bold disabled:opacity-40"
+                  >
+                    {salvandoMarca ? 'Salvando…' : 'Salvar marca'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 1. PERFIL TAB */}
           {tab === 'perfil' && currentUser && (
