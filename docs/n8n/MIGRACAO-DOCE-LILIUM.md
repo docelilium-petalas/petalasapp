@@ -84,6 +84,76 @@ ainda existem — ver §6.
 
 ---
 
+## 3b · A chave de criptografia compartilhada — feito em 10/09/2026
+
+O §3 dizia que as 13 credenciais teriam de ser recriadas na mão. **Existe um
+caminho melhor, e ele foi executado:** fazer as duas instâncias usarem a MESMA
+`N8N_ENCRYPTION_KEY`. Com isso as credenciais atravessam **cifradas**, com o
+mesmo id — e as referências nos 268 nós continuam válidas, sem religamento.
+
+### O estado de partida, medido
+
+| | origem (`automacoes_netlife/n8n`) | destino (`petalas/n8n`) |
+|---|---|---|
+| `N8N_ENCRYPTION_KEY` no painel | **não existia** | existia, valor próprio |
+| `~/.n8n/config` | existia, 56 bytes, com a chave | existia, com a chave própria |
+| credenciais | 13 | **0** |
+| workflows | 9 | 9, todos inativos |
+
+O destino ter **zero credenciais** é o que torna a operação segura: trocar a
+chave lá não deixa nada ilegível, porque não há nada cifrado.
+
+### ⛔ A armadilha: o n8n guarda a chave em DOIS lugares
+
+A chave vive na variável de ambiente **e** no arquivo `~/.n8n/config`. Quando os
+dois discordam, o n8n **se recusa a subir**:
+
+```
+Error: Mismatching encryption keys. The encryption key in the settings file
+/home/node/.n8n/config does not match the N8N_ENCRYPTION_KEY env var.
+```
+
+E aí não adianta abrir o terminal para consertar: o container morre em loop, e o
+console do EasyPanel responde `container ... is not running`. **A ordem importa,
+e não é a óbvia.**
+
+### A sequência que funciona
+
+1. **Origem** — ler a chave sem despejar o JSON na tela:
+   ```sh
+   grep -o "[A-Za-z0-9+/=_-]\{24,\}" ~/.n8n/config
+   ```
+   (Um `sed` casando `":"` sem espaço NÃO funciona: o n8n grava o arquivo
+   formatado, com espaço depois dos dois-pontos.)
+
+2. **Destino** — apagar o arquivo ANTES de pôr a variável:
+   ```sh
+   rm ~/.n8n/config
+   ```
+
+3. **Destino** — só então gravar `N8N_ENCRYPTION_KEY` no painel e fazer Deploy.
+   Sem arquivo, não há com o que discordar; o n8n grava a chave nova.
+
+4. **Prova**, sem revelar valor nenhum:
+   ```sh
+   [ "$(grep -o "[A-Za-z0-9+/=_-]\{24,\}" ~/.n8n/config)" = "$N8N_ENCRYPTION_KEY" ] \
+     && echo IGUAIS || echo DIFERENTES
+   ```
+
+Se a variável for posta antes de apagar o arquivo — que foi o que aconteceu na
+primeira tentativa — o conserto é: **tirar** a variável, deixar subir pelo
+arquivo, aí apagar o arquivo, aí recolocar a variável. Três deploys em vez de um.
+
+### O que sobrou como pendência de segurança
+
+Durante a operação, apareceram em print (e portanto no histórico da conversa):
+a chave de criptografia das duas instâncias, a senha do Postgres do n8n de
+destino e o `N8N_RUNNERS_AUTH_TOKEN`. Nenhum deles é alcançável de fora — o
+Postgres só responde na rede interna do EasyPanel, e a chave só serve a quem
+já tiver o banco. Ficam registrados para rotação quando a fase fechar.
+
+---
+
 ## 4 · Os webhooks mudam de endereço
 
 Todo webhook migrado passa a responder no host novo. **O caminho não muda; o
