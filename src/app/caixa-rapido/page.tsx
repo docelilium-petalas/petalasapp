@@ -15,7 +15,8 @@ import { AppLayout } from '@/components/AppLayout'
 import * as crmActions from '@/app/actions/crm'
 import * as googleLeadsActions from '@/app/actions/googleLeads'
 import type { SegmentoRegra, SegmentoItem, DealPreview } from '@/app/actions/crm'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -210,7 +211,12 @@ function SegmentosTab({ pipelines, stages }: { pipelines: any[]; stages: any[] }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir este segmento?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este segmento?',
+      descricao: 'As pessoas continuam no CRM. Some só o agrupamento.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmActions.deleteSegmento(id)
       await loadSegmentos()
@@ -599,7 +605,12 @@ function TemplatesTab() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir este template?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este modelo de mensagem?',
+      descricao: 'Os disparos que já usaram o texto não mudam.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmActions.deleteTemplate(id)
       await loadTemplates()
@@ -836,7 +847,12 @@ function CadenciasTab() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir esta cadência?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir esta cadência?',
+      descricao: 'Quem está na sequência sai, e as mensagens que ainda não saíram são canceladas.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmActions.deleteCadence(id)
       await load()
@@ -1595,7 +1611,13 @@ export default function CaixaRapidoPage() {
   }
 
   const handleDeleteLista = async (lista: any) => {
-    if (!confirm(`Excluir a ação "${lista.nomeLista}"? Esta operação não pode ser desfeita.`)) return
+    const ok = await confirmar({
+      titulo: 'Excluir esta ação?',
+      alvo: lista.nomeLista,
+      descricao: 'Some com o histórico de envio dela. Não dá para desfazer.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmActions.deleteListaDisparo(lista.id)
       toast.success('Ação excluída.')
@@ -1733,7 +1755,6 @@ export default function CaixaRapidoPage() {
 
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto scrollbar-thin">
         <div className="p-4 sm:p-6 md:p-8 space-y-6">
 
@@ -1857,7 +1878,13 @@ export default function CaixaRapidoPage() {
                                     <button
                                       onClick={async (e) => {
                                         e.stopPropagation()
-                                        if (!confirm(`Cancelar todas as etapas pendentes de "${acao.nome}"?`)) return
+                                        const ok = await confirmar({
+                                          titulo: 'Cancelar as etapas que ainda não saíram?',
+                                          alvo: acao.nome,
+                                          descricao: 'O que já foi enviado continua no histórico. A ação para de avançar.',
+                                          confirmar: 'Cancelar etapas',
+                                        })
+                                        if (!ok) return
                                         try {
                                           await crmActions.cancelarAcaoCaixaRapido(acao.id)
                                           loadData()
@@ -1874,7 +1901,13 @@ export default function CaixaRapidoPage() {
                                     <button
                                       onClick={async (e) => {
                                         e.stopPropagation()
-                                        if (!confirm(`Excluir definitivamente a ação "${acao.nome}" e todas as suas etapas?`)) return
+                                        const ok = await confirmar({
+                                          titulo: 'Excluir esta ação e todas as etapas dela?',
+                                          alvo: acao.nome,
+                                          descricao: 'Some junto com o histórico. Não dá para desfazer.',
+                                          confirmar: 'Excluir',
+                                        })
+                                        if (!ok) return
                                         try {
                                           await crmActions.excluirAcaoCaixaRapido(acao.id)
                                           loadData()
@@ -1953,7 +1986,12 @@ export default function CaixaRapidoPage() {
                                                 </button>
                                                 <button
                                                   onClick={async () => {
-                                                    if (!confirm('Cancelar este disparo agendado?')) return
+                                                    const ok = await confirmar({
+                                                      titulo: 'Cancelar este disparo agendado?',
+                                                      descricao: 'Ele não sai no horário marcado. Dá para agendar de novo depois.',
+                                                      confirmar: 'Cancelar disparo',
+                                                    })
+                                                    if (!ok) return
                                                     try {
                                                       await crmActions.cancelarListaDaAcao(lista.id)
                                                       loadData()

@@ -12,7 +12,7 @@ import {
   ChevronRight, MapPinOff, Filter, Calendar, MessageCircle, Map as MapIcon,
   Trophy, Ban, GitBranch, Loader2,
 } from 'lucide-react'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
 import { InlineError } from '@/components/ui/InlineError'
 
 // ─── Geometria do mapa (SVG viewBox fixo — escala responsiva via width:100%) ──
@@ -510,7 +510,6 @@ export default function RadarPage() {
 
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" />
       <div className="flex flex-col h-full bg-black text-foreground overflow-y-auto scrollbar-thin p-4 sm:p-6 md:p-8 animate-fade-in">
 
         {/* Header */}

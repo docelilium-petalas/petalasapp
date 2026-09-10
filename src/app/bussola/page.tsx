@@ -17,7 +17,7 @@ import {
   AlertCircle, Bot, Send, X, Activity, Globe,
   MessageCircle, Star, Megaphone, Search
 } from 'lucide-react'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
   CartesianGrid, BarChart, Bar, Cell
@@ -243,7 +243,6 @@ export default function BussolaPage() {
 
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <div className="flex flex-col h-full min-h-screen bg-background text-foreground select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────────── */}

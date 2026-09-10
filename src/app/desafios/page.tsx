@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { confirmar } from '@/components/ui/ConfirmSheet'
-import { AppToaster } from '@/components/ui/AppToaster'
 import { AppLayout } from '@/components/AppLayout'
 import * as desafiosActions from '@/app/actions/desafios'
 import {
@@ -497,7 +496,6 @@ export default function DesafiosPage() {
 
   return (
     <AppLayout>
-      <AppToaster />
       <div className="flex flex-col h-full bg-black text-foreground overflow-y-auto scrollbar-thin p-4 sm:p-6 md:p-8">
 
         {/* Header */}

@@ -20,7 +20,8 @@ import {
   ChevronRight, CheckSquare, Square, AlertCircle, ShoppingBag,
   Info, Globe, Database, Settings, Check
 } from 'lucide-react'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 import { z } from 'zod'
 import { useCategories } from '@/lib/categories'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
@@ -315,7 +316,12 @@ export default function ContactsPage() {
     const ids = Object.keys(checkedIds).filter(id => checkedIds[id])
     if (ids.length === 0) return
     
-    if (!window.confirm(`Tem certeza que deseja excluir permanentemente ${ids.length} contatos?`)) {
+    const ok = await confirmar({
+      titulo: `Excluir ${ids.length} ${ids.length === 1 ? 'contato' : 'contatos'} para sempre?`,
+      descricao: 'Os negócios e o histórico de cada um vão junto. Não dá para desfazer.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) {
       return
     }
 
@@ -473,7 +479,14 @@ export default function ContactsPage() {
 
   // Delete single contact
   const handleSingleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir permanentemente este contato e todos os seus negócios associados?')) return
+    const alvo = contacts.find((c) => c.id === id)
+    const ok = await confirmar({
+      titulo: 'Excluir este contato para sempre?',
+      alvo: alvo ? `${alvo.nome}${alvo.sobrenome ? ' ' + alvo.sobrenome : ''}` : undefined,
+      descricao: 'Os negócios ligados a ele vão junto. Não dá para desfazer.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await deleteContact.execute(id)
       setSelectedId(null)
@@ -487,7 +500,13 @@ export default function ContactsPage() {
   // Merge contact submission
   const handleMerge = async () => {
     if (!selectedId || !mergeTargetId) return
-    if (!window.confirm('Atenção: Esta ação é irreversível. O contato secundário será excluído e seus negócios/atividades serão vinculados ao contato principal. Confirmar mesclagem?')) return
+    const ok = await confirmar({
+      titulo: 'Juntar os dois contatos?',
+      descricao:
+        'O contato secundário deixa de existir, e os negócios e atividades dele passam para o principal. Não dá para separar depois.',
+      confirmar: 'Juntar',
+    })
+    if (!ok) return
     try {
       const merged = await mergeContacts.execute(selectedId, mergeTargetId)
       setSelectedId(merged.id)
@@ -607,7 +626,6 @@ export default function ContactsPage() {
 
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <div className="flex h-full flex-col bg-background text-foreground relative">
         
         {/* MAIN COLUMN: LIST AND FILTERS */}

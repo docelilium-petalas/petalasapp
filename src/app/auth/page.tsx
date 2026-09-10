@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Zap, Coins, ArrowRight, ShieldCheck, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 
 type Mode = 'login' | 'register'
 
@@ -70,7 +70,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex text-foreground select-none relative overflow-hidden bg-card">
-      <Toaster theme="dark" position="top-right" closeButton />
 
       {/* Floating Ambient Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float" />

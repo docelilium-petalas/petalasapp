@@ -26,7 +26,6 @@ import {
   SlidersHorizontal, ChevronDown, ChevronRight, CheckCircle2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
-import { AppToaster } from '@/components/ui/AppToaster'
 import { getEstadoMaquina, alternarPausa, salvarAjustes, type EstadoMaquina } from '@/app/actions/maquina-vendas'
 
 type Aba = 'tabela' | 'conversa' | 'cadencias' | 'ritmo'
@@ -138,7 +137,6 @@ export default function MaquinaDeVendasPage() {
 
   return (
     <AppLayout>
-      <AppToaster />
       <div className="flex flex-col h-full bg-background text-foreground select-none overflow-y-auto scrollbar-thin">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] w-full mx-auto space-y-6">
 

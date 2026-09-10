@@ -13,7 +13,8 @@ import {
 import { harmonizarCorEtapa } from '@/lib/cores-etapa'
 import * as crmActions from '@/app/actions/crm'
 import { useCategories } from '@/lib/categories'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 import { crmService } from '@/lib/services'
 import { MockPipeline, MockStage, MockDeal, MockUser, MockTeam, MockIntegration, MockWebhookLog, MockAIAgentConfig } from '@/lib/mockData'
 import {
@@ -321,7 +322,12 @@ function SettingsContent() {
   }
 
   const handleDeleteTemplate = async (id: string) => {
-    if (!window.confirm('Deseja realmente excluir este template?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este modelo de mensagem?',
+      descricao: 'Os disparos que já usaram o texto não mudam.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmActions.deleteTemplate(id)
       toast.success('Template excluído com sucesso!')
@@ -409,8 +415,13 @@ function SettingsContent() {
     setShowAddChannel(true)
   }
 
-  const handleDeleteChannel = (id: string) => {
-    if (!window.confirm('Excluir este canal de disparo?')) return
+  const handleDeleteChannel = async (id: string) => {
+    const ok = await confirmar({
+      titulo: 'Excluir este canal de disparo?',
+      descricao: 'As mensagens param de sair por ele. O histórico do que já saiu continua.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     const updated = channels.filter(c => c.id !== id)
     saveChannelsToStorage(updated)
     toast.success('Canal de disparo removido.')
@@ -769,8 +780,13 @@ function SettingsContent() {
     const pipe = pipelines.find(p => p.id === pipeId)
     if (!pipe) return
 
-    const confirm = window.confirm(`Atenção: A exclusão do funil "${pipe.nome}" é IRREVERSÍVEL. Todos os negócios, estágios e históricos vinculados a ele serão excluídos permanentemente. Deseja prosseguir?`)
-    if (!confirm) return
+    const ok = await confirmar({
+      titulo: 'Excluir este funil inteiro?',
+      alvo: pipe.nome,
+      descricao: 'Todos os negócios, etapas e históricos dentro dele vão junto. Não dá para desfazer.',
+      confirmar: 'Excluir funil',
+    })
+    if (!ok) return
 
     try {
       await crmActions.deletePipeline(pipeId)
@@ -853,7 +869,7 @@ function SettingsContent() {
     }
   }
 
-  const handleDeleteStageClick = (stage: MockStage) => {
+  const handleDeleteStageClick = async (stage: MockStage) => {
     if (stages.length <= 1) {
       toast.error('Você não pode excluir a única etapa deste funil. Crie outra etapa primeiro.')
       return
@@ -866,9 +882,13 @@ function SettingsContent() {
       const remaining = stages.filter(s => s.id !== stage.id)
       setMigrationStageId(remaining[0]?.id || '')
     } else {
-      if (window.confirm(`Deseja realmente excluir a etapa "${stage.nome}"?`)) {
-        executeDeleteStage(stage.id)
-      }
+      const ok = await confirmar({
+        titulo: 'Excluir esta etapa do funil?',
+        alvo: stage.nome,
+        descricao: 'Não há nenhum negócio nela, então nada é perdido.',
+        confirmar: 'Excluir',
+      })
+      if (ok) executeDeleteStage(stage.id)
     }
   }
 
@@ -924,7 +944,12 @@ function SettingsContent() {
   }
 
   const handleDeleteIntegration = async (id: string) => {
-    if (!window.confirm('Excluir esta integração e todos os endpoints vinculados?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir esta integração?',
+      descricao: 'Os endpoints ligados a ela vão junto, e o que dependia deles para de funcionar.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmService.deleteIntegration(id)
       toast.success('Integração removida!')
@@ -959,7 +984,12 @@ function SettingsContent() {
   }
 
   const handleDeleteEndpoint = async (endpointId: string) => {
-    if (!window.confirm('Excluir este endpoint?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este endpoint?',
+      descricao: 'O que apontava para ele para de receber.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmService.deleteWebhookEndpoint(endpointId)
       toast.success('Endpoint removido!')
@@ -1002,10 +1032,13 @@ function SettingsContent() {
     if (!aiConfig) return
     
     if (!newValue) {
-      const confirm = window.confirm(
-        'Atenção: Ao desativar o SDR Virtual, todas as sessões de qualificação ativas e históricos de conversas serão apagados permanentemente. Deseja prosseguir?'
-      )
-      if (!confirm) return
+      const ok = await confirmar({
+        titulo: 'Desligar o SDR Virtual?',
+        descricao:
+          'As conversas de qualificação em andamento e o histórico delas são apagados. Não dá para recuperar.',
+        confirmar: 'Desligar',
+      })
+      if (!ok) return
     }
 
     try {
@@ -1130,7 +1163,12 @@ function SettingsContent() {
   }
 
   const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Excluir este usuário permanentemente?')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este usuário?',
+      descricao: 'Ele perde o acesso na hora. Os registros que ele criou continuam.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmService.deleteUser(userId)
       toast.success('Usuário removido!')
@@ -1198,7 +1236,12 @@ function SettingsContent() {
   }
 
   const handleDeleteTeam = async (teamId: string) => {
-    if (!window.confirm('Deseja realmente excluir este time? Os membros não serão deletados, apenas o time.')) return
+    const ok = await confirmar({
+      titulo: 'Excluir este time?',
+      descricao: 'As pessoas continuam no sistema — some só o agrupamento.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await crmService.deleteTeam(teamId)
       toast.success('Time desintegrado!')
@@ -3099,7 +3142,6 @@ function SettingsFallback() {
 export default function SettingsPage() {
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <Suspense fallback={<SettingsFallback />}>
         <SettingsContent />
       </Suspense>

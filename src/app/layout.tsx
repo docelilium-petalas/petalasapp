@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { DM_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
+import { AppToaster } from '@/components/ui/AppToaster'
+import { ConfirmHost } from '@/components/ui/ConfirmSheet'
 
 /**
  * Duas famílias, com papéis separados — ver o bloco de tipografia em
@@ -46,8 +48,23 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
     >
+      {/*
+        Os dois hosts globais moram AQUI, e não em cada página.
+
+        Era esse o defeito: o `ConfirmHost` não estava montado em lugar nenhum,
+        e `confirmar()` nega por omissão quando não acha o host — então toda
+        confirmação desenhada resolveria "não" em silêncio, e a ação do usuário
+        simplesmente não aconteceria. O `AppToaster` estava montado em 3 das 20
+        páginas, o que fazia o aviso de sucesso aparecer em umas e sumir em
+        outras.
+
+        Um host que cada página precisa lembrar de montar é um host que metade
+        das páginas esquece.
+      */}
       <body className="min-h-full flex flex-col font-sans">
         <AuthProvider>{children}</AuthProvider>
+        <AppToaster />
+        <ConfirmHost />
       </body>
     </html>
   )

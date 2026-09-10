@@ -14,7 +14,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, CartesianGrid
 } from 'recharts'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 const BRL = (v: number) =>
@@ -254,7 +254,6 @@ export default function DashboardPage() {
   // ─── RENDER ────────────────────────────────────────────────────────────────
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" />
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in select-none">
 
         {/* ── HEADER ──────────────────────────────────────────────────────── */}

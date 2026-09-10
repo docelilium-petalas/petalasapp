@@ -109,7 +109,7 @@ export function ConfirmHost() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in max-md:items-end max-md:p-0"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-sm animate-fade-in max-md:items-end max-md:p-0"
       onClick={() => responder(false)}
       role="alertdialog"
       aria-modal="true"
@@ -117,17 +117,17 @@ export function ConfirmHost() {
     >
       <div
         onClick={e => e.stopPropagation()}
-        className={`w-full max-w-sm rounded-3xl border border-border/60 bg-[#0e0e11] shadow-2xl p-6 relative max-md:max-w-none max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-l-0 max-md:border-r-0 max-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] ${
+        className={`w-full max-w-sm rounded-3xl border border-border bg-card shadow-2xl p-6 relative max-md:max-w-none max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-l-0 max-md:border-r-0 max-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))] ${
           fechando ? 'mobile-bottom-sheet-down' : 'mobile-bottom-sheet animate-scale-in'
         }`}
       >
         <div className="hidden max-md:flex justify-center shrink-0 -mt-2 mb-3">
-          <div className="w-12 h-1.5 rounded-full bg-card" />
+          <div className="w-12 h-1.5 rounded-full bg-border" />
         </div>
 
         <button
           onClick={() => responder(false)}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors no-touch-target max-md:hidden"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors no-touch-target max-md:hidden"
           aria-label="Fechar"
         >
           <X className="w-4 h-4" />
@@ -148,7 +148,7 @@ export function ConfirmHost() {
         </h3>
 
         {pedido.alvo && (
-          <p className="mt-2.5 px-3 py-2 rounded-xl border border-border/40 bg-card/60 text-xs font-semibold text-foreground truncate select-text">
+          <p className="mt-2.5 px-3 py-2 rounded-xl border border-border-subtle bg-secondary text-xs font-semibold text-foreground truncate select-text">
             {pedido.alvo}
           </p>
         )}
@@ -162,17 +162,17 @@ export function ConfirmHost() {
         <div className="flex gap-3 mt-6 max-md:flex-col-reverse">
           <button
             onClick={() => responder(false)}
-            className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-card hover:text-foreground transition-all"
+            className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
           >
             {pedido.cancelar ?? 'Cancelar'}
           </button>
           <button
             ref={botaoRef}
             onClick={() => responder(true)}
-            className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0e0e11] ${
+            className={`flex-1 py-2.5 rounded-xl font-extrabold text-xs transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card ${
               destrutivo
                 ? 'bg-destructive text-white hover:shadow-lg hover:shadow-destructive/20 focus:ring-destructive'
-                : 'bg-primary text-black hover:shadow-lg hover:shadow-primary/20 focus:ring-primary'
+                : 'bg-[hsl(var(--brand-solid))] text-white hover:shadow-lg hover:shadow-[hsl(var(--brand-solid))]/25 focus:ring-[hsl(var(--brand-solid))]'
             }`}
           >
             {pedido.confirmar ?? (destrutivo ? 'Excluir' : 'Confirmar')}

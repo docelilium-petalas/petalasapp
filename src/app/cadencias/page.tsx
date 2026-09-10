@@ -18,7 +18,8 @@ import {
   updateCadenceLeadStatus,
   removeLeadFromCadence
 } from '@/app/actions/crm'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 
 interface Template {
   id: string
@@ -308,7 +309,12 @@ export default function CadenciasPage() {
 
   // Handle Delete Cadence
   const handleDelete = async (id: string) => {
-    if (!confirm('Deseja realmente excluir esta cadência? Todos os leads na sequência serão removidos.')) return
+    const ok = await confirmar({
+      titulo: 'Excluir esta cadência?',
+      descricao: 'Todo mundo que está na sequência sai dela, e as mensagens ainda não enviadas são canceladas.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
 
     try {
       await deleteCadence(id)
@@ -354,7 +360,12 @@ export default function CadenciasPage() {
 
   // Handle Remove Lead
   const handleRemoveLead = async (leadId: string) => {
-    if (!confirm('Remover este lead desta cadência?')) return
+    const ok = await confirmar({
+      titulo: 'Tirar esta pessoa da cadência?',
+      descricao: 'As mensagens que ainda não saíram são canceladas. As que já saíram continuam no histórico.',
+      confirmar: 'Tirar da cadência',
+    })
+    if (!ok) return
     try {
       await removeLeadFromCadence(leadId)
       toast.success('Lead removido da cadência.')
@@ -398,7 +409,6 @@ export default function CadenciasPage() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 pb-6 font-sans select-text">
-      <Toaster theme="dark" position="top-right" closeButton />
 
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

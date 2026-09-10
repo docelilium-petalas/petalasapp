@@ -28,7 +28,6 @@ import {
   CheckCircle2, AlertTriangle, ArrowLeft, Pencil, RotateCcw, X, Loader2, Database, Undo2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
-import { AppToaster } from '@/components/ui/AppToaster'
 import { CATALOGO, VARIAVEIS, type TemplateMeta } from '@/lib/maquina-vendas/catalogo-templates'
 import { getRevisoes, salvarRevisao, validarEdicao, restaurarOriginal, type Revisao } from '@/app/actions/templates'
 
@@ -134,7 +133,6 @@ export default function TemplatesPage() {
 
   return (
     <AppLayout>
-      <AppToaster />
       <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto scrollbar-thin">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[900px] w-full mx-auto space-y-6">
 

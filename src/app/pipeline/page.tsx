@@ -17,7 +17,8 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
 
 import { MockDeal, MockContact, MockUser, MockActivity, MockPipeline, MockStage, MockDealStageHistory } from '@/lib/mockData'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { useCategories } from '@/lib/categories'
 
@@ -981,7 +982,17 @@ function PipelineContent() {
 
   // Delete / Archive Deal
   const handleDeleteDeal = async (id: string, forcePermanent = false) => {
-    if (!confirm(forcePermanent ? 'Excluir permanentemente?' : 'Deseja arquivar este negócio?')) return
+    const alvo = deals.find((d) => d.id === id)
+    const ok = await confirmar({
+      titulo: forcePermanent ? 'Excluir este negócio para sempre?' : 'Arquivar este negócio?',
+      alvo: alvo?.titulo,
+      descricao: forcePermanent
+        ? 'Some do sistema junto com o histórico dele. Não dá para desfazer.'
+        : 'Sai do funil e continua em Arquivados, com todo o histórico. Dá para trazer de volta.',
+      confirmar: forcePermanent ? 'Excluir' : 'Arquivar',
+      destrutivo: forcePermanent,
+    })
+    if (!ok) return
     try {
       await crmActions.deleteDeal(id, forcePermanent)
       if (forcePermanent) {
@@ -1218,7 +1229,14 @@ function PipelineContent() {
   }
 
   const handleBulkCloseWon = async () => {
-    if (!confirm('Deseja realmente marcar todos os negócios selecionados como GANHOS?')) return
+    const n = selectedDeals.size
+    const ok = await confirmar({
+      titulo: `Marcar ${n} ${n === 1 ? 'negócio' : 'negócios'} como GANHO?`,
+      descricao: 'Eles saem do funil e passam a contar no resultado do mês.',
+      confirmar: 'Marcar como ganho',
+      destrutivo: false,
+    })
+    if (!ok) return
     try {
       const promises = Array.from(selectedDeals).map((id) =>
         crmActions.closeDeal(id, 'WON')
@@ -1239,13 +1257,22 @@ function PipelineContent() {
   }
 
   const handleBulkDelete = async () => {
-    if (!confirm('Excluir TODOS os negócios selecionados permanentemente? Esta ação é irreversível.')) return
+    // O texto antigo dizia "permanentemente, irreversível" e chamava
+    // `deleteDeal(id, false)`, que é o caminho de ARQUIVAR. A mensagem mentia
+    // sobre o que o botão faz — e no lado que assusta, que é o pior lado.
+    const n = selectedDeals.size
+    const ok = await confirmar({
+      titulo: `Arquivar ${n} ${n === 1 ? 'negócio' : 'negócios'}?`,
+      descricao: 'Saem do funil e continuam em Arquivados, com todo o histórico. Dá para trazer de volta.',
+      confirmar: 'Arquivar',
+    })
+    if (!ok) return
     try {
       const promises = Array.from(selectedDeals).map((id) => crmActions.deleteDeal(id, false))
       await Promise.all(promises)
       await loadPipelineData(selectedPipelineId)
       setSelectedDeals(new Set())
-      toast.success('Negócios excluídos em lote!')
+      toast.success('Negócios arquivados em lote.')
     } catch {
       toast.error('Erro ao excluir em lote.')
     }
@@ -3745,7 +3772,6 @@ function PipelineFallback() {
 export default function PipelinePage() {
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <Suspense fallback={<PipelineFallback />}>
         <PipelineContent />
       </Suspense>

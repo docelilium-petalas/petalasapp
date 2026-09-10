@@ -5,7 +5,8 @@ import { AppLayout } from '@/components/AppLayout'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
-import { toast, Toaster } from 'sonner'
+import { toast } from 'sonner'
+import { confirmar } from '@/components/ui/ConfirmSheet'
 import {
   Plus, X, Calendar, Clock, Check, Trash2, Edit3,
   ChevronLeft, ChevronRight, Filter, Phone, Mail,
@@ -333,7 +334,14 @@ function ActivitiesContent() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Deseja realmente excluir esta atividade?')) return
+    const alvo = activities.find((a) => a.id === id)
+    const ok = await confirmar({
+      titulo: 'Excluir esta atividade?',
+      alvo: alvo?.titulo,
+      descricao: 'Ela some da agenda e do histórico do negócio.',
+      confirmar: 'Excluir',
+    })
+    if (!ok) return
     try {
       await deleteAct(id)
       toast.success('Atividade excluída!')
@@ -1075,7 +1083,6 @@ function ActivitiesFallback() {
 export default function ActivitiesPage() {
   return (
     <AppLayout>
-      <Toaster theme="dark" position="top-right" closeButton />
       <Suspense fallback={<ActivitiesFallback />}>
         <ActivitiesContent />
       </Suspense>
