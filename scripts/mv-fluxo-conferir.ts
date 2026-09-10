@@ -21,6 +21,8 @@ import prisma from '../src/lib/prisma'
 import { inscrever } from '../src/lib/maquina-vendas/observador'
 import { despachar } from '../src/lib/maquina-vendas/despachante'
 import { obterAjustes } from '../src/lib/maquina-vendas/config'
+import { tratarEventoPedido } from '../src/lib/maquina-vendas/gatilho-pedido'
+import type { Pedido } from '../src/lib/nuvemshop/loja'
 
 const url = process.env.DATABASE_URL ?? ''
 if (!/_prova(\?|$)/.test(url)) {
@@ -121,6 +123,54 @@ async function main() {
   console.log(`\n  inscrição virou: ${depois?.status} (${depois?.motivoParada})`)
   console.log(`  mensagens ainda agendadas: ${restantes}`)
   console.log(`  ${depois?.status === 'OPT_OUT' && restantes === 0 ? '✓ saiu da fila' : '✗ continua na fila'}`)
+
+  titulo('6 · A PESSOA COMPRA — o carrinho para, o pedido comeca')
+  await prisma.mvOptOut.deleteMany({ where: { telefoneKey: '99630121' } })
+  await prisma.mvInscricao.deleteMany({ where: { refExterna: { startsWith: 'PROVA-' } } })
+  await inscrever({
+    ajustes,
+    cadenciaId: cadencia.id,
+    etapas: cadencia.etapas,
+    origem: 'carrinho',
+    refExterna: 'PROVA-comprou',
+    nome: 'Bruna',
+    e164: '+5562999630121',
+    chave: '99630121',
+    ancora: new Date(Date.now() - 30 * 3_600_000),
+    contexto: { primeiro_nome: 'Bruna', peca: 'a saia Lis', link: 'https://exemplo/checkout/ab/2' },
+    retrato: {},
+  })
+
+  const pedido = {
+    id: 991, number: 1042, contact_name: 'Bruna Alves', contact_phone: '62999630121',
+    status: 'open', payment_status: 'paid', total: '289.90', currency: 'BRL',
+    products: [{ name: 'Saia Lis', quantity: 1 }], created_at: new Date().toISOString(),
+    paid_at: new Date().toISOString(),
+  } as unknown as Pedido
+
+  console.log('   order/created:', await tratarEventoPedido('order/created', { ...pedido, payment_status: 'pending' }))
+  const antes = await prisma.mvInscricao.findFirst({ where: { refExterna: 'PROVA-comprou' } })
+  console.log(`   -> carrinho: ${antes?.status}, valor gravado: ${antes?.valorConvertido ?? 'nenhum'}  (certo: nenhum, nao pagou ainda)`)
+
+  console.log('\n   order/paid   :', await tratarEventoPedido('order/paid', pedido))
+  const depoisPago = await prisma.mvInscricao.findFirst({ where: { refExterna: 'PROVA-comprou' } })
+  const doPedido = await prisma.mvInscricao.findFirst({ where: { origem: 'pedido', refExterna: '991' }, include: { mensagens: true } })
+  console.log(`   -> carrinho: ${depoisPago?.status}, valor: R$ ${depoisPago?.valorConvertido ?? '—'}`)
+  console.log(`   -> pedido  : ${doPedido ? `inscrito, ${doPedido.mensagens.length} mensagem, prioridade ${doPedido.prioridade}` : 'NAO inscrito'}`)
+  console.log(`   ${depoisPago?.valorConvertido && doPedido ? '✓ contabilidade e trilha certas' : '✗'}`)
+
+  titulo('7 · FORA DA JANELA — transacional sai, marketing espera')
+  // Janela fechada de proposito: 03:00 as 03:01.
+  await prisma.mvAjustes.update({ where: { id: 'unico' }, data: { janelaInicio: '03:00', janelaFim: '03:01' } })
+  await prisma.mvCursor.deleteMany({})
+  const r = await despachar()
+  const enviada = await prisma.mvMensagem.findFirst({
+    where: { inscricao: { origem: 'pedido' } },
+    select: { templateNome: true, status: true, naturezaFalha: true },
+  })
+  console.log('  ', r)
+  console.log(`   a que o despachante escolheu: ${enviada?.templateNome} (${enviada?.status}${enviada?.naturezaFalha ? ', ' + enviada.naturezaFalha : ''})`)
+  console.log(`   ${enviada?.templateNome === 'dl_pagamento_aprovado_v1' ? '✓ pegou a transacional, e nao a de marketing' : '✗ pegou a errada'}`)
 
   console.log()
 }

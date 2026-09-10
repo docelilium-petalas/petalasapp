@@ -208,6 +208,8 @@ export async function inscrever(args: {
   ancora: Date
   contexto: Contexto
   retrato: unknown
+  /** Menor sai primeiro. 0 = já comprou alguma vez. Padrão 1. */
+  prioridade?: number
 }): Promise<void> {
   const existente = await prisma.mvInscricao.findUnique({
     where: {
@@ -251,6 +253,7 @@ export async function inscrever(args: {
         telefoneKey: args.chave,
         ancoraEm: args.ancora,
         contexto: args.retrato as never,
+        prioridade: args.prioridade ?? 1,
         status: 'ATIVA',
       },
     })

@@ -1,5 +1,5 @@
 /**
- * O DESPACHANTE — o que sai agora, e as sete razões para não sair.
+ * O DESPACHANTE — o que sai agora, e as oito razões para não sair.
  *
  * ══════════════════════════════════════════════════════════════════════════
  * Este arquivo é quase todo GUARDA. Isso é de propósito: o trabalho de mandar
@@ -18,14 +18,20 @@
  * ── OS GUARDAS, NA ORDEM EM QUE VALEM ─────────────────────────────────────
  *   1. pausa           alguém desligou pela tela. Ganha de tudo.
  *   2. canal           sem credencial não se tenta — e não se finge que deu.
- *   3. janela          9h–20h na parede de São Paulo, fim de semana incluso.
- *   4. intervalo       3 a 12 min desde o último envio, sorteado.
- *   5. teto do dia     40 por padrão, contados na parede de São Paulo.
- *   6. opt-out         reconferido AGORA: pode ter chegado depois da semeadura.
- *   7. respondeu       quem falou com a gente sai da régua na hora.
+ *   3. intervalo       3 a 12 min desde o último envio, sorteado.
+ *   4. opt-out         reconferido AGORA: pode ter chegado depois da semeadura.
+ *   5. respondeu       quem falou com a gente sai da régua na hora.
+ *   ── daqui para baixo, SÓ PARA MARKETING ──
+ *   6. janela          9h–20h na parede de São Paulo, fim de semana incluso.
+ *   7. teto do dia     40 por padrão, contados na parede de São Paulo.
  *   8. anti-eco        a mesma pessoa não recebe dois assuntos no mesmo dia.
  *
- * Do 6 em diante a conferência é por mensagem, e não por tique, porque são
+ * Os três últimos protegem a reputação do número contra disparo promocional.
+ * Aplicá-los a uma confirmação de pagamento seria segurar até as 9h da manhã
+ * uma mensagem que a pessoa está esperando agora — e a Meta trata UTILITY como
+ * outra coisa justamente porque ela é outra coisa.
+ *
+ * Do 4 em diante a conferência é por mensagem, e não por tique, porque são
  * fatos que mudam entre a semeadura e o envio. Guard que só roda na semeadura
  * é guard que não vale — foi assim que a CarBoss mandou mensagem para quem
  * tinha pedido para sair três dias antes.
@@ -36,6 +42,21 @@ import prisma from '@/lib/prisma'
 import { obterAjustes, dentroDaJanela, paredeSP, CURSOR_ULTIMO_ENVIO } from './config'
 import { canalConfigurado, enviarTemplate, ErroCanal, type NaturezaFalha } from './canal'
 import { reancorarAposEnvio } from './agenda'
+import { CATALOGO } from './catalogo-templates'
+
+/** Os nomes MARKETING, para o anti-eco não contar transacional como incômodo. */
+const NOMES_MARKETING = CATALOGO.filter((t) => t.categoria === 'MARKETING').map((t) => t.nome)
+
+/**
+ * A mensagem é resposta a um ato da pessoa (pedido, pagamento, entrega)?
+ *
+ * Template desconhecido conta como MARKETING de propósito: no escuro, o certo
+ * é aplicar TODOS os guards, não nenhum.
+ */
+function ehTransacional(templateNome: string | null): boolean {
+  if (!templateNome) return false
+  return CATALOGO.find((t) => t.nome === templateNome)?.categoria === 'UTILITY'
+}
 
 /**
  * Quanto tempo a mesma pessoa fica de fora depois de receber algo.
@@ -79,10 +100,7 @@ export async function despachar(): Promise<ResultadoDespacho> {
   // mensagem, gastando tentativa e sujando o log com um problema de config.
   if (!(await canalConfigurado())) return nada('canal de WhatsApp não configurado')
 
-  // 3 · JANELA
-  if (!dentroDaJanela(ajustes, agora)) return nada('fora da janela de envio')
-
-  // 4 · INTERVALO — o espaçamento que sobrevive a reinício.
+  // 3 · INTERVALO — o espaçamento que sobrevive a reinício.
   const cursor = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_ULTIMO_ENVIO } })
   if (cursor) {
     const desde = (agora.getTime() - new Date(cursor.valor).getTime()) / 60_000
@@ -92,13 +110,13 @@ export async function despachar(): Promise<ResultadoDespacho> {
     if (desde < sorteado) return nada(`aguardando intervalo (${desde.toFixed(1)} de ${sorteado.toFixed(1)} min)`)
   }
 
-  // 5 · TETO DO DIA
+  // O teto e a janela NÃO barram o tique inteiro: eles valem POR MENSAGEM, e
+  // só para marketing. Barrar aqui em cima seguraria também a confirmação de
+  // pagamento de quem comprou às 21h.
   const enviadasHoje = await prisma.mvMensagem.count({
     where: { status: 'ENVIADA', enviadaEm: { gte: inicioDoDiaSP(agora) } },
   })
-  if (enviadasHoje >= ajustes.tetoDiario) {
-    return nada(`teto do dia atingido (${enviadasHoje}/${ajustes.tetoDiario})`)
-  }
+  const janelaAberta = dentroDaJanela(ajustes, agora)
 
   // A fila: vencidas, de inscrição viva, quem não respondeu na frente.
   // Prioridade menor primeiro (0 = já comprou alguma vez), depois a mais antiga.
@@ -130,30 +148,40 @@ export async function despachar(): Promise<ResultadoDespacho> {
   for (const msg of candidatas) {
     const insc = msg.inscricao
 
-    // 6 · OPT-OUT — reconferido agora, não na semeadura.
+    // 4 · OPT-OUT — reconferido agora, não na semeadura.
     const saiu = await prisma.mvOptOut.findUnique({ where: { telefoneKey: insc.telefoneKey } })
     if (saiu) {
       canceladas += await encerrar(insc.id, 'OPT_OUT', 'pediu para sair depois da semeadura')
       continue
     }
 
-    // 7 · RESPONDEU — quem falou com a gente sai da régua. O robô insistindo
+    // 5 · RESPONDEU — quem falou com a gente sai da régua. O robô insistindo
     // depois da resposta é o defeito que mais irrita, e o mais fácil de evitar.
     if (insc.respondeuEm) {
       canceladas += await encerrar(insc.id, 'RESPONDEU', 'respondeu antes desta etapa')
       continue
     }
 
-    // 8 · ANTI-ECO — a mesma pessoa, dois assuntos, no mesmo dia.
-    const recente = await prisma.mvMensagem.findFirst({
-      where: {
-        status: 'ENVIADA',
-        enviadaEm: { gte: new Date(agora.getTime() - ANTI_ECO_HORAS * 3_600_000) },
-        inscricao: { telefoneKey: insc.telefoneKey },
-      },
-      select: { id: true },
-    })
-    if (recente) continue // não é erro: a vez dela é amanhã
+    // 6, 7 e 8 · SÓ PARA MARKETING — janela, teto do dia e anti-eco.
+    //
+    // Quem manda é a CATEGORIA do template aprovado, não um campo nosso: é a
+    // Meta que decide o que é utility, inclusive reclassificando por conta
+    // própria. Espelhar a decisão dela é o único jeito de não divergir.
+    if (!ehTransacional(msg.templateNome)) {
+      if (!janelaAberta) continue
+      if (enviadasHoje >= ajustes.tetoDiario) continue
+
+      const recente = await prisma.mvMensagem.findFirst({
+        where: {
+          status: 'ENVIADA',
+          enviadaEm: { gte: new Date(agora.getTime() - ANTI_ECO_HORAS * 3_600_000) },
+          inscricao: { telefoneKey: insc.telefoneKey },
+          templateNome: { in: NOMES_MARKETING },
+        },
+        select: { id: true },
+      })
+      if (recente) continue // não é erro: a vez dela é amanhã
+    }
 
     return await enviarUma(msg, insc, ajustes, agora, canceladas)
   }

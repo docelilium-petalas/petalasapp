@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { assinaturaValida } from '@/lib/nuvemshop/cliente'
 import { obterCredenciais } from '@/lib/nuvemshop/config'
-import { buscarPedido, telefoneDoCarrinho } from '@/lib/nuvemshop/loja'
-import { chaveTelefone, paraE164 } from '@/lib/maquina-vendas/telefone'
+import { buscarPedido } from '@/lib/nuvemshop/loja'
+import { tratarEventoPedido } from '@/lib/maquina-vendas/gatilho-pedido'
 
 export const dynamic = 'force-dynamic'
 
@@ -98,46 +98,20 @@ export async function POST(request: Request) {
 }
 
 async function tratar(event: string, pedidoId: number): Promise<void> {
-  // `order/paid` é o que interessa para a Máquina: e o momento em que um
-  // carrinho recuperado vira venda, e em que a cadência precisa PARAR.
+  // Só pedido: carrinho abandonado não tem webhook nesta plataforma, e vem
+  // pela varredura do tique.
   if (!event.startsWith('order/')) return
 
   const pedido = await buscarPedido(pedidoId)
-  const e164 = paraE164(telefoneDoCarrinho({ contact_phone: pedido.contact_phone } as never))
-  const chave = e164 ? chaveTelefone(e164) : ''
-  if (!chave) return
+  const r = await tratarEventoPedido(event, pedido)
 
-  if (event === 'order/paid' || event === 'order/created') {
-    // ENCERRA a cadência de carrinho dessa pessoa e cancela o que estava
-    // agendado. Continuar mandando "esqueceu algo no carrinho?" para quem
-    // acabou de comprar é a falha mais constrangedora que este módulo pode ter.
-    const agora = new Date()
-    const inscricoes = await prisma.mvInscricao.findMany({
-      where: { telefoneKey: chave, status: 'ATIVA' },
-      select: { id: true },
-    })
-    if (inscricoes.length === 0) return
-
-    const ids = inscricoes.map((i) => i.id)
-    await prisma.$transaction([
-      prisma.mvInscricao.updateMany({
-        where: { id: { in: ids } },
-        data: {
-          status: 'CONVERTEU',
-          motivoParada: `pedido ${pedido.number} ${event === 'order/paid' ? 'pago' : 'criado'}`,
-          converteuEm: agora,
-          valorConvertido: Number(pedido.total) || null,
-        },
-      }),
-      prisma.mvMensagem.updateMany({
-        where: { inscricaoId: { in: ids }, status: 'AGENDADA' },
-        data: { status: 'CANCELADA', erro: 'a pessoa comprou' },
-      }),
-    ])
-
-    await logar('INFO', 'carrinho_recuperado', `Pedido ${pedido.number} encerrou ${ids.length} cadência(s)`, {
+  if (r.cadenciasEncerradas || r.inscritoEmPedido || r.valorGravado) {
+    await logar('INFO', 'gatilho_pedido', `Pedido ${pedido.number} · ${event}`, {
       pedido: pedido.number,
-      total: pedido.total,
+      encerradas: r.cadenciasEncerradas,
+      valorGravado: r.valorGravado,
+      inscritoEmPedido: r.inscritoEmPedido,
+      motivo: r.motivo,
     })
   }
 }
