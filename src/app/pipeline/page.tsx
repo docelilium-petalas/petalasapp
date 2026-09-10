@@ -110,6 +110,8 @@ function DraggableDealCard({
   onMarkWon,
   onMarkLost,
   onDelete,
+  etapasDestino,
+  onMoverPara,
   history,
   stageSlaHours,
   pulsingDeals,
@@ -136,6 +138,9 @@ function DraggableDealCard({
   onMarkWon: () => void
   onMarkLost: () => void
   onDelete: () => void
+  /** As outras etapas do funil — a atual fica de fora. */
+  etapasDestino: { id: string; nome: string; cor: string }[]
+  onMoverPara: (stageId: string) => void
   history: MockDealStageHistory[]
   stageSlaHours: number
   pulsingDeals: Set<string>
@@ -248,6 +253,38 @@ function DraggableDealCard({
                 className="absolute right-0 top-8 w-44 rounded-xl border border-border-subtle bg-popover shadow-2xl overflow-hidden z-50"
                 onClick={(e) => e.stopPropagation()}
               >
+                {/*
+                  Mover pelo menu, e nao so arrastando.
+
+                  No celular o arrastar entre colunas exige rolar a faixa com
+                  uma mao enquanto a outra segura o cartao — na pratica,
+                  impossivel. Sem esta lista, mover um negocio no telefone
+                  significava abrir o negocio, achar o seletor de etapa e
+                  salvar: tres telas para o gesto mais comum do funil.
+                */}
+                {etapasDestino.length > 0 && (
+                  <>
+                    <p className="px-4 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Mover para
+                    </p>
+                    <div className="max-h-44 overflow-y-auto hide-scrollbar">
+                      {etapasDestino.map((et) => (
+                        <button
+                          key={et.id}
+                          onClick={() => onMoverPara(et.id)}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm hover:bg-secondary text-foreground transition-colors text-left"
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: harmonizarCorEtapa(et.cor) }}
+                          />
+                          <span className="truncate">{et.nome}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="h-px bg-border my-1" />
+                  </>
+                )}
                 <button
                   onClick={() => onMarkWon()}
                   className="flex items-center gap-2.5 w-full px-4 py-3 text-sm hover:bg-primary/10 text-primary transition-colors font-medium"
@@ -416,6 +453,8 @@ function DroppableColumn({
   onMarkLost,
   onDeleteDeal,
   onDeleteStage,
+  onMoverPara,
+  todasEtapas,
   pulsingDeals,
   lastMessageMap,
   activeCadenceSet
@@ -437,6 +476,8 @@ function DroppableColumn({
   onMarkLost: (deal: MockDeal) => void
   onDeleteDeal: (id: string, forcePermanent?: boolean) => void
   onDeleteStage: (stage: MockStage) => void
+  onMoverPara: (dealId: string, stageId: string) => void
+  todasEtapas: MockStage[]
   pulsingDeals: Set<string>
   lastMessageMap: Record<string, { time: string; isRecent: boolean }>
   activeCadenceSet: Set<string>
@@ -540,6 +581,10 @@ function DroppableColumn({
               onMarkWon={() => onMarkWon(deal)}
               onMarkLost={() => onMarkLost(deal)}
               onDelete={() => onDeleteDeal(deal.id)}
+              etapasDestino={todasEtapas
+                .filter((e) => e.id !== deal.stageId)
+                .map((e) => ({ id: e.id, nome: e.nome, cor: e.cor }))}
+              onMoverPara={(stageId) => onMoverPara(deal.id, stageId)}
               history={history}
               stageSlaHours={stage.slaHours}
               pulsingDeals={pulsingDeals}
@@ -650,6 +695,7 @@ function PipelineContent() {
   const [bulkOwnerTarget, setBulkOwnerTarget] = useState('')
   const [bulkPriorityTarget, setBulkPriorityTarget] = useState('')
   const [bulkTagTarget, setBulkTagTarget] = useState('')
+  const [bulkValorTarget, setBulkValorTarget] = useState('')
   const [selectedCadenciaTarget, setSelectedCadenciaTarget] = useState('')
   const [cadencias, setCadencias] = useState<any[]>([])
 
@@ -832,16 +878,18 @@ function PipelineContent() {
   const [activeDragDealId, setActiveDragDealId] = useState<string | null>(null)
 
   // Drag End handler
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
-
-    const dealId = active.id as string
-    const newStageId = over.id as string
-
+  /**
+   * Mover um negócio de etapa.
+   *
+   * Um caminho só para o arrastar e para o menu, com a `origem` dizendo qual
+   * gesto foi. Duplicar isto era o risco óbvio: a atualização otimista, o
+   * desfazer em caso de erro, o pulso de 6s e o recarregamento do histórico
+   * teriam que ser mantidos iguais em dois lugares — e a segunda cópia é
+   * sempre a que esquece o rollback.
+   */
+  const moverNegocio = async (dealId: string, newStageId: string, origem: string) => {
     const deal = deals.find((d) => d.id === dealId)
     if (!deal) return
-
     if (deal.stageId === newStageId) return
 
     // Optimistic UI update
@@ -851,7 +899,7 @@ function PipelineContent() {
     )
 
     try {
-      await crmActions.moveDealStage(dealId, newStageId, 'kanban_drag')
+      await crmActions.moveDealStage(dealId, newStageId, origem)
       
       // Pulse glow for 6s
       setPulsingDeals((prev) => {
@@ -875,6 +923,18 @@ function PipelineContent() {
       setDeals(previousDeals)
       toast.error('Erro ao mover negócio.')
     }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
+    await moverNegocio(active.id as string, over.id as string, 'kanban_drag')
+  }
+
+  /** Mover pelo menu do cartão — o caminho do celular, onde arrastar não dá. */
+  const handleMoverPara = async (dealId: string, stageId: string) => {
+    setOpenMenuDealId(null)
+    await moverNegocio(dealId, stageId, 'menu_cartao')
   }
 
   // Create Deal handler
@@ -1190,6 +1250,40 @@ function PipelineContent() {
     }
   }
 
+  /**
+   * Trocar o valor de vários negócios de uma vez.
+   *
+   * Valor ABSOLUTO, e não incremento: "somar 10%" parece útil e é o tipo de
+   * ação que ninguém consegue desfazer depois, porque cada negócio ficou com
+   * um valor diferente e não existe registro do que era antes.
+   */
+  const handleBulkChangeValor = async () => {
+    const valor = Number(bulkValorTarget.replace(/\./g, '').replace(',', '.'))
+    if (!Number.isFinite(valor) || valor < 0) {
+      toast.error('Informe um valor válido.')
+      return
+    }
+    const n = selectedDeals.size
+    const ok = await confirmar({
+      titulo: `Trocar o valor de ${n} ${n === 1 ? 'negócio' : 'negócios'}?`,
+      descricao: `Todos passam a valer ${BRL(valor)}. O valor anterior de cada um não fica guardado.`,
+      confirmar: 'Trocar valor',
+      destrutivo: false,
+    })
+    if (!ok) return
+    try {
+      await Promise.all(
+        Array.from(selectedDeals).map((id) => crmActions.updateDeal(id, { valorEstimado: valor })),
+      )
+      await loadPipelineData(selectedPipelineId)
+      setSelectedDeals(new Set())
+      setBulkValorTarget('')
+      toast.success('Valores alterados em lote.')
+    } catch {
+      toast.error('Erro ao alterar os valores.')
+    }
+  }
+
   const handleBulkAddTag = async () => {
     if (!bulkTagTarget) return
     try {
@@ -1282,19 +1376,6 @@ function PipelineContent() {
     } catch {
       toast.error('Erro ao excluir em lote.')
     }
-  }
-
-  const handleBulkAddToList = () => {
-    // Add WhatsApp blast list modal trigger
-    // Collect contact ids
-    const contactIds = Array.from(selectedDeals)
-      .map((dealId) => deals.find((d) => d.id === dealId)?.contactId)
-      .filter(Boolean)
-
-    if (contactIds.length === 0) return
-
-    toast.success(`${contactIds.length} contatos vinculados adicionados à lista de disparos!`)
-    setSelectedDeals(new Set())
   }
 
   // Filter computations
@@ -1625,6 +1706,35 @@ return sum + d.valorEstimado * (prob / 100)
                     <button onClick={handleBulkAddToCadence} disabled={!selectedCadenciaTarget}
                       className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Cadência</button>
                   </div>
+                  <div className="flex items-center gap-1">
+                    <MobileActionSelect label="Prioridade" value={bulkPriorityTarget} onChange={setBulkPriorityTarget}
+                      options={Object.entries(PRIORITY_CONFIG).map(([v, c]) => ({ value: v, label: c.label }))}
+                      placeholder="Prioridade..."
+                      className="bg-secondary border border-border-subtle rounded-xl px-2.5 py-1 text-xs" />
+                    <button onClick={handleBulkChangePriority} disabled={!bulkPriorityTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Aplicar</button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MobileActionSelect label="Etiqueta" value={bulkTagTarget} onChange={setBulkTagTarget}
+                      options={categoriesStore.categories.tags.map((t) => ({ value: t.label, label: t.label }))}
+                      placeholder="Etiqueta..."
+                      className="bg-secondary border border-border-subtle rounded-xl px-2.5 py-1 text-xs" />
+                    <button onClick={handleBulkAddTag} disabled={!bulkTagTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Etiquetar</button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] text-muted-foreground">R$</span>
+                    <input
+                      value={bulkValorTarget}
+                      onChange={(e) => setBulkValorTarget(e.target.value.replace(/[^\d.,]/g, ''))}
+                      inputMode="decimal"
+                      placeholder="0,00"
+                      aria-label="Novo valor para os negócios selecionados"
+                      className="w-24 bg-secondary border border-border-subtle rounded-xl px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                    />
+                    <button onClick={handleBulkChangeValor} disabled={!bulkValorTarget}
+                      className="px-2.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Valor</button>
+                  </div>
                   <button onClick={handleBulkCloseWon}
                     className="px-2.5 py-1.5 rounded-xl bg-success hover:bg-success text-primary-foreground font-bold text-xs">Ganho</button>
                   <button onClick={handleBulkCloseLost}
@@ -1806,6 +1916,10 @@ return sum + d.valorEstimado * (prob / 100)
                         onMarkWon={() => handleMarkWon(deal)}
                         onMarkLost={() => triggerMarkLost(deal)}
                         onDelete={() => handleDeleteDeal(deal.id)}
+                        etapasDestino={stages
+                          .filter((e) => e.id !== deal.stageId)
+                          .map((e) => ({ id: e.id, nome: e.nome, cor: e.cor }))}
+                        onMoverPara={(stageId) => handleMoverPara(deal.id, stageId)}
                         history={history}
                         stageSlaHours={stage.slaHours}
                         pulsingDeals={pulsingDeals}
@@ -1869,6 +1983,8 @@ return sum + d.valorEstimado * (prob / 100)
                     onMarkWon={handleMarkWon}
                     onMarkLost={triggerMarkLost}
                     onDeleteDeal={handleDeleteDeal}
+                    onMoverPara={handleMoverPara}
+                    todasEtapas={stages}
                     onDeleteStage={setStageToDelete}
                     pulsingDeals={pulsingDeals}
                     lastMessageMap={lastMessageMap}
@@ -2054,6 +2170,18 @@ return sum + d.valorEstimado * (prob / 100)
             className="px-2.5 py-1.5 rounded-xl bg-success text-primary-foreground font-bold text-xs flex items-center gap-1.5">
             <Zap className="w-3 h-3" /> Nova Ação
           </button>
+          {/*
+            Mover em lote no celular. É aqui que mais faz falta: arrastar entre
+            colunas com o dedo exige rolar a faixa e segurar o cartão ao mesmo
+            tempo, o que não dá com uma mão só.
+          */}
+          <div className="flex items-center gap-1">
+            <MobileActionSelect label="Mover etapa" value={bulkStageTarget} onChange={setBulkStageTarget}
+              options={stages.map((st) => ({ value: st.id, label: st.nome }))} placeholder="Etapa..."
+              className="bg-secondary border border-border-subtle rounded-xl px-2 py-1 text-xs" />
+            <button onClick={handleBulkMove} disabled={!bulkStageTarget}
+              className="px-2 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs disabled:opacity-40">Mover</button>
+          </div>
           <button onClick={handleBulkCloseWon} className="px-2 py-1.5 rounded-xl bg-success text-primary-foreground font-bold text-xs">Ganho</button>
           <button onClick={handleBulkCloseLost} className="px-2 py-1.5 rounded-xl bg-destructive text-primary-foreground font-bold text-xs">Perdido</button>
           <button onClick={() => { setSelectedDeals(new Set()); setIsSelectionMode(false) }}
