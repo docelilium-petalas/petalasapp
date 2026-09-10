@@ -15,13 +15,14 @@ import { crmService } from '@/lib/services'
 import type { ContactInput } from '@/app/actions/crm'
 import * as crmActions from '@/app/actions/crm'
 import {
-  Plus, Search, X, Phone, Mail, MapPin, Tag, Edit2, Trash2,
+  Plus, Search, X, Phone, Mail, MapPin, Tag, Edit2, Trash2, Upload,
   UserCheck, Merge, Zap, ArrowLeft, Calendar, FileText,
   ChevronRight, CheckSquare, Square, AlertCircle, ShoppingBag,
   Info, Globe, Database, Settings, Check
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { confirmar } from '@/components/ui/ConfirmSheet'
+import { ImportarContatos } from '@/components/ui/ImportarContatos'
 import { z } from 'zod'
 import { useCategories } from '@/lib/categories'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
@@ -75,6 +76,7 @@ export default function ContactsPage() {
   // Selection mode states
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({})
+  const [importando, setImportando] = useState(false)
   const [selectedListaTarget, setSelectedListaTarget] = useState('')
   const [selectedCadenciaTarget, setSelectedCadenciaTarget] = useState('')
   const [listasDisparo, setListasDisparo] = useState<any[]>([])
@@ -702,6 +704,13 @@ export default function ContactsPage() {
                   title="Seleção em Lote"
                 >
                   <CheckSquare className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setImportando(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-secondary font-bold text-xs transition-all"
+                  title="Importar contatos de uma planilha"
+                >
+                  <Upload className="w-4 h-4" /> <span className="max-md:hidden">Importar</span>
                 </button>
                 <button
                   onClick={openCreateModal}
@@ -1798,6 +1807,11 @@ export default function ContactsPage() {
         </div>
       )}
 
+      <ImportarContatos
+        aberto={importando}
+        aoFechar={() => setImportando(false)}
+        aoConcluir={() => { void mutate() }}
+      />
     </AppLayout>
   )
 }
