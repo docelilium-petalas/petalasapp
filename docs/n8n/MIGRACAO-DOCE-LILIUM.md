@@ -154,6 +154,79 @@ já tiver o banco. Ficam registrados para rotação quando a fase fechar.
 
 ---
 
+## 3c · As 13 credenciais atravessaram — feito em 11/09/2026
+
+O §3b deixou as duas instâncias com a mesma chave. Com isso, o que faltava era
+mover as linhas — **cifradas**, e sem passar por área de transferência.
+
+### O transporte, e por que não foi uma pasta nova
+
+Bind mount para uma pasta inventada **não funciona**: o Docker em Swarm não cria
+o caminho no host, e o deploy morre com `bind source path does not exist`. E
+tentar consertar removendo o mount na origem tirou junto o volume de dados —
+o n8n antigo ficou **15 minutos fora do ar** (16:47→17:02 de 11/09). Nada foi
+perdido (remover mount não apaga a pasta do host), mas webhook que chegou nesse
+intervalo se perdeu.
+
+O caminho certo aproveita o que já existe: o `/home/node/.n8n` da origem **é**
+uma pasta do host, em `/etc/easypanel/projects/<projeto>/<serviço>/volumes/<nome>`.
+Montar ESSA pasta dentro do destino não cria nada e **não reinicia a origem**.
+
+```
+destino → Storage → Add Bind Mount
+  Host Path : /etc/easypanel/projects/automacoes_netlife/n8n/volumes/data
+  Mount Path: /troca
+```
+
+### O filtro, que é obrigatório
+
+O n8n de origem tem **55 credenciais, de vários clientes** (BGB Abogados,
+Investmais, PickStar, NetLife), algumas de outro usuário. `export:credentials
+--all` seguido de `import` levaria acesso de cliente para dentro da instância
+que a Doce Lilium administra.
+
+O filtro não usa lista de nomes digitada: usa as credenciais que os **9
+workflows migrados realmente referenciam**. Nem uma a mais, nem uma a menos.
+
+```sh
+# no container do DESTINO, lendo uma copia do banco da origem
+mkdir -p /tmp/src/.n8n && cp /troca/database.sqlite /tmp/src/.n8n/
+N8N_USER_FOLDER=/tmp/src DB_TYPE=sqlite n8n export:credentials --all --output=/tmp/creds.json
+n8n export:workflow --all --output=/tmp/wf.json     # do proprio destino
+# guarda so as credenciais citadas pelos workflows -> /tmp/cd.json
+n8n import:credentials --input=/tmp/cd.json
+rm -rf /tmp/src /tmp/creds.json /tmp/cd.json /tmp/wf.json
+```
+
+Medido: `13 usadas / 13 achadas / 55 total` → `Successfully imported 13
+credentials` → reexport do destino devolveu `13`, com os mesmos nomes. As 42 de
+outros clientes ficaram na origem.
+
+**Os ids foram preservados**, então as referências nos 268 nós continuam
+válidas: não há religamento a fazer.
+
+O bind mount foi removido depois, e o destino voltou a responder. O destino não
+tem mais acesso nenhum à pasta viva da origem.
+
+---
+
+## 3d · O relógio da Máquina, pronto para importar
+
+[`cron-maquina-vendas.json`](cron-maquina-vendas.json) — dois nós, inativo.
+
+O segredo **não está no arquivo**: o nó de HTTP referencia uma credencial do
+tipo *Header Auth* chamada `CRM Cron Doce Lilium`, que precisa ser criada na
+tela do n8n com `Authorization: Bearer <CRON_SECRET>`. Arquivo versionado com
+segredo dentro é segredo publicado.
+
+```sh
+n8n import:workflow --input=<caminho>/cron-maquina-vendas.json
+```
+
+Ele nasce **inativo**, e assim deve ficar até a virada.
+
+---
+
 ## 4 · Os webhooks mudam de endereço
 
 Todo webhook migrado passa a responder no host novo. **O caminho não muda; o

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "DL · MV Cron",
+    "active": false,
+    "settings": { "executionOrder": "v1" },
+    "nodes": [
+      {
+        "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] } },
+        "id": "dl-mv-cron-gatilho",
+        "name": "A cada 5 minutos",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [0, 0]
+      },
+      {
+        "parameters": {
+          "url": "https://petalas.docelilium.com.br/api/cron/maquina-vendas",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": { "timeout": 60000 }
+        },
+        "id": "dl-mv-cron-tique",
+        "name": "Tique da Maquina",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [240, 0],
+        "credentials": { "httpHeaderAuth": { "name": "CRM Cron Doce Lilium" } }
+      }
+    ],
+    "connections": {
+      "A cada 5 minutos": { "main": [[{ "node": "Tique da Maquina", "type": "main", "index": 0 }]] }
+    }
+  }
+]
