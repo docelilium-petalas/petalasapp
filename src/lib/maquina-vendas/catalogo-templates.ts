@@ -2,10 +2,10 @@
  * CATÁLOGO DE TEMPLATES — Doce Lilium · WhatsApp Business
  *
  * ══════════════════════════════════════════════════════════════════════════
- * NADA AQUI FOI PUBLICADO NA META. Este arquivo é o catálogo pronto para
- * submissão, e só. Quem submete é `scripts/mv-submeter-templates.ts`, que
- * ainda não existe de propósito — publicar template é ato irreversível de
- * conta, e a conta ainda não está definida.
+ * Este arquivo é o catálogo; quem publica é `scripts/mv-submeter-templates.ts`,
+ * e só o que a dona da marca aprovou na tela de revisão. A conta foi medida
+ * em 12/09/2026: WABA 1722319218643532, número Doce Lilium +55 62 9963-0120,
+ * pela Datafy. Publicar template é irreversível — o nome aprovado não muda.
  * Ver docs/maquina-vendas/TEMPLATES-META.md §1.
  * ══════════════════════════════════════════════════════════════════════════
  *
@@ -72,7 +72,7 @@ export type TemplateMeta = {
 export const VARIAVEIS: Record<string, (keyof Contexto)[]> = {
   dl_carrinho_lembrete_v1: ['primeiro_nome', 'peca'],
   dl_carrinho_duvida_v1: ['primeiro_nome', 'peca'],
-  dl_carrinho_ultimo_v1: ['primeiro_nome', 'cupom', 'desconto'],
+  dl_carrinho_ultimo_v2: ['primeiro_nome'],
   dl_pedido_confirmado_v1: ['primeiro_nome', 'pedido'],
   dl_pix_pendente_v1: ['primeiro_nome', 'pedido', 'prazo'],
   dl_pagamento_aprovado_v1: ['primeiro_nome', 'pedido'],
@@ -129,7 +129,7 @@ export const CATALOGO: TemplateMeta[] = [
       { tipo: 'URL', texto: 'Voltar ao carrinho', url: '{{1}}', exemplo: 'https://docelilium.com.br/checkout/ab/abc123' },
       SAIR,
     ],
-    exemplos: ['Marina', 'o vestido Alícia'],
+    exemplos: ['Marina', 'Vestido Alícia'],
   },
   {
     nome: 'dl_carrinho_duvida_v1',
@@ -144,27 +144,32 @@ export const CATALOGO: TemplateMeta[] = [
       'Ficou alguma dúvida de tamanho, cor ou prazo de entrega? Me conta aqui que eu te ajudo a escolher.',
     rodape: 'Doce Lilium',
     botoes: [{ tipo: 'QUICK_REPLY', texto: 'Tenho uma dúvida' }, SAIR],
-    exemplos: ['Marina', 'o vestido Alícia'],
+    exemplos: ['Marina', 'Vestido Alícia'],
   },
   {
-    nome: 'dl_carrinho_ultimo_v1',
+    // v2 no lugar da v1, que prometia cupom. Decisão da dona da marca em
+    // 11/09/2026: a maioria das clientes já compra com cupom e a loja não
+    // acumula cupons — oferecer outro no último toque só gera frustração no
+    // checkout. O texto abaixo é o dela, palavra por palavra.
+    nome: 'dl_carrinho_ultimo_v2',
     categoria: 'MARKETING',
     idioma: 'pt_BR',
     trilha: 'carrinho',
     quando:
       '48h depois do toque anterior, e ÚLTIMO da trilha. Se anuncia como último ' +
-      'de propósito — ' +
-      'quem não responde a três não responde ao quarto, e o quarto queima o número.',
+      'de propósito — quem não responde a três não responde ao quarto, e o quarto queima o número. ' +
+      'Sem cupom: a escassez da peça faz o papel que o desconto fazia.',
     corpo:
-      'Oi, {{1}}! Esse é meu último toque sobre seu carrinho, prometo 🤍\n\n' +
-      'Separei o cupom {{2}} com {{3}} de desconto pra fechar hoje. Se não for agora, sem problema — ' +
-      'a gente se fala nas próximas novidades.',
+      'Oi, {{1}}! Último aviso sobre seu carrinho!💖\n\n' +
+      'Eu gostaria muito de ver você vestindo essa peça, mas se você mudou de ideia, tudo bem!\n' +
+      'Só passei para te avisar antes de liberar a peça para outra cliente que possa estar esperando por ela.\n\n' +
+      'Se ainda quiser, ela continua te esperando por aqui. ✨',
     rodape: 'Doce Lilium',
     botoes: [
-      { tipo: 'URL', texto: 'Usar meu cupom', url: '{{1}}', exemplo: 'https://docelilium.com.br/checkout/ab/abc123' },
+      { tipo: 'URL', texto: 'Voltar ao carrinho', url: '{{1}}', exemplo: 'https://docelilium.com.br/checkout/ab/abc123' },
       SAIR,
     ],
-    exemplos: ['Marina', 'VOLTA10', '10%'],
+    exemplos: ['Marina'],
   },
 
   // ── TRILHA 2 · PEDIDO (UTILITY) ─────────────────────────────────────────
@@ -249,7 +254,7 @@ export const CATALOGO: TemplateMeta[] = [
       'Queria muito saber o que você achou — do caimento, do tecido, de tudo. Sua opinião ajuda a próxima cliente a escolher.',
     rodape: 'Doce Lilium',
     botoes: [{ tipo: 'QUICK_REPLY', texto: 'Deixar minha opinião' }],
-    exemplos: ['Marina', 'o vestido Alícia'],
+    exemplos: ['Marina', 'Vestido Alícia'],
   },
   {
     nome: 'dl_troca_instrucoes_v1',
@@ -311,7 +316,7 @@ export const CATALOGO: TemplateMeta[] = [
       { tipo: 'URL', texto: 'Ver a peça', url: '{{1}}', exemplo: 'https://docelilium.com.br/produtos/vestido-alicia' },
       SAIR,
     ],
-    exemplos: ['Marina', 'o vestido Alícia'],
+    exemplos: ['Marina', 'Vestido Alícia'],
   },
 ]
 
@@ -348,7 +353,14 @@ export function validarCatalogo(): string[] {
     // O defeito só existe com o valor preenchido, e por isso atravessa
     // qualquer revisão humana: quem lê o template vê "por causa de {{2}}",
     // que está certo. Medido em 10/09/2026, na régua de carrinho.
-    const comArtigo = new Set(['peca', 'colecao'])
+    //
+    // `peca` SAIU desta lista em 12/09/2026. Ela nunca trouxe artigo no envio:
+    // `ancoraDaPeca` devolve o nome do produto cru ("Vestido Alícia"). Quem
+    // trazia artigo era o EXEMPLO do catálogo ("o vestido Alícia") — e a tela
+    // de revisão mostrava "por causa do o vestido Alícia", um defeito que só
+    // existia na prévia. A dona da marca tentou apagar o "o" e não conseguiu,
+    // porque ele não estava no texto dela. Exemplo e valor real agora batem.
+    const comArtigo = new Set(['colecao'])
     const nomes = VARIAVEIS[t.nome] ?? []
     for (const m of corpo.matchAll(/(\b[a-zà-ú]+)\s+\{\{(\d+)\}\}/gi)) {
       const nomeVar = nomes[Number(m[2]) - 1]

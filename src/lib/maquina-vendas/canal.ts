@@ -174,6 +174,28 @@ export type ResultadoEnvio = {
 }
 
 /**
+ * O pedaço da URL que vai no parâmetro do botão.
+ *
+ * A Meta não aceita botão de URL inteiramente variável: o template é aprovado
+ * com um endereço FIXO terminado em variável (`https://loja.com.br/{{1}}`), e
+ * no envio ela concatena o fixo com o parâmetro. Mandar a URL inteira como
+ * parâmetro produz `https://loja.com.br/https://loja.com.br/checkout/...` — um
+ * link quebrado que só aparece no celular da cliente.
+ *
+ * Por isso aqui sai só o caminho, sem a barra inicial. O endereço fixo é o que
+ * `scripts/mv-submeter-templates.ts` registrou, e os dois têm de concordar.
+ */
+export function sufixoDoBotao(url: string): string {
+  try {
+    const u = new URL(url)
+    return `${u.pathname}${u.search}${u.hash}`.replace(/^\/+/, '')
+  } catch {
+    // Não é URL absoluta: já é o sufixo.
+    return url.replace(/^\/+/, '')
+  }
+}
+
+/**
  * Manda um template. Lança `ErroCanal` classificado em qualquer falha.
  *
  * Sem re-tentativa aqui dentro de propósito: quem decide re-tentar é o
@@ -195,7 +217,7 @@ export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnv
       type: 'button',
       sub_type: 'url',
       index: '0',
-      parameters: [{ type: 'text', text: envio.urlBotao }],
+      parameters: [{ type: 'text', text: sufixoDoBotao(envio.urlBotao) }],
     })
   }
 

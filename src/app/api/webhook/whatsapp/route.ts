@@ -30,9 +30,15 @@ export const dynamic = 'force-dynamic'
  * corpo da internet marca qualquer telefone como opt-out — e é o jeito mais
  * barato de desligar a operação inteira de fora.
  *
- * Aceita duas provas, porque o caminho pode vir da Meta direto ou pela Datafy:
+ * Aceita três provas, porque o caminho pode vir da Meta direto ou pela Datafy:
+ *   · `x-datafy-signature-256`, HMAC-SHA256 do corpo CRU com o `whsec_…` do
+ *     painel da Datafy — é o caminho em uso na Doce Lilium
  *   · `x-hub-signature-256`, HMAC-SHA256 do corpo CRU (padrão da Meta)
  *   · `Authorization: Bearer`, segredo combinado
+ *
+ * O `whsec_…` foi, por semanas, "um segredo de formato desconhecido" nos
+ * documentos deste projeto. Era isto: a chave de assinatura dos webhooks da
+ * Datafy, medido no painel dela em 12/09/2026.
  * ══════════════════════════════════════════════════════════════════════════
  */
 
@@ -101,12 +107,26 @@ export async function POST(request: Request) {
 async function conferirOrigem(request: Request, cru: string): Promise<true | Response> {
   const appSecret = process.env.WHATSAPP_APP_SECRET
   const bearer = process.env.WHATSAPP_WEBHOOK_SECRET
+  const datafy = process.env.DATAFY_WEBHOOK_SECRET?.trim()
 
-  if (!appSecret && !bearer) {
+  if (!appSecret && !bearer && !datafy) {
     return NextResponse.json(
       { erro: 'Nenhum segredo configurado para o webhook. A rota recusa em vez de ficar aberta.' },
       { status: 503 },
     )
+  }
+
+  if (datafy) {
+    // O header pode vir como `sha256=<hex>` ou só o hex, e a chave pode ter
+    // sido usada com ou sem o prefixo `whsec_`. As variantes derivam do MESMO
+    // segredo — não afrouxam nada. Chutar uma só e errar deixaria a operação
+    // muda sem ninguém entender por quê. Mesma decisão da CarBoss.
+    const cabecalho = request.headers.get('x-datafy-signature-256') ?? ''
+    const assinatura = cabecalho.includes('=') ? cabecalho.split('=').pop()!.trim() : cabecalho.trim()
+    const chaves = datafy.startsWith('whsec_') ? [datafy, datafy.slice('whsec_'.length)] : [datafy]
+    for (const chave of chaves) {
+      if (assinatura && (await hmacConfere(cru, assinatura, chave))) return true
+    }
   }
 
   if (appSecret) {

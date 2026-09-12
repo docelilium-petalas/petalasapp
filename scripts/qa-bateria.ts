@@ -23,6 +23,8 @@ import { lerCsv, detectarSeparador } from '../src/lib/csv'
 import { chaveTelefone, paraE164 } from '../src/lib/maquina-vendas/telefone'
 import { validarLogo, MARCA_PADRAO } from '../src/lib/marca'
 import type { Ajustes } from '../src/lib/maquina-vendas/config'
+import { sufixoDoBotao } from '../src/lib/maquina-vendas/canal'
+import { createHmac } from 'node:crypto'
 
 const BASE = process.env.QA_BASE ?? 'http://localhost:3000'
 const EMAIL = 'qa.local@petalas.test'
@@ -120,11 +122,26 @@ async function main() {
   checar(16, 'formato inválido de logo é recusado', !!validarLogo('data:application/pdf;base64,AAA'))
   checar(17, 'marca tem padrão quando ninguém configurou', MARCA_PADRAO.nome === 'Doce Lilium')
 
+  // ── O retorno da Marília, 11/09/2026 ───────────────────────────────────
+  const semArtigo = CATALOGO.filter((t) => (VARIAVEIS[t.nome] ?? []).includes('peca'))
+    .every((t) => !/^(o|a|os|as) /i.test(t.exemplos[(VARIAVEIS[t.nome] ?? []).indexOf('peca')] ?? ''))
+  checar(31, 'exemplo da peça sem artigo — o "do o" da prévia', semArtigo)
+  const v2 = CATALOGO.find((t) => t.nome === 'dl_carrinho_ultimo_v2')
+  checar(32, 'último toque sem cupom (v2 no lugar da v1)', !!v2 && !/cupom/i.test(v2.corpo) && !CATALOGO.some((t) => t.nome === 'dl_carrinho_ultimo_v1'))
+  checar(
+    33,
+    'botão de URL manda só o caminho',
+    sufixoDoBotao('https://loja.com.br/checkout/v3/abc?x=1') === 'checkout/v3/abc?x=1',
+    sufixoDoBotao('https://loja.com.br/checkout/v3/abc?x=1'),
+  )
+
   // ── banco ────────────────────────────────────────────────────────────────
   console.log('\n═══ BANCO ═══\n')
   const cadCarrinho = await prisma.mvCadencia.findFirst({ where: { gatilho: 'carrinho_abandonado' }, include: { etapas: true } })
   checar(18, 'cadência de carrinho semeada com teto de idade', cadCarrinho?.idadeMaximaHoras === 72, `${cadCarrinho?.etapas.length ?? 0} etapas`)
   checar(19, 'última etapa se anuncia como última', !!cadCarrinho?.etapas.some((e) => e.ehUltima))
+  const ultimaEtapa = cadCarrinho?.etapas.sort((a, b) => b.ordem - a.ordem)[0]
+  checar(34, 'régua de carrinho com 3 toques, o último é a v2', cadCarrinho?.etapas.length === 3 && ultimaEtapa?.templateNome === 'dl_carrinho_ultimo_v2' && !!ultimaEtapa?.ehUltima)
   const cadPedido = await prisma.mvCadencia.findFirst({ where: { gatilho: 'pedido_pago' }, include: { etapas: true } })
   checar(20, 'cadência de pedido pago semeada', (cadPedido?.etapas.length ?? 0) === 1)
   checar(21, 'envio nasce PAUSADO', (await prisma.mvAjustes.findUnique({ where: { id: 'unico' } }))?.envioPausado !== false, 'sem linha = padrão pausado')
@@ -188,6 +205,20 @@ async function main() {
 
   const lgpd = await fetch(`${BASE}/api/webhook/nuvemshop/lgpd/inexistente`, { method: 'POST', body: '{}' })
   checar(30, 'rota de LGPD recusa tipo desconhecido', lgpd.status === 404, `HTTP ${lgpd.status}`)
+
+  // A assinatura da Datafy: `x-datafy-signature-256`, HMAC do corpo cru com o
+  // `whsec_…`. Só dá para provar com o segredo local de teste no ambiente.
+  const segredoDatafy = process.env.DATAFY_WEBHOOK_SECRET
+  if (segredoDatafy) {
+    const corpoTeste = '{"entry":[]}'
+    const assinado = createHmac('sha256', segredoDatafy).update(corpoTeste, 'utf8').digest('hex')
+    const certo = await fetch(`${BASE}/api/webhook/whatsapp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-datafy-signature-256': `sha256=${assinado}` }, body: corpoTeste })
+    checar(35, 'webhook aceita a assinatura da Datafy', certo.status === 200, `HTTP ${certo.status}`)
+    const forjado = await fetch(`${BASE}/api/webhook/whatsapp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-datafy-signature-256': 'sha256=' + '0'.repeat(64) }, body: corpoTeste })
+    checar(36, 'webhook recusa assinatura forjada', forjado.status === 401, `HTTP ${forjado.status}`)
+  } else {
+    checar(35, 'webhook aceita a assinatura da Datafy', false, 'DATAFY_WEBHOOK_SECRET ausente no ambiente local')
+  }
 
   // ── limpeza ──────────────────────────────────────────────────────────────
   await prisma.userRole.deleteMany({ where: { userId: user.id } })

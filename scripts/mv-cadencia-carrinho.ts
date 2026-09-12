@@ -4,8 +4,7 @@
  *   npx tsx --env-file=.env scripts/mv-cadencia-carrinho.ts
  *
  * Idempotente: rodar de novo atualiza a cadência que existe em vez de criar
- * outra. Rode outra vez depois de configurar o cupom — é assim que o terceiro
- * toque nasce.
+ * outra. As etapas são substituídas, nunca acumuladas.
  *
  * ── POR QUE A RÉGUA É ESTA ────────────────────────────────────────────────
  * Etapa 1 sai na descoberta (delay 0 sobre o gatilho). Não é impaciência: a
@@ -24,18 +23,15 @@
 
 import prisma from '../src/lib/prisma'
 import { esqueletoNomeado } from '../src/lib/maquina-vendas/catalogo-templates'
-import { obterAjustes } from '../src/lib/maquina-vendas/config'
 
 const GATILHO = 'carrinho_abandonado'
 const IDADE_MAXIMA_HORAS = 72
 
 async function main() {
-  const ajustes = await obterAjustes()
-  const temCupom = !!(ajustes.cupomCarrinho && ajustes.descontoCarrinho)
-
-  // O último toque promete um cupom. Sem cupom configurado ele não existe —
-  // e a etapa 2 é que se anuncia como última. Uma mensagem prometendo
-  // "o cupom  com  de desconto" é pior do que mensagem nenhuma.
+  // Três toques, sempre. O terceiro deixou de depender de cupom em 12/09/2026:
+  // a dona da marca trocou a v1 (que prometia cupom) pela v2, que usa a
+  // escassez da peça no lugar do desconto — as clientes já compram com cupom
+  // e a loja não acumula. Sem dependência, não há mais régua de dois toques.
   const etapas = [
     {
       ordem: 1,
@@ -49,19 +45,15 @@ async function main() {
       delayMinutos: 24 * 60,
       ancoradaEm: 'entrega',
       templateNome: 'dl_carrinho_duvida_v1',
-      ehUltima: !temCupom,
+      ehUltima: false,
     },
-    ...(temCupom
-      ? [
-          {
-            ordem: 3,
-            delayMinutos: 48 * 60,
-            ancoradaEm: 'entrega',
-            templateNome: 'dl_carrinho_ultimo_v1',
-            ehUltima: true,
-          },
-        ]
-      : []),
+    {
+      ordem: 3,
+      delayMinutos: 48 * 60,
+      ancoradaEm: 'entrega',
+      templateNome: 'dl_carrinho_ultimo_v2',
+      ehUltima: true,
+    },
   ].map((e) => ({ ...e, templateBase: esqueletoNomeado(e.templateNome) }))
 
   // `findFirst` e não `upsert`: a chave única é (gatilho, pipelineId, stageId)
@@ -111,14 +103,6 @@ async function main() {
           : `${e.delayMinutos / 60}h após o abandono`
         : `${e.delayMinutos / 60}h após a anterior sair`
     console.log(`  ${e.ordem}. ${quando.padEnd(28)} ${e.templateNome}${e.ehUltima ? '  (última)' : ''}`)
-  }
-  if (!temCupom) {
-    console.log(
-      '\n⚠ Sem cupom configurado: a trilha nasceu com DOIS toques.\n' +
-        '  Para o terceiro existir, preencha cupom_carrinho e desconto_carrinho\n' +
-        '  em maquina_vendas_ajustes (o cupom precisa existir de verdade na\n' +
-        '  Nuvemshop) e rode este script de novo.',
-    )
   }
   console.log()
 }
