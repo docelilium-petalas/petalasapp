@@ -161,6 +161,7 @@ function SidebarContent({ user, onItemClick }: SidebarContentProps) {
 }
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const marca = useMarca()
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
@@ -283,12 +284,36 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     }
   }
 
-  // Get Page Title
+  /**
+   * O título da tela vem de uma TABELA, não do nome da rota.
+   *
+   * Derivar do caminho parece esperto e entrega o que o QA de 11/09/2026
+   * encontrou no topo de toda tela: "Contacts", "Settings", "Bussola",
+   * "Maquina Vendas" — metade em inglês, metade sem acento. A rota é endereço,
+   * escrita em ASCII e em inglês porque URL é assim; o título é texto que a
+   * dona da marca lê.
+   *
+   * Rota nova sem verbete cai no nome da marca, e não num nome cru.
+   */
+  const TITULOS: Record<string, string> = {
+    dashboard: 'Home',
+    pipeline: 'Pipeline',
+    contacts: 'Contatos',
+    activities: 'Atividades',
+    settings: 'Configurações',
+    'maquina-vendas': 'Máquina de Vendas',
+    resultados: 'Resultados',
+    desafios: 'Desafios',
+    radar: 'Radar',
+    bussola: 'Bússola',
+    cadencias: 'Cadências',
+    'caixa-rapido': 'Doce Lilium',
+    arquivados: 'Arquivados',
+  }
+
   const getPageTitle = () => {
-    if (pathname === '/') return 'Doce Lilium'
-    const name = pathname?.split('/')[1]
-    if (name === 'dashboard') return 'Home'
-    return name?.replace('-', ' ') || 'Doce Lilium'
+    const nome = pathname?.split('/')[1] ?? ''
+    return TITULOS[nome] ?? marca.nome
   }
 
   // Handle mobile header context actions

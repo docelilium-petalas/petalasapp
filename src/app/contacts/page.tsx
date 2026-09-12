@@ -691,7 +691,7 @@ export default function ContactsPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                   Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{filteredContacts.length}</span>
                 </h1>
-                <p className="text-xs text-muted-foreground mt-0.5">Base unificada de leads NetLife</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Todo mundo que já falou com a marca, num lugar só</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
