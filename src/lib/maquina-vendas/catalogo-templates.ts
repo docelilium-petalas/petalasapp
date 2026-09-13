@@ -57,6 +57,13 @@ export type TemplateMeta = {
   botoes?: BotaoTemplate[]
   /** Um exemplo por variável do CORPO, na ordem. Exigido pela Meta. */
   exemplos: string[]
+  /**
+   * A Meta mudou a categoria depois da submissão. `categoria` passa a ser a
+   * DELA (é o que decide janela, teto e anti-eco no despachante); aqui fica a
+   * que foi pedida e quando mudou. Template já publicado não ganha botão de
+   * saída sem voltar para revisão — por isso a validação o dispensa.
+   */
+  reclassificado?: { pedida: CategoriaMeta; em: string; nota: string }
 }
 
 /**
@@ -189,10 +196,15 @@ export const CATALOGO: TemplateMeta[] = [
   },
   {
     nome: 'dl_pix_pendente_v1',
-    categoria: 'UTILITY',
+    categoria: 'MARKETING',
+    reclassificado: {
+      pedida: 'UTILITY',
+      em: '2026-09-12T18:16-03:00',
+      nota: 'Evento da Datafy: saiu de UTILITY. Tratado como MARKETING (decisão do dono, 12/09).',
+    },
     idioma: 'pt_BR',
     trilha: 'pagamento',
-    quando: 'PIX gerado e não pago. Utility porque o pedido existe — não é oferta, é cobrança de algo iniciado.',
+    quando: 'PIX gerado e não pago. Submetido como utility; a Meta reclassificou — segue as regras de marketing.',
     corpo:
       'Oi, {{1}}! O PIX do seu pedido {{2}} ainda está aguardando pagamento.\n\n' +
       'Ele expira em {{3}}, e depois disso as peças voltam pro estoque. Se precisar de um novo código, é só me chamar.',
@@ -242,7 +254,12 @@ export const CATALOGO: TemplateMeta[] = [
   // ── TRILHA 3 · PÓS-VENDA ────────────────────────────────────────────────
   {
     nome: 'dl_pos_entrega_avaliacao_v1',
-    categoria: 'UTILITY',
+    categoria: 'MARKETING',
+    reclassificado: {
+      pedida: 'UTILITY',
+      em: '2026-09-12T18:17-03:00',
+      nota: 'Evento da Datafy: UTILITY → MARKETING. Aceito, sem ressubmeter.',
+    },
     idioma: 'pt_BR',
     trilha: 'pos_venda',
     quando:
@@ -346,7 +363,7 @@ export function validarCatalogo(): string[] {
     }
 
     const temSaida = t.botoes?.some((b) => b.tipo === 'QUICK_REPLY' && b.texto === SAIR.texto)
-    if (t.categoria === 'MARKETING' && !temSaida) erros.push(`${t.nome}: MARKETING sem botão de saída`)
+    if (t.categoria === 'MARKETING' && !temSaida && !t.reclassificado) erros.push(`${t.nome}: MARKETING sem botão de saída`)
     if (t.categoria === 'UTILITY' && temSaida) erros.push(`${t.nome}: UTILITY não leva botão de saída`)
 
     // Preposição colada numa variável que já traz artigo produz "de o vestido".

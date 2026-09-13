@@ -128,6 +128,17 @@ async function main() {
   checar(31, 'exemplo da peça sem artigo — o "do o" da prévia', semArtigo)
   const v2 = CATALOGO.find((t) => t.nome === 'dl_carrinho_ultimo_v2')
   checar(32, 'último toque sem cupom (v2 no lugar da v1)', !!v2 && !/cupom/i.test(v2.corpo) && !CATALOGO.some((t) => t.nome === 'dl_carrinho_ultimo_v1'))
+
+  // ── A Meta reclassificou 2 de UTILITY para MARKETING, 12/09/2026 ───────
+  // O despachante decide janela, teto e anti-eco pela `categoria`. Se ela
+  // continuasse UTILITY, PIX pendente e avaliação sairiam às 23h e sem teto.
+  const reclass = ['dl_pix_pendente_v1', 'dl_pos_entrega_avaliacao_v1'].map((n) => CATALOGO.find((t) => t.nome === n))
+  checar(
+    37,
+    'reclassificados pela Meta seguem as regras de marketing',
+    reclass.every((t) => t?.categoria === 'MARKETING' && t.reclassificado?.pedida === 'UTILITY'),
+    reclass.map((t) => `${t?.nome}=${t?.categoria}`).join(' '),
+  )
   checar(
     33,
     'botão de URL manda só o caminho',
