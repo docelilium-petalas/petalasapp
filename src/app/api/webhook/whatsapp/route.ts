@@ -180,7 +180,16 @@ async function tratarStatus(st: StatusMeta): Promise<boolean> {
     where: { idExterno: st.id },
     select: { id: true, entregueEm: true, lidaEm: true, inscricaoId: true },
   })
-  if (!msg) return false
+  if (!msg) {
+    // Envio que não saiu da Máquina (teste manual, disparo pelo painel). A
+    // linha não existe para guardar a falha, mas o MOTIVO é justamente o que
+    // se precisa ver quando "a Meta aceitou e não chegou" — 131042 (pagamento),
+    // 131049 (limite de marketing), 131026 (número). Sem isto ele sumia calado.
+    if (st.status === 'failed') {
+      await logar('ERRO', 'envio_falhou', `Falha de entrega fora da Máquina (${st.errors?.[0]?.code ?? '?'})`, st)
+    }
+    return false
+  }
 
   const quando = st.timestamp ? new Date(Number(st.timestamp) * 1000) : new Date()
 
