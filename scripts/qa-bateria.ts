@@ -233,9 +233,11 @@ async function main() {
   const segredoDatafy = process.env.DATAFY_WEBHOOK_SECRET
   if (segredoDatafy) {
     const corpoTeste = '{"entry":[]}'
-    const assinado = createHmac('sha256', segredoDatafy).update(corpoTeste, 'utf8').digest('hex')
-    const certo = await fetch(`${BASE}/api/webhook/whatsapp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-datafy-signature-256': `sha256=${assinado}` }, body: corpoTeste })
-    checar(35, 'webhook aceita a assinatura da Datafy', certo.status === 200, `HTTP ${certo.status}`)
+    // Como a Datafy assina de verdade (medido em 13/09): `<timestamp>.<corpo>`.
+    const carimbo = String(Math.floor(Date.now() / 1000))
+    const assinado = createHmac('sha256', segredoDatafy).update(`${carimbo}.${corpoTeste}`, 'utf8').digest('hex')
+    const certo = await fetch(`${BASE}/api/webhook/whatsapp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-datafy-timestamp': carimbo, 'x-datafy-signature-256': `sha256=${assinado}` }, body: corpoTeste })
+    checar(35, 'webhook aceita a assinatura da Datafy (timestamp.corpo)', certo.status === 200, `HTTP ${certo.status}`)
     const forjado = await fetch(`${BASE}/api/webhook/whatsapp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-datafy-signature-256': 'sha256=' + '0'.repeat(64) }, body: corpoTeste })
     checar(36, 'webhook recusa assinatura forjada', forjado.status === 401, `HTTP ${forjado.status}`)
   } else {

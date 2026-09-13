@@ -139,8 +139,17 @@ async function conferirOrigem(request: Request, cru: string): Promise<true | Res
     const cabecalho = request.headers.get('x-datafy-signature-256') ?? ''
     const assinatura = cabecalho.includes('=') ? cabecalho.split('=').pop()!.trim() : cabecalho.trim()
     const chaves = datafy.startsWith('whsec_') ? [datafy, datafy.slice('whsec_'.length)] : [datafy]
-    for (const chave of chaves) {
-      if (assinatura && (await hmacConfere(cru, assinatura, chave))) return true
+    // A Datafy NÃO assina o corpo cru: assina `<x-datafy-timestamp>.<corpo>`,
+    // com o segredo completo (com `whsec_`), em hex. Descoberto no CRM OCR em
+    // 17/08/2026 e confirmado aqui em 13/09, quando TODO aviso de entrega vinha
+    // sendo recusado (401) — nenhuma leitura, resposta ou opt-out chegava.
+    // O corpo cru fica como segunda tentativa, caso a convenção mude.
+    const carimbo = request.headers.get('x-datafy-timestamp')?.trim()
+    const mensagens = carimbo ? [`${carimbo}.${cru}`, cru] : [cru]
+    for (const msg of mensagens) {
+      for (const chave of chaves) {
+        if (assinatura && (await hmacConfere(msg, assinatura, chave))) return true
+      }
     }
   }
 
