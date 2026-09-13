@@ -41,7 +41,18 @@ export type CategoriaMeta = 'MARKETING' | 'UTILITY'
 
 export type BotaoTemplate =
   | { tipo: 'QUICK_REPLY'; texto: string }
-  | { tipo: 'URL'; texto: string; url: string; exemplo?: string }
+  | {
+      tipo: 'URL'
+      texto: string
+      url: string
+      exemplo?: string
+      /**
+       * Onde mora o domínio fixo que a Meta aprova. `loja` (padrão): checkout,
+       * produto e coleção. `crm`: redirecionamento nosso, para destino que
+       * muda de domínio (rastreio de transportadora).
+       */
+      dominio?: 'loja' | 'crm'
+    }
 
 export type TemplateMeta = {
   /** Nome na Meta. Imutável depois de aprovado — versione pelo sufixo `_vN`. */
@@ -234,7 +245,13 @@ export const CATALOGO: TemplateMeta[] = [
       'O código de rastreio é {{3}}. Dá pra acompanhar cada passo até chegar na sua porta.',
     rodape: 'Doce Lilium',
     botoes: [
-      { tipo: 'URL', texto: 'Rastrear pedido', url: '{{1}}', exemplo: 'https://docelilium.com.br/rastreio/AA123456789BR' },
+      {
+        tipo: 'URL',
+        texto: 'Rastrear pedido',
+        url: '{{1}}',
+        exemplo: 'https://petalas.docelilium.com.br/api/r/rastreio/1234567890.abcdef0123',
+        dominio: 'crm',
+      },
     ],
     exemplos: ['Marina', '#1042', 'AA123456789BR'],
   },

@@ -28,6 +28,9 @@ export async function proxy(request: NextRequest) {
     // A protecao nao e sessao: e o codigo so existir se a Nuvemshop o emitiu,
     // e a troca por token exigir o nosso client secret.
     pathname === '/api/nuvemshop/oauth' ||
+    // Botao de rastreio do WhatsApp: quem clica e a cliente, sem sessao. A
+    // protecao e a assinatura no caminho (lib/maquina-vendas/rastreio.ts).
+    pathname.startsWith('/api/r/') ||
     pathname.startsWith('/_next') ||
     pathname.includes('.')
 

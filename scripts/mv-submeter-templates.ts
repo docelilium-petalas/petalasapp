@@ -99,15 +99,22 @@ async function baseDoCheckout(): Promise<string | null> {
   return `${new URL(url).origin}/`
 }
 
-function ehBotaoDeCheckout(t: TemplateMeta): boolean {
-  return (t.botoes ?? []).some((b) => b.tipo === 'URL' && /\/checkout\//.test(b.exemplo ?? ''))
+/**
+ * O endereço fixo do CRM, para botão que passa por redirecionamento nosso
+ * (rastreio). Endereço de transportadora muda de domínio a cada pedido; o do
+ * CRM não, e a Meta só aprova botão com domínio fixo.
+ */
+const BASE_CRM = `${(process.env.APP_URL || 'https://petalas.docelilium.com.br').replace(/\/+$/, '')}/`
+
+function botoesUrl(t: TemplateMeta) {
+  return (t.botoes ?? []).filter((b) => b.tipo === 'URL') as Array<Extract<NonNullable<TemplateMeta['botoes']>[number], { tipo: 'URL' }>>
 }
 
-function temBotaoUrl(t: TemplateMeta): boolean {
-  return (t.botoes ?? []).some((b) => b.tipo === 'URL')
+function precisaDaLoja(t: TemplateMeta): boolean {
+  return botoesUrl(t).some((b) => (b.dominio ?? 'loja') === 'loja')
 }
 
-function montar(t: TemplateMeta, corpo: string, base: string | null) {
+function montar(t: TemplateMeta, corpo: string, baseLoja: string | null) {
   const componentes: unknown[] = [
     {
       type: 'BODY',
@@ -121,6 +128,7 @@ function montar(t: TemplateMeta, corpo: string, base: string | null) {
       type: 'BUTTONS',
       buttons: t.botoes.map((b) => {
         if (b.tipo === 'QUICK_REPLY') return { type: 'QUICK_REPLY', text: b.texto }
+        const base = (b.dominio ?? 'loja') === 'crm' ? BASE_CRM : baseLoja
         const sufixoExemplo = new URL(b.exemplo!).pathname.replace(/^\/+/, '')
         return { type: 'URL', text: b.texto, url: `${base}{{1}}`, example: [`${base}${sufixoExemplo}`] }
       }),
@@ -151,8 +159,9 @@ async function main() {
   const revisoes = new Map(
     ((await prisma.mvTemplateRevisao.findMany()) as Revisao[]).map((r) => [r.nome, r]),
   )
-  const precisaCheckout = CATALOGO.some(ehBotaoDeCheckout)
-  const base = precisaCheckout ? await baseDoCheckout() : null
+  // O domínio da LOJA vem de um carrinho real (www × sem www decide se o link
+  // abre): checkout, página de produto e de coleção moram nele.
+  const base = CATALOGO.some(precisaDaLoja) ? await baseDoCheckout() : null
 
   const vao: Array<{ t: TemplateMeta; corpo: string; origem: string }> = []
   const ficam: string[] = []
@@ -163,12 +172,12 @@ async function main() {
       ficam.push(`${t.nome} — ${rev ? `status ${rev.status}` : 'não revisado'}`)
       continue
     }
-    if (temBotaoUrl(t) && !ehBotaoDeCheckout(t)) {
-      ficam.push(`${t.nome} — botão de URL sem domínio fixo definido`)
+    if (botoesUrl(t).some((b) => !b.exemplo)) {
+      ficam.push(`${t.nome} — botão de URL sem exemplo`)
       continue
     }
-    if (ehBotaoDeCheckout(t) && !base) {
-      ficam.push(`${t.nome} — nenhum carrinho real para ler o domínio do checkout`)
+    if (precisaDaLoja(t) && !base) {
+      ficam.push(`${t.nome} — nenhum carrinho real para ler o domínio da loja`)
       continue
     }
     const corpo = (rev?.corpoRevisado?.trim() || t.corpo).trim()

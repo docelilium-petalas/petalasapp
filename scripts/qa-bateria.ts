@@ -24,6 +24,7 @@ import { chaveTelefone, paraE164 } from '../src/lib/maquina-vendas/telefone'
 import { validarLogo, MARCA_PADRAO } from '../src/lib/marca'
 import type { Ajustes } from '../src/lib/maquina-vendas/config'
 import { sufixoDoBotao } from '../src/lib/maquina-vendas/canal'
+import { caminhoDeRastreio, conferirRastreio } from '../src/lib/maquina-vendas/rastreio'
 import { createHmac } from 'node:crypto'
 
 const BASE = process.env.QA_BASE ?? 'http://localhost:3000'
@@ -138,6 +139,16 @@ async function main() {
     'reclassificados pela Meta seguem as regras de marketing',
     reclass.every((t) => t?.categoria === 'MARKETING' && t.reclassificado?.pedida === 'UTILITY'),
     reclass.map((t) => `${t?.nome}=${t?.categoria}`).join(' '),
+  )
+
+  // ── Rastreio: domínio fixo do CRM, caminho assinado, 13/09/2026 ────────────
+  const caminho = caminhoDeRastreio(1234567)
+  const adulterado = caminho.replace('1234567', '1234568').split('/').pop()!
+  checar(
+    38,
+    'link de rastreio só abre o pedido que o CRM assinou',
+    conferirRastreio(caminho.split('/').pop()!) === '1234567' && conferirRastreio(adulterado) === null && conferirRastreio('1234567') === null,
+    caminho,
   )
   checar(
     33,

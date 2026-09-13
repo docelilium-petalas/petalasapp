@@ -97,6 +97,21 @@ export async function POST(request: Request) {
     await logar('ERRO', 'webhook_whatsapp', 'Falha ao tratar', e)
   }
 
+  // Autorizado e nada casou: o formato pode não ser o da Meta (a Datafy
+  // embrulha?). Guarda só a FORMA — chaves, campos e tipos —, sem conteúdo.
+  if (statuses + respostas + saidas === 0) {
+    const forma = (corpo.entry ?? []).flatMap((e) =>
+      (e.changes ?? []).map((c) => ({
+        campos: Object.keys((c.value ?? {}) as object),
+        statuses: (c.value?.statuses ?? []).map((s) => s.status),
+      })),
+    )
+    await logar('INFO', 'webhook_sem_efeito', 'Webhook do WhatsApp sem efeito', {
+      raiz: Object.keys(corpo as object),
+      forma,
+    })
+  }
+
   // Sempre 200: a Meta re-entrega em quem não devolve 2XX, e uma falha nossa
   // não deve virar tempestade de reentrega.
   return NextResponse.json({ ok: true, statuses, respostas, saidas })
@@ -141,6 +156,15 @@ async function conferirOrigem(request: Request, cru: string): Promise<true | Res
     if (token && tempoConstante(token, bearer)) return true
   }
 
+  // Recusa calada foi o que escondeu, em 13/09, que nenhum status de entrega
+  // voltava. Registra QUE chegou e QUAIS cabeçalhos de prova vieram — nunca
+  // o valor deles nem o corpo.
+  const provas = [...request.headers.keys()].filter((k) => /sign|auth|hub|datafy/i.test(k))
+  await logar('AVISO', 'webhook_recusado', 'Webhook do WhatsApp recusado (401)', {
+    cabecalhos: provas,
+    bytes: cru.length,
+    temSegredo: { datafy: !!datafy, appSecret: !!appSecret, bearer: !!bearer },
+  })
   return NextResponse.json({ erro: 'Não autorizado.' }, { status: 401 })
 }
 
