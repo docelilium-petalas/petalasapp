@@ -2049,7 +2049,7 @@ export async function dispararListaInternal(listaId: string, userId: string) {
 
   const profile = await prisma.profile.findUnique({ where: { userId } })
   const configObj = list.configEnvio ? (() => { try { return JSON.parse(list.configEnvio) } catch { return {} } })() : {}
-  const webhookUrl = configObj.webhookUrl || profile?.disparoWebhookUrl || 'https://auto.devnetlife.com/webhook/disparo-docelilium'
+  const webhookUrl = configObj.webhookUrl || profile?.disparoWebhookUrl || 'https://petalas-n8n.yt7ol2.easypanel.host/webhook/disparo-docelilium'
   const intervaloSegundos: number = configObj.intervaloSegundos ?? 30
 
   await prisma.listaDisparo.update({ where: { id: listaId }, data: { status: 'EM_ANDAMENTO' } })
