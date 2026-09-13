@@ -99,13 +99,15 @@ export async function POST(request: Request) {
 
   // Autorizado e nada casou: o formato pode não ser o da Meta (a Datafy
   // embrulha?). Guarda só a FORMA — chaves, campos e tipos —, sem conteúdo.
-  if (statuses + respostas + saidas === 0) {
-    const forma = (corpo.entry ?? []).flatMap((e) =>
-      (e.changes ?? []).map((c) => ({
-        campos: Object.keys((c.value ?? {}) as object),
-        statuses: (c.value?.statuses ?? []).map((s) => s.status),
-      })),
-    )
+  // `sent` e status de mensagem que não é da Máquina são normais e ficam fora.
+  const forma = (corpo.entry ?? []).flatMap((e) =>
+    (e.changes ?? []).map((c) => ({
+      campos: Object.keys((c.value ?? {}) as object),
+      statuses: (c.value?.statuses ?? []).map((s) => s.status),
+    })),
+  )
+  const conhecido = forma.some((f) => f.campos.some((k) => ['statuses', 'messages', 'message_template_status_update', 'event'].includes(k)))
+  if (statuses + respostas + saidas === 0 && !conhecido) {
     await logar('INFO', 'webhook_sem_efeito', 'Webhook do WhatsApp sem efeito', {
       raiz: Object.keys(corpo as object),
       forma,
