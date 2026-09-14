@@ -4,6 +4,7 @@ import { catalogoDaLoja, formatarPreco } from '@/lib/nuvemshop/catalogo'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { registrarTurno, turnosDe, pendentesEHistorico } from '@/lib/atendimento/conversa'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
+import { linkDeFotoParaWhatsApp } from '@/lib/atendimento/foto-whatsapp'
 
 /** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
 const JANELA_REPETIDA_MS = 24 * 3_600_000
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
     }
     const legenda = `${p.nome} · ${formatarPreco(p.preco)}${p.disponivel ? '' : ' · esgotada'}\n${p.link}`
     try {
-      await enviarMensagemLivre(telefone, { tipo: 'imagem', link: p.fotos[0], legenda })
+      await enviarMensagemLivre(telefone, { tipo: 'imagem', link: linkDeFotoParaWhatsApp(p.fotos[0]), legenda })
       await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: `[foto] ${p.nome} · ${formatarPreco(p.preco)}` })
       enviadas.push(p.nome)
     } catch (e) {
