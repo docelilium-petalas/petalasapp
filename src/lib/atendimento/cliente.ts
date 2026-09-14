@@ -124,7 +124,15 @@ export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | nu
     dicas.push(`O pedido ${aberto.numero} está ${aberto.envio}. Não prometa data de entrega: você não tem esse dado.`)
   }
   if (carrinhoVivo) {
-    dicas.push('Ela tem um carrinho montado. Se o assunto for comprar essas peças, ajude a finalizar e mande o link do carrinho. NUNCA ofereça cupom: a loja não trabalha com cupom acumulado.')
+    // Medido em 14/09: com carrinho antigo do Vestido Luna, a cliente escolheu o
+    // Vestido Teste na conversa, pediu "manda o link" e recebeu o link do
+    // carrinho do Luna. O carrinho só vale para AS PEÇAS DELE.
+    const pecasDoCarrinho = (carrinho!.products ?? []).map((i) => i.name).join(', ')
+    dicas.push(
+      `Ela tem um carrinho montado com: ${pecasDoCarrinho}. Só mande o link do carrinho se ela quiser comprar EXATAMENTE essas peças. ` +
+        'Se na conversa ela escolheu outra peça, mande o link DESSA peça (o que veio em buscar_catalogo ou na legenda da foto) e não fale do carrinho. ' +
+        'Quando ela disser que quer comprar, mande o link na mesma resposta, sem perguntar se pode mandar. NUNCA ofereça cupom: a loja não trabalha com cupom acumulado.',
+    )
   }
   if (!ultimos.length && !carrinhoVivo) {
     dicas.push('Cliente sem compra nem carrinho: descubra o que ela procura com UMA pergunta por vez.')
