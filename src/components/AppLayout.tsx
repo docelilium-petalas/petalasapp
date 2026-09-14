@@ -22,7 +22,7 @@ import {
   Filter,
   Workflow
 ,
-  Rocket, Trophy, Radar as RadarIcon, TrendingUp
+  Rocket, Trophy, Radar as RadarIcon, TrendingUp, ShoppingBag
 } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useMarca } from '@/context/MarcaContext'
@@ -41,6 +41,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Pipeline', href: '/pipeline', icon: Kanban },
   { name: 'Máquina de Vendas', href: '/maquina-vendas', icon: Rocket },
+  { name: 'Catálogo', href: '/catalogo', icon: ShoppingBag },
   { name: 'Resultados', href: '/resultados', icon: TrendingUp },
   { name: 'Desafios', href: '/desafios', icon: Trophy },
   { name: 'Radar', href: '/radar', icon: RadarIcon },
@@ -302,6 +303,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     activities: 'Atividades',
     settings: 'Configurações',
     'maquina-vendas': 'Máquina de Vendas',
+    catalogo: 'Catálogo',
     resultados: 'Resultados',
     desafios: 'Desafios',
     radar: 'Radar',
@@ -534,6 +536,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div className="grid grid-cols-2 gap-3.5 py-2">
               {[
                 { name: 'Máquina de Vendas', href: '/maquina-vendas', icon: Rocket },
+                { name: 'Catálogo', href: '/catalogo', icon: ShoppingBag },
                 { name: 'Resultados', href: '/resultados', icon: TrendingUp },
                 { name: 'Desafios', href: '/desafios', icon: Trophy },
                 { name: 'Radar', href: '/radar', icon: RadarIcon },

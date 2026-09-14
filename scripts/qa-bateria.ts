@@ -25,6 +25,8 @@ import { validarLogo, MARCA_PADRAO } from '../src/lib/marca'
 import type { Ajustes } from '../src/lib/maquina-vendas/config'
 import { sufixoDoBotao } from '../src/lib/maquina-vendas/canal'
 import { caminhoDeRastreio, conferirRastreio } from '../src/lib/maquina-vendas/rastreio'
+import { normalizarProduto, filtrarCatalogo } from '../src/lib/nuvemshop/catalogo'
+import { pendentesEHistorico } from '../src/lib/atendimento/conversa'
 import { createHmac } from 'node:crypto'
 
 const BASE = process.env.QA_BASE ?? 'http://localhost:3000'
@@ -150,6 +152,30 @@ async function main() {
     conferirRastreio(caminho.split('/').pop()!) === '1234567' && conferirRastreio(adulterado) === null && conferirRastreio('1234567') === null,
     caminho,
   )
+
+  // ── Atendimento IA, 13/09/2026 ───────────────────────────────────────────────
+  const vitrine = [
+    normalizarProduto({ id: 1, name: { pt: 'Vestido Mônica Azul' }, attributes: [{ pt: 'Tamanho' }], categories: [{ name: { pt: 'Vestidos' } }],
+      variants: [{ id: 11, price: '459.90', stock_management: true, stock: 0, values: [{ pt: 'P' }] }, { id: 12, price: '459.90', stock_management: true, stock: 2, values: [{ pt: 'M' }] }] }),
+    normalizarProduto({ id: 2, name: { pt: 'Saia Lis' }, attributes: [{ pt: 'Tamanho' }], categories: [{ name: { pt: 'Saias' } }],
+      variants: [{ id: 21, price: '199.90', promotional_price: '149.90', stock_management: false, values: [{ pt: 'P' }] }] }),
+  ]
+  const azulM = filtrarCatalogo(vitrine, { busca: 'vestido monica', tamanho: 'm' })
+  const semBlazer = filtrarCatalogo(vitrine, { busca: 'blazer' })
+  const semP = filtrarCatalogo(vitrine, { busca: 'vestido', tamanho: 'P' })
+  checar(
+    39,
+    'catálogo acha sem acento, respeita tamanho com estoque e não oferece peça errada',
+    azulM.length === 1 && azulM[0].id === 1 && semBlazer.length === 0 && semP.length === 0 && vitrine[1].preco === 149.9 && vitrine[1].precoCheio === 199.9,
+    `azulM=${azulM.length} blazer=${semBlazer.length} P=${semP.length}`,
+  )
+  const conversa = pendentesEHistorico([
+    { em: '1', de: 'cliente', texto: 'oi' },
+    { em: '2', de: 'loja', texto: 'Oi! O que você procura?' },
+    { em: '3', de: 'cliente', texto: 'vestido' },
+    { em: '4', de: 'cliente', texto: 'tamanho M' },
+  ])
+  checar(40, 'mensagens seguidas da cliente viram um pedido só', conversa.pendentes.length === 2 && conversa.historico.length === 2)
   checar(
     33,
     'botão de URL manda só o caminho',

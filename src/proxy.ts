@@ -31,6 +31,9 @@ export async function proxy(request: NextRequest) {
     // Botao de rastreio do WhatsApp: quem clica e a cliente, sem sessao. A
     // protecao e a assinatura no caminho (lib/maquina-vendas/rastreio.ts).
     pathname.startsWith('/api/r/') ||
+    // Ferramentas do agente de atendimento (n8n). Sem sessao de navegador: a
+    // protecao e o CRON_SECRET, conferido em lib/atendimento/porta.ts.
+    pathname.startsWith('/api/agente/') ||
     pathname.startsWith('/_next') ||
     pathname.includes('.')
 

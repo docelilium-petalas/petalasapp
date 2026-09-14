@@ -232,6 +232,37 @@ export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnv
       ...(componentes.length ? { components: componentes } : {}),
     },
   }
+  return postarMensagem(cred, corpo)
+}
+
+/**
+ * Mensagem LIVRE — texto ou foto, sem template.
+ *
+ * ⚠️ Só vale dentro das 24h depois da última mensagem da cliente (a janela de
+ * atendimento da Meta). É o caminho da conversa com a IA, que sempre responde
+ * a alguém que acabou de escrever. Fora da janela a Meta recusa com 131047 e o
+ * erro volta classificado como JANELA_FECHADA — nunca tente contornar com isso.
+ */
+export type ConteudoLivre =
+  | { tipo: 'texto'; texto: string }
+  | { tipo: 'imagem'; link: string; legenda?: string }
+
+export async function enviarMensagemLivre(para: string, conteudo: ConteudoLivre): Promise<ResultadoEnvio> {
+  const cred = await obterCredenciaisCanal()
+  const base = { messaging_product: 'whatsapp', recipient_type: 'individual', to: para.replace(/\D/g, '') }
+  const corpo =
+    conteudo.tipo === 'texto'
+      ? { ...base, type: 'text', text: { preview_url: true, body: conteudo.texto.slice(0, 4096) } }
+      : {
+          ...base,
+          type: 'image',
+          image: { link: conteudo.link, ...(conteudo.legenda ? { caption: conteudo.legenda.slice(0, 1024) } : {}) },
+        }
+  return postarMensagem(cred, corpo)
+}
+
+/** A ida à Meta, igual para template e mensagem livre: um só lugar classifica erro. */
+async function postarMensagem(cred: CredenciaisCanal, corpo: unknown): Promise<ResultadoEnvio> {
   const payload = JSON.stringify(corpo)
 
   let resposta: Response

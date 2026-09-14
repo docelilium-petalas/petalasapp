@@ -1,0 +1,378 @@
+{
+  "name": "DL · Atendimento IA (WhatsApp oficial)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dl-atendimento",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "71c85a03-3cc9-4ca3-b76c-a5f3f429a891",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "dl-atendimento",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Agora: ' + $json.body.agora + '\\nNome no perfil do WhatsApp: ' + ($json.body.nome_whatsapp || 'desconhecido') + '\\nRespondendo à mensagem automática: ' + ($json.body.respondendo_template || 'nenhuma') + '\\n\\nHISTÓRICO DA CONVERSA:\\n' + $json.body.historico + '\\n\\nMENSAGEM NOVA DA CLIENTE:\\n' + $json.body.mensagem }}",
+        "options": {
+          "systemMessage": "=Você é a atendente virtual da Doce Lilium no WhatsApp. A Doce Lilium é uma loja de moda feminina da Marília: vestidos, saias, partes de cima e acessórios, vendidos pelo site www.docelilium.com.br. Você conversa como alguém da loja: carinhosa, leve, direta. Se perguntarem, diga que é a assistente virtual e que a Marília acompanha as conversas.\n\n=== COMO ESCREVER ===\n- Frases curtas. De 1 a 3 balões, separados por UMA LINHA EM BRANCO. Só use mais de um balão quando o segundo disser algo NOVO.\n- UMA pergunta por resposta. Perguntou, para. Nada de \"fico à disposição\", \"qualquer dúvida é só chamar\", \"estou aguardando\".\n- No máximo um emoji por resposta, e só destes: 🌸 🤍 ✨ 💗. Nunca use negrito, asterisco, lista com marcador ou título.\n- Chame a cliente pelo primeiro nome quando souber. Nunca pergunte o nome logo de cara.\n- Nunca repita uma pergunta que já está no histórico. Se ela respondeu \"sim\", \"pode\", \"esse\", ela está respondendo à SUA última pergunta: aja.\n\n=== FERRAMENTAS: QUEM DECIDE É ELAS ===\n1. consultar_cliente — chame no começo de TODA resposta. Traz o nome, os pedidos, o carrinho aberto e o campo \"dica\". Leia a dica e obedeça.\n2. buscar_catalogo — sempre que ela falar de peça, ocasião, cor, tamanho ou preço. Mande só os filtros que ela disse. A resposta traz as peças REAIS da loja.\n3. enviar_fotos — depois de escolher até 3 peças da busca, mande os ids. As fotos chegam para ela já com nome, preço e link. Depois disso, escreva só uma frase curta perguntando se alguma agradou ou qual tamanho ela usa. NÃO repita nomes, preços nem links que já foram nas fotos.\n4. chamar_atendente — quando for assunto de gente (lista abaixo). Depois de chamar, diga numa frase que a Marília vai responder por aqui, e pare.\n5. Think — para pensar antes de responder quando o pedido tiver várias partes.\n\n=== A JORNADA ===\nDESCOBRIR — ela chegou sem dizer o que quer (\"oi\", \"vi no Instagram\"): cumprimente e pergunte o que ela procura ou para que ocasião. Uma pergunta só.\nRECOMENDAR — ela disse o que quer: busque na hora, sem perguntar mais nada antes. Mostre até 3 com enviar_fotos. Se ela disse o tamanho, busque já com o tamanho. Se a busca voltar vazia, diga que não tem essa peça e ofereça as categorias que a dica listar. Nunca ofereça outra peça fingindo que é o que ela pediu.\nTAMANHO E DETALHES — só cite tamanho que veio em tamanhos_disponiveis. Tecido, caimento e medidas só se estiverem em \"detalhes\". Se ela precisar de uma medida que não está lá, chame chamar_atendente com motivo \"medidas\".\nFECHAR — ela escolheu: mande o link da peça (o que veio da busca) e diga que o frete e as formas de pagamento aparecem no site ao colocar o CEP. Não calcule frete, não diga prazo, não liste formas de pagamento.\nCARRINHO — se ela respondeu à mensagem de carrinho ou a dica falar de carrinho aberto e o assunto for essa compra: ajude a resolver a dúvida dela e mande o link do carrinho (o que veio em carrinho_aberto.link). NUNCA ofereça cupom ou desconto: a loja não trabalha com cupom acumulado.\nPEDIDO — perguntou do pedido, pagamento ou entrega: responda só com o que consultar_cliente trouxe (situação, pagamento, envio). Se tiver rastreio, mande o link. Nunca invente data de entrega. Se não achar pedido nenhum com o telefone dela, pergunte o número do pedido e chame chamar_atendente com o número.\nDEPOIS DA COMPRA — ela contou que recebeu, elogiou ou deu opinião: agradeça com carinho, numa frase. Se for reclamação, é assunto de gente.\n\n=== ASSUNTO DE GENTE: CHAME chamar_atendente ===\nTroca, devolução, defeito, peça errada, reclamação, problema de pagamento ou cobrança, pedido de desconto ou cupom, atraso de entrega, compra no atacado, parceria, ou quando ela pedir para falar com uma pessoa. No resumo, escreva em uma ou duas frases o que ela quer, com número do pedido e peça se houver.\n\n=== NUNCA ===\n- Inventar preço, estoque, tamanho, medida, tecido, frete, prazo, cupom, desconto, política de troca ou horário de atendimento.\n- Mandar link que não veio de uma ferramenta (o único link livre é www.docelilium.com.br).\n- Pedir CPF, cartão, senha ou endereço.\n- Prometer reserva de peça.\n\n=== MÍDIA ===\nSe a mensagem disser que ela mandou áudio, diga com carinho que por aqui você só consegue ler, e peça para escrever. Se mandou foto, diga que viu a foto, mas que precisa que ela escreva o que procura (cor, tipo de peça ou ocasião) para buscar no catálogo.",
+          "maxIterations": 10
+        }
+      },
+      "id": "1896073b-69ea-454d-ba2e-09deccfafdc5",
+      "name": "Atendente Doce Lilium",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "0d2952cd-f034-4a54-96f9-189817dd4e28",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        260
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "UjfUsBeBZzbwR4eY",
+          "name": "OpenAi Credencial"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "PRIMEIRA CHAMADA DE TODA RESPOSTA. Devolve o primeiro nome da cliente, os últimos pedidos (situação, pagamento, envio, rastreio), o carrinho aberto com link e o campo dica, que diz o que fazer e o que NÃO fazer. Não precisa de parâmetro.",
+        "method": "GET",
+        "url": "https://petalas.docelilium.com.br/api/agente/contexto",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "optimizeResponse": false,
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "telefone",
+              "valueProvider": "fieldValue",
+              "value": "={{ $('Webhook').first().json.body.telefone }}"
+            },
+            {
+              "name": "nome",
+              "valueProvider": "fieldValue",
+              "value": "={{ $('Webhook').first().json.body.nome_whatsapp || '' }}"
+            }
+          ]
+        }
+      },
+      "id": "5174c855-8ec6-428c-b685-6ba38a5db0f0",
+      "name": "consultar_cliente",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca peças REAIS no catálogo da loja. Devolve até 4 peças com id, nome, preço, tamanhos_disponiveis, esgotada, link e detalhes, mais a dica. Mande só o que a cliente disse; sem filtro nenhum, devolve as novidades.",
+        "method": "GET",
+        "url": "https://petalas.docelilium.com.br/api/agente/catalogo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "optimizeResponse": false,
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "busca",
+              "valueProvider": "modelOptional",
+              "description": "palavras do que ela procura, ex: vestido azul, saia midi, vestido para casamento"
+            },
+            {
+              "name": "categoria",
+              "valueProvider": "modelOptional",
+              "description": "Vestidos, Saias, Partes de cima, Acessório, Sale ou Collab — só se ela pedir uma categoria"
+            },
+            {
+              "name": "tamanho",
+              "valueProvider": "modelOptional",
+              "description": "o tamanho que ela disse que usa, ex: P, M, G, 38"
+            },
+            {
+              "name": "preco_max",
+              "valueProvider": "modelOptional",
+              "description": "valor máximo em reais, só número, se ela disser quanto quer gastar"
+            }
+          ]
+        }
+      },
+      "id": "5d2e92eb-c9e6-4686-bea3-eb32910a2287",
+      "name": "buscar_catalogo",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Envia para a cliente a foto de até 3 peças, cada uma com nome, preço e link na legenda. Use os ids que vieram de buscar_catalogo. Depois de chamar, NÃO repita nomes, preços nem links.",
+        "method": "POST",
+        "url": "https://petalas.docelilium.com.br/api/agente/fotos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "optimizeResponse": false,
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "parametersBody": {
+          "values": [
+            {
+              "name": "telefone",
+              "valueProvider": "fieldValue",
+              "value": "={{ $('Webhook').first().json.body.telefone }}"
+            },
+            {
+              "name": "produtos",
+              "valueProvider": "modelRequired",
+              "description": "ids das peças separados por vírgula, no máximo 3, ex: 356570407,356575939"
+            }
+          ]
+        }
+      },
+      "id": "cc12f6ce-284c-43f7-b384-55815c09895a",
+      "name": "enviar_fotos",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Passa a conversa para a Marília e tira você desta conversa por 12 horas. Use para troca, devolução, defeito, reclamação, pagamento, desconto, atraso, medidas que não estão no catálogo, atacado ou quando ela pedir uma pessoa.",
+        "method": "POST",
+        "url": "https://petalas.docelilium.com.br/api/agente/humano",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "optimizeResponse": false,
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "parametersBody": {
+          "values": [
+            {
+              "name": "telefone",
+              "valueProvider": "fieldValue",
+              "value": "={{ $('Webhook').first().json.body.telefone }}"
+            },
+            {
+              "name": "motivo",
+              "valueProvider": "modelRequired",
+              "description": "o assunto em até 5 palavras, ex: troca de tamanho"
+            },
+            {
+              "name": "resumo",
+              "valueProvider": "modelRequired",
+              "description": "uma ou duas frases com o que ela quer, número do pedido e peça se houver"
+            }
+          ]
+        }
+      },
+      "id": "b63a8e55-e4cc-4c96-994f-0a44423f9051",
+      "name": "chamar_atendente",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "f95df197-6af7-471d-abf7-405cc898132e",
+      "name": "Think",
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        820,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://petalas.docelilium.com.br/api/agente/responder",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ telefone: $('Webhook').first().json.body.telefone, texto: $json.output, msg_id: $('Webhook').first().json.body.msg_id }) }}",
+        "options": {}
+      },
+      "id": "b1c7601f-8d3a-4c82-a3f5-4e0222c130b8",
+      "name": "Responder no WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xw7zN9c8rCGZINuG",
+          "name": "CRM Cron Doce Lilium"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atendente Doce Lilium": {
+      "main": [
+        [
+          {
+            "node": "Responder no WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_cliente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_catalogo": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "enviar_fotos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chamar_atendente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

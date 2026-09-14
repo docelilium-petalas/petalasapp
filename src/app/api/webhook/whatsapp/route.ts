@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { chaveTelefone, paraE164 } from '@/lib/maquina-vendas/telefone'
 import { pediuParaSair } from '@/lib/maquina-vendas/opt-out'
 import { classificar } from '@/lib/maquina-vendas/canal'
+import { registrarTurno } from '@/lib/atendimento/conversa'
+import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,8 +88,9 @@ export async function POST(request: Request) {
           if (await tratarStatus(st)) statuses++
         }
 
+        const nomes = new Map((valor.contacts ?? []).map((c) => [c.wa_id ?? '', c.profile?.name ?? null]))
         for (const msg of valor.messages ?? []) {
-          const r = await tratarMensagem(msg)
+          const r = await tratarMensagem(msg, nomes.get(msg.from ?? '') ?? null)
           if (r.contou) respostas++
           if (r.saiu) saidas++
         }
@@ -262,7 +265,7 @@ async function tratarStatus(st: StatusMeta): Promise<boolean> {
 }
 
 /** A pessoa falou. */
-async function tratarMensagem(msg: MensagemMeta): Promise<{ contou: boolean; saiu: boolean }> {
+async function tratarMensagem(msg: MensagemMeta, nomeWhatsApp: string | null): Promise<{ contou: boolean; saiu: boolean }> {
   const e164 = paraE164(msg.from)
   const chave = e164 ? chaveTelefone(e164) : ''
   if (!chave) return { contou: false, saiu: false }
@@ -284,17 +287,15 @@ async function tratarMensagem(msg: MensagemMeta): Promise<{ contou: boolean; sai
   const rotuloBotao = msg.button?.text ?? msg.interactive?.button_reply?.title ?? null
   const quando = msg.timestamp ? new Date(Number(msg.timestamp) * 1000) : new Date()
 
-  await prisma.mvResposta.upsert({
-    where: { telefoneKey: chave },
-    create: {
-      telefoneKey: chave,
-      telefoneE164: e164,
-      respondidoEm: quando,
-      ultimasMsgs: [{ em: quando.toISOString(), texto: (texto ?? '').slice(0, 500) }],
-      origem: 'meta',
-    },
-    update: { respondidoEm: quando, telefoneE164: e164, origem: 'meta' },
-  })
+  // Reação e figurinha não são fala: não viram turno nem acordam a IA.
+  if (msg.type === 'reaction' || msg.type === 'sticker' || msg.type === 'unsupported' || msg.type === 'system') {
+    return { contou: false, saiu: false }
+  }
+  const textoDoTurno = texto ?? descreverMidia(msg)
+
+  // O turno entra no histórico da conversa — é a memória da IA — e move
+  // `respondidoEm`, que é o que a Máquina lê.
+  await registrarTurno(e164!, { em: quando.toISOString(), de: 'cliente', texto: textoDoTurno, id: msg.id })
 
   // Sai da régua na hora — e não só no próximo tique.
   await prisma.mvInscricao.updateMany({
@@ -303,7 +304,21 @@ async function tratarMensagem(msg: MensagemMeta): Promise<{ contou: boolean; sai
   })
 
   const recusa = pediuParaSair(texto, rotuloBotao)
-  if (!recusa.saiu) return { contou: true, saiu: false }
+  if (!recusa.saiu) {
+    if (msg.id) {
+      const respondida = msg.context?.id
+        ? await prisma.mvMensagem.findFirst({ where: { idExterno: msg.context.id }, select: { templateNome: true } }).catch(() => null)
+        : null
+      await agendarAtendimento({
+        e164: e164!,
+        msgId: msg.id,
+        nome: nomeWhatsApp,
+        tipo: msg.type ?? 'text',
+        respondendoTemplate: respondida?.templateNome ?? null,
+      }).catch((e) => logar('ERRO', 'atendimento_falhou', 'Não consegui agendar o atendimento', e))
+    }
+    return { contou: true, saiu: false }
+  }
 
   await prisma.mvOptOut.upsert({
     where: { telefoneKey: chave },
@@ -365,11 +380,36 @@ type StatusMeta = {
   errors?: { code?: number; title?: string; message?: string }[]
 }
 
+/**
+ * Mensagem sem texto vira uma frase que a IA entende. Ela ainda não vê foto
+ * nem ouve áudio — e dizer isso é melhor do que responder a nada.
+ */
+function descreverMidia(msg: MensagemMeta): string {
+  switch (msg.type) {
+    case 'image':
+      return `[a cliente mandou uma foto${msg.image?.caption ? `: "${msg.image.caption}"` : ''}]`
+    case 'video':
+      return `[a cliente mandou um vídeo${msg.video?.caption ? `: "${msg.video.caption}"` : ''}]`
+    case 'audio':
+      return '[a cliente mandou um áudio, que você ainda não consegue ouvir]'
+    case 'document':
+      return `[a cliente mandou um arquivo${msg.document?.filename ? ` (${msg.document.filename})` : ''}]`
+    case 'location':
+      return '[a cliente mandou uma localização]'
+    default:
+      return `[a cliente mandou uma mensagem do tipo ${msg.type ?? 'desconhecido'}]`
+  }
+}
+
 type MensagemMeta = {
   id?: string
   from?: string
   timestamp?: string
   type?: string
+  context?: { id?: string }
+  image?: { caption?: string }
+  video?: { caption?: string }
+  document?: { caption?: string; filename?: string }
   text?: { body?: string }
   button?: { text?: string; payload?: string }
   interactive?: { button_reply?: { id?: string; title?: string } }
@@ -381,6 +421,7 @@ type PayloadMeta = {
       value?: {
         statuses?: StatusMeta[]
         messages?: MensagemMeta[]
+        contacts?: { wa_id?: string; profile?: { name?: string } }[]
       }
     }[]
   }[]
