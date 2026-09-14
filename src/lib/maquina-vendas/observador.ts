@@ -70,12 +70,18 @@ export async function observarCarrinhosAbandonados(): Promise<ResultadoObservaca
     return { vistos: 0, inscritos: 0, pulados: [{ motivo: 'sem cadência ativa de carrinho', quantos: 1 }] }
   }
 
-  // Cursor com folga de 2h para trás: a Nuvemshop publica com atraso, e um
-  // corte exato no último instante processado perderia o que apareceu depois.
-  const cursor = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_VARREDURA_CARRINHO } })
-  const desde = cursor
-    ? new Date(new Date(cursor.valor).getTime() - 2 * 60 * 60 * 1000)
-    : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  // A janela é a IDADE MÁXIMA da cadência, e não "desde a última varredura".
+  //
+  // 🔴 Medido em 14/09/2026: o filtro é `created_at_min`, e a Nuvemshop publica
+  // o carrinho com o `created_at` ORIGINAL horas depois (6h pela documentação,
+  // 27h medidas em 09/09). Com o corte antigo — cursor menos 2h — um carrinho
+  // criado às 07h35 e publicado às 13h35 já nascia fora da janela e NUNCA era
+  // visto: `vistos: 0` em todo tique, sem erro nenhum. Receita sumindo calada.
+  //
+  // Reler 72h a cada tique é barato (a loja inteira tem ~10 carrinhos
+  // acessíveis) e seguro: a inscrição é idempotente pelo token.
+  const horasJanela = Math.max(cadencia.idadeMaximaHoras ?? 7 * 24, 30)
+  const desde = new Date(Date.now() - horasJanela * 60 * 60 * 1000)
 
   const carrinhos = await listarCarrinhosAbandonados(desde)
   const ajustes = await obterAjustes()
