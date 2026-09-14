@@ -119,7 +119,8 @@ export function normalizarProduto(p: ProdutoLoja): ProdutoCatalogo {
     precoCheio: cheio && preco && cheio > preco ? cheio : null,
     tamanhos,
     disponivel: tamanhos.some((t) => t.disponivel),
-    fotos: [...(p.images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)).map((i) => i.src),
+    fotos: [...(p.images ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)).map((i) => String(i.src ?? '').replace(/^\/\//, 'https://').replace(/^http:\/\//i, 'https://'))
+      .filter(Boolean),
     link: p.canonical_url ?? '',
     resumo: semHtml(pt(p.description)).slice(0, 600),
     tags: (p.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),

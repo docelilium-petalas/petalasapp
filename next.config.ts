@@ -12,7 +12,9 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // unsafe-eval required by Next.js dev/prod runtime
       "style-src 'self' 'unsafe-inline'",                   // unsafe-inline required by Tailwind CSS-in-JS
-      "img-src 'self' data: blob:",
+      // Fotos das peças vêm da CDN da Nuvemshop. Sem estes hosts o navegador
+      // bloqueava TODA foto do /catalogo (medido em 14/09/2026).
+      "img-src 'self' data: blob: https://*.mitiendanube.com https://*.nuvemshop.com.br https://*.tiendanube.com",
       "font-src 'self'",
       "connect-src 'self'",
       "frame-ancestors 'none'",
