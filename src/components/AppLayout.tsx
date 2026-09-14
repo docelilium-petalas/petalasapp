@@ -281,7 +281,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     if (type === 'deal') {
       router.push(`/pipeline?dealId=${id}`)
     } else {
-      router.push(`/contacts?contactId=${id}`)
+      router.push(`/contacts/${id}`)
     }
   }
 

@@ -1,1818 +1,531 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
-import { AppLayout } from '@/components/AppLayout'
+/**
+ * CONTATOS — a tela da CarBoss (`client/src/pages/Clients/ClientsPage.tsx`).
+ *
+ * Reunião de 14/09/2026 (15h23): "tem que refazer essa tela de contatos, que
+ * está desde a versão do OCR… puxar da CarBoss pra cá". A estrutura é a de lá:
+ *
+ *   cabeçalho com ação  ·  cartões de status que filtram  ·  busca larga
+ *   filtros de Tags e Origem em lista suspensa  ·  tabela Identidade | Status
+ *   | Canal | Logs | Tags | Ações  ·  cartões no celular  ·  a linha abre a
+ *   FICHA do contato numa página própria (`/contacts/[id]`), e não num modal.
+ *
+ * O que é da Doce Lilium e não existe na CarBoss: status CLIENTE (quem comprou),
+ * importação de planilha e as ações em lote (lista de disparo, cadência,
+ * excluir), que ficam atrás do botão "Selecionar".
+ *
+ * O status vem de `getResumoContatos()`, contado sobre TODOS os negócios. A
+ * tela antiga contava sobre os 100 mais recentes e classificava errado.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
-  useContacts,
-  useContactStats,
-  useCreateContact,
-  useUpdateContact,
-  useDeleteContact,
-  useDeleteContacts,
-  useMergeContacts
-} from '@/hooks/useContacts'
-import { crmService } from '@/lib/services'
-import type { ContactInput } from '@/app/actions/crm'
-import * as crmActions from '@/app/actions/crm'
-import { nomeDeExibicao, iniciais as iniciaisDoContato, telefoneDeExibicao, temNome } from '@/lib/contato-exibicao'
-import {
-  Plus, Search, X, Phone, Mail, MapPin, Tag, Edit2, Trash2, Upload,
-  UserCheck, Merge, Zap, ArrowLeft, Calendar, FileText,
-  ChevronRight, CheckSquare, Square, AlertCircle, ShoppingBag,
-  Info, Globe, Database, Settings, Check
+  Plus, Search, X, Tag, Globe, Edit2, Upload, CheckSquare, Square, Trash2, ChevronDown, Check, Users,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { AppLayout } from '@/components/AppLayout'
+import { useContacts, useDeleteContacts } from '@/hooks/useContacts'
+import * as crmActions from '@/app/actions/crm'
+import { nomeDeExibicao, iniciais, telefoneDeExibicao, temNome } from '@/lib/contato-exibicao'
+import { useCategories } from '@/lib/categories'
 import { confirmar } from '@/components/ui/ConfirmSheet'
 import { ImportarContatos } from '@/components/ui/ImportarContatos'
-import { z } from 'zod'
-import { useCategories } from '@/lib/categories'
 import { MobileActionSelect } from '@/components/ui/MobileActionSelect'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { ContatoModal } from '@/components/contatos/ContatoModal'
+import { statusDoContato, COR_STATUS, type StatusContato } from '@/lib/contato-status'
 
-// Form schema using Zod for validation
-const contactSchema = z.object({
-  nome: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
-  sobrenome: z.string().optional(),
-  email: z.string().email('E-mail inválido').or(z.literal('')).optional(),
-  telefone: z.string().min(10, 'O telefone deve ter DDD + número (mínimo 10 dígitos)'),
-  cidade: z.string().optional(),
-  estado: z.string().optional(),
-  documento: z.string().optional(),
-  dataNascimento: z.string().optional(),
-  origem: z.string().optional(),
-  consentimentoLgpd: z.boolean(),
-  enderecoCompleto: z.object({
-    rua: z.string().optional(),
-    numero: z.string().optional(),
-    complemento: z.string().optional(),
-    bairro: z.string().optional(),
-    cidade: z.string().optional(),
-    estado: z.string().optional(),
-    cep: z.string().optional()
-  }).optional()
-})
+type Resumo = Awaited<ReturnType<typeof crmActions.getResumoContatos>>
+
+const POR_PAGINA = 50
+
+/** Lista suspensa com várias escolhas — o `CustomMultiSelect` da CarBoss. */
+function MultiSelecao({
+  opcoes, escolhidas, aoMudar, vazio,
+}: { opcoes: string[]; escolhidas: string[]; aoMudar: (v: string[]) => void; vazio: string }) {
+  const [aberto, setAberto] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!aberto) return
+    const fora = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setAberto(false) }
+    document.addEventListener('mousedown', fora)
+    return () => document.removeEventListener('mousedown', fora)
+  }, [aberto])
+  const rotulo = escolhidas.length === 0 ? vazio : escolhidas.length === 1 ? escolhidas[0] : `${escolhidas.length} selecionadas`
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className={`flex h-10 w-full items-center justify-between rounded-xl border bg-card px-3 text-sm ${
+          escolhidas.length ? 'border-primary/60 text-foreground' : 'border-border text-muted-foreground'
+        }`}
+      >
+        <span className="truncate">{rotulo}</span>
+        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${aberto ? 'rotate-180' : ''}`} />
+      </button>
+      {aberto && (
+        <div className="absolute left-0 right-0 z-30 mt-1 max-h-64 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-xl">
+          {escolhidas.length > 0 && (
+            <button onClick={() => aoMudar([])} className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-muted-foreground hover:bg-muted">
+              Limpar seleção
+            </button>
+          )}
+          {opcoes.map((o) => {
+            const on = escolhidas.includes(o)
+            return (
+              <button
+                key={o}
+                onClick={() => aoMudar(on ? escolhidas.filter((x) => x !== o) : [...escolhidas, o])}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
+              >
+                <span className={`flex h-4 w-4 items-center justify-center rounded border ${on ? 'border-primary bg-primary' : 'border-border'}`}>
+                  {on && <Check className="h-3 w-3 text-primary-foreground" />}
+                </span>
+                {o}
+              </button>
+            )
+          })}
+          {opcoes.length === 0 && <p className="px-3 py-2 text-xs text-muted-foreground">Nada para escolher.</p>}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function ContactsPage() {
-  const cleanVal = (val: any) => {
-    if (val === undefined || val === null || val === 'undefined' || val === 'null' || String(val).trim() === '') {
-      return ''
-    }
-    return String(val)
-  }
-
-  const cleanDisplayVal = (val: any, fallback = '-') => {
-    const cleaned = cleanVal(val)
-    return cleaned === '' ? fallback : cleaned
-  }
-
-  const categoriesStore = useCategories()
+  const router = useRouter()
+  const isMobile = useIsMobile()
+  const { categories } = useCategories()
   const { contacts, loading, mutate } = useContacts()
-  const [deals, setDeals] = useState<{ id: string; contactId?: string; status: string; titulo: string; valorEstimado: number; prioridade?: string; produtoInteresse?: string; createdAt: string; updatedAt: string; fechadoEm?: string }[]>([])
-  const [activities, setActivities] = useState<{ id: string; contactId?: string; status: string; titulo: string; descricao?: string; dueAt: string; doneAt?: string }[]>([])
-  
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [selectedOrigens, setSelectedOrigens] = useState<string[]>([])
-  
-  // Selection mode states
-  const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({})
+  const excluirVarios = useDeleteContacts()
+
+  const [resumo, setResumo] = useState<Resumo>({})
+  const [busca, setBusca] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [origens, setOrigens] = useState<string[]>([])
+  const [status, setStatus] = useState<'' | StatusContato>('')
+  const [pagina, setPagina] = useState(1)
+  const [criando, setCriando] = useState(false)
   const [importando, setImportando] = useState(false)
-  const [selectedListaTarget, setSelectedListaTarget] = useState('')
-  const [selectedCadenciaTarget, setSelectedCadenciaTarget] = useState('')
-  const [listasDisparo, setListasDisparo] = useState<any[]>([])
-  const [cadencias, setCadencias] = useState<any[]>([])
-  
-  // Modals state
-  const [showFormModal, setShowFormModal] = useState(false)
-  const [editingContact, setEditingContact] = useState<(ContactInput & { id: string }) | null>(null)
-  const [formTab, setFormTab] = useState<'dados' | 'endereco' | 'marketing'>('dados')
-  
-  // Detail tabs state
-  const [detailTab, setDetailTab] = useState<'dados' | 'vendas' | 'deals' | 'atividades'>('dados')
 
-  // Merge modal state
-  const [showMergeModal, setShowMergeModal] = useState(false)
-  const [mergeTargetId, setMergeTargetId] = useState<string>('')
-  const [mergeQuery, setMergeQuery] = useState('')
+  const [selecionando, setSelecionando] = useState(false)
+  const [marcados, setMarcados] = useState<Record<string, boolean>>({})
+  const [listas, setListas] = useState<{ id: string; nomeLista: string }[]>([])
+  const [cadencias, setCadencias] = useState<{ id: string; nome: string }[]>([])
+  const [listaAlvo, setListaAlvo] = useState('')
+  const [cadenciaAlvo, setCadenciaAlvo] = useState('')
 
-  // Form states
-  const [formData, setFormData] = useState({
-    nome: '',
-    sobrenome: '',
-    email: '',
-    telefone: '',
-    cidade: '',
-    estado: '',
-    documento: '',
-    dataNascimento: '',
-    origem: '',
-    consentimentoLgpd: true,
-    enderecoCompleto: {
-      rua: '',
-      numero: '',
-      complemento: '',
-      bairro: '',
-      cidade: '',
-      estado: '',
-      cep: ''
-    },
-    tags: [] as string[],
-    camposCustomizados: {} as Record<string, string>
-  })
-  
-  const [newTagInput, setNewTagInput] = useState('')
-  const [customFieldKey, setCustomFieldKey] = useState('')
-  const [customFieldValue, setCustomFieldValue] = useState('')
-
-  // Mutator hooks
-  const createContact = useCreateContact()
-  const updateContact = useUpdateContact()
-  const deleteContact = useDeleteContact()
-  const deleteContacts = useDeleteContacts()
-  const mergeContacts = useMergeContacts()
-
-  // Load complementary data (deals, activities) for joins
+  // Links antigos (`/contacts?id=` e `?contactId=`) abrem a ficha nova.
   useEffect(() => {
-    const loadComplementary = () => {
-      Promise.all([
-        crmActions.getAllDeals(),
-        crmActions.getActivities()
-      ]).then(([allDeals, allActivities]) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setDeals((allDeals as any[]).map((d: any) => ({
-          id: d.id,
-          contactId: d.contactId ?? undefined,
-          status: d.status,
-          titulo: d.titulo,
-          valorEstimado: d.valorEstimado,
-          prioridade: d.prioridade,
-          produtoInteresse: d.produtoInteresse ?? undefined,
-          createdAt: typeof d.createdAt === 'string' ? d.createdAt : d.createdAt?.toISOString?.() ?? '',
-          updatedAt: typeof d.updatedAt === 'string' ? d.updatedAt : d.updatedAt?.toISOString?.() ?? '',
-          fechadoEm: d.fechadoEm ? (typeof d.fechadoEm === 'string' ? d.fechadoEm : d.fechadoEm.toISOString()) : undefined,
-        })))
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setActivities((allActivities as any[]).map((a: any) => ({
-          id: a.id,
-          contactId: a.contactId ?? undefined,
-          status: a.status,
-          titulo: a.titulo,
-          descricao: a.descricao ?? undefined,
-          dueAt: typeof a.dueAt === 'string' ? a.dueAt : a.dueAt?.toISOString?.() ?? '',
-          doneAt: a.doneAt ? (typeof a.doneAt === 'string' ? a.doneAt : a.doneAt.toISOString()) : undefined,
-        })))
-      }).catch((err: unknown) => {
-        toast.error('Erro ao carregar dados complementares: ' + (err instanceof Error ? err.message : String(err)))
-      })
-    }
-    loadComplementary()
-    window.addEventListener('crm-deals-updated', loadComplementary)
-    window.addEventListener('crm-activities-updated', loadComplementary)
+    const q = new URLSearchParams(window.location.search)
+    const id = q.get('id') || q.get('contactId')
+    if (id) router.replace(`/contacts/${id}`)
+  }, [router])
+
+  useEffect(() => {
+    const carregar = () => { crmActions.getResumoContatos().then(setResumo).catch(() => undefined) }
+    carregar()
+    window.addEventListener('crm-deals-updated', carregar)
+    window.addEventListener('crm-contacts-updated', carregar)
+    const novo = () => setCriando(true)
+    window.addEventListener('trigger-add-contact', novo)
     return () => {
-      window.removeEventListener('crm-deals-updated', loadComplementary)
-      window.removeEventListener('crm-activities-updated', loadComplementary)
+      window.removeEventListener('crm-deals-updated', carregar)
+      window.removeEventListener('crm-contacts-updated', carregar)
+      window.removeEventListener('trigger-add-contact', novo)
     }
   }, [])
 
-  // Load dispatch lists and cadences for bulk selection
   useEffect(() => {
-    const loadListsAndCadences = () => {
-      Promise.all([
-        crmActions.getListasDisparo(),
-        crmActions.getCadencias()
-      ]).then(([lists, cads]) => {
-        setListasDisparo(lists)
-        setCadencias(cads)
-      }).catch((err: unknown) => {
-        console.error('Erro ao carregar listas/cadencias:', err)
-      })
-    }
-    loadListsAndCadences()
-    window.addEventListener('crm-lists-updated', loadListsAndCadences)
-    window.addEventListener('crm-cadences-updated', loadListsAndCadences)
-    return () => {
-      window.removeEventListener('crm-lists-updated', loadListsAndCadences)
-      window.removeEventListener('crm-cadences-updated', loadListsAndCadences)
-    }
-  }, [])
+    if (!selecionando || listas.length || cadencias.length) return
+    Promise.all([crmActions.getListasDisparo(), crmActions.getCadencias()])
+      .then(([l, c]) => { setListas(l as never); setCadencias(c as never) })
+      .catch(() => undefined)
+  }, [selecionando, listas.length, cadencias.length])
 
-  // Currently selected contact
-  const selectedContact = useMemo(() => {
-    if (!selectedId) return null
-    return contacts.find(c => c.id === selectedId) || null
-  }, [selectedId, contacts])
+  // Filtro novo volta para a primeira página — no ato, e não num efeito depois.
+  const filtrar = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPagina(1) }
 
-  // Selected contact's stats
-  const { stats: contactStats } = useContactStats(selectedId)
+  const comStatus = useMemo(
+    () => contacts.map((c) => ({ c, st: statusDoContato(resumo[c.id]) })),
+    [contacts, resumo],
+  )
 
-  const [categoryFilter, setCategoryFilter] = useState<'all' | 'leads' | 'recuperar' | 'perdidos'>('all')
+  const metricas = useMemo(() => {
+    const m = { total: comStatus.length, LEAD: 0, CLIENTE: 0, RECUPERAR: 0, PERDIDO: 0 }
+    for (const { st } of comStatus) m[st]++
+    return m
+  }, [comStatus])
 
-  const [page, setPage] = useState(1)
-  const ITEMS_PER_PAGE = 50
+  const origensDisponiveis = useMemo(
+    () => [...new Set([...categories.origins, ...contacts.map((c) => c.derivedOrigem).filter(Boolean)])].sort(),
+    [categories.origins, contacts],
+  )
+  const tagsDisponiveis = useMemo(
+    () => [...new Set([...categories.tags.map((t) => t.label), ...contacts.flatMap((c) => c.tags ?? [])])].sort(),
+    [categories.tags, contacts],
+  )
 
-  useEffect(() => {
-    setPage(1)
-  }, [searchQuery, categoryFilter, selectedTags, selectedOrigens])
-
-  // KPIs calculations
-  const totalContatos = contacts.length
-  
-  // Contacts with at least one active deal
-  const leadsIds = useMemo(() => {
-    return new Set(deals.filter(d => d.status === 'OPEN').map(d => d.contactId))
-  }, [deals])
-
-  // Contacts with at least one WON deal
-  const wonIds = useMemo(() => {
-    return new Set(deals.filter(d => d.status === 'WON').map(d => d.contactId))
-  }, [deals])
-
-  // Contacts with at least one LOST deal
-  const lostIds = useMemo(() => {
-    return new Set(deals.filter(d => d.status === 'LOST').map(d => d.contactId))
-  }, [deals])
-
-  // Contacts with any deals
-  const anyDealIds = useMemo(() => {
-    return new Set(deals.map(d => d.contactId))
-  }, [deals])
-
-  const totalLeads = useMemo(() => {
-    return contacts.filter(c => leadsIds.has(c.id)).length
-  }, [contacts, leadsIds])
-
-  const totalParaRecuperar = useMemo(() => {
-    return contacts.filter(c => !leadsIds.has(c.id) && !wonIds.has(c.id)).length
-  }, [contacts, leadsIds, wonIds])
-
-  const totalPerdidos = useMemo(() => {
-    return contacts.filter(c => lostIds.has(c.id) && !leadsIds.has(c.id) && !wonIds.has(c.id)).length
-  }, [contacts, lostIds, leadsIds, wonIds])
-
-  // Filtered contacts list
-  const filteredContacts = useMemo(() => {
-    return contacts.filter(c => {
-      // Category filter
-      if (categoryFilter === 'leads' && !leadsIds.has(c.id)) return false
-      if (categoryFilter === 'recuperar' && (leadsIds.has(c.id) || wonIds.has(c.id))) return false
-      if (categoryFilter === 'perdidos' && (!lostIds.has(c.id) || leadsIds.has(c.id) || wonIds.has(c.id))) return false
-
-      const nameMatch = `${cleanVal(c.nome)} ${cleanVal(c.sobrenome)}`.toLowerCase().includes(searchQuery.toLowerCase())
-      const telMatch = (c.telefone || '').includes(searchQuery)
-      const emailMatch = (c.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-      
-      const queryMatch = nameMatch || telMatch || emailMatch
-      
-      const tagsMatch = selectedTags.length === 0 || 
-        selectedTags.some(t => c.tags?.includes(t))
-      
-      const origensMatch = selectedOrigens.length === 0 || 
-        selectedOrigens.includes(c.derivedOrigem)
-
-      return queryMatch && tagsMatch && origensMatch
+  const filtrados = useMemo(() => {
+    const q = busca.trim().toLowerCase()
+    const qDigitos = q.replace(/\D/g, '')
+    return comStatus.filter(({ c, st }) => {
+      if (status && st !== status) return false
+      if (tags.length && !tags.some((t) => c.tags?.includes(t))) return false
+      if (origens.length && !origens.includes(c.derivedOrigem)) return false
+      if (!q) return true
+      return (
+        `${c.nome ?? ''} ${c.sobrenome ?? ''}`.toLowerCase().includes(q) ||
+        (c.email ?? '').toLowerCase().includes(q) ||
+        (qDigitos.length >= 3 && (c.telefone ?? '').includes(qDigitos))
+      )
     })
-  }, [contacts, searchQuery, selectedTags, selectedOrigens, categoryFilter, leadsIds, wonIds, lostIds])
+  }, [comStatus, busca, tags, origens, status])
 
-  const paginatedContacts = useMemo(() => {
-    const startIndex = (page - 1) * ITEMS_PER_PAGE
-    return filteredContacts.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-  }, [filteredContacts, page])
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA))
+  const visiveis = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA)
+  const idsMarcados = Object.keys(marcados).filter((id) => marcados[id])
 
-  const totalPages = Math.ceil(filteredContacts.length / ITEMS_PER_PAGE)
+  const abrir = (id: string) => router.push(`/contacts/${id}`)
+  const alternar = (id: string) => setMarcados((m) => ({ ...m, [id]: !m[id] }))
+  const todosMarcados = visiveis.length > 0 && visiveis.every(({ c }) => marcados[c.id])
+  const alternarTodos = () =>
+    setMarcados((m) => {
+      const n = { ...m }
+      for (const { c } of visiveis) n[c.id] = !todosMarcados
+      return n
+    })
+  const sairDaSelecao = () => { setMarcados({}); setSelecionando(false) }
 
-  // Checkbox state for current page visible items
-  const isAllChecked = useMemo(() => {
-    if (paginatedContacts.length === 0) return false
-    return paginatedContacts.every(c => checkedIds[c.id])
-  }, [paginatedContacts, checkedIds])
-
-  const toggleAllChecked = () => {
-    if (isAllChecked) {
-      // Uncheck only current page items
-      const nextChecked = { ...checkedIds }
-      paginatedContacts.forEach(c => delete nextChecked[c.id])
-      setCheckedIds(nextChecked)
-    } else {
-      const nextChecked: Record<string, boolean> = { ...checkedIds }
-      paginatedContacts.forEach(c => {
-        nextChecked[c.id] = true
-      })
-      setCheckedIds(nextChecked)
-    }
-  }
-
-  const toggleChecked = (id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    setCheckedIds(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }))
-  }
-
-  const checkedCount = useMemo(() => {
-    return filteredContacts.filter(c => checkedIds[c.id]).length
-  }, [filteredContacts, checkedIds])
-
-  // Bulk Delete
-  const handleBulkDelete = async () => {
-    const ids = Object.keys(checkedIds).filter(id => checkedIds[id])
-    if (ids.length === 0) return
-    
+  async function excluirMarcados() {
+    if (!idsMarcados.length) return
     const ok = await confirmar({
-      titulo: `Excluir ${ids.length} ${ids.length === 1 ? 'contato' : 'contatos'} para sempre?`,
+      titulo: `Excluir ${idsMarcados.length} ${idsMarcados.length === 1 ? 'contato' : 'contatos'} para sempre?`,
       descricao: 'Os negócios e o histórico de cada um vão junto. Não dá para desfazer.',
       confirmar: 'Excluir',
     })
-    if (!ok) {
-      return
-    }
-
-    try {
-      const toastId = toast.loading(`Excluindo ${ids.length} contatos...`)
-      await deleteContacts.execute(ids)
-      toast.dismiss(toastId)
-      toast.success(`${ids.length} contatos excluídos em lote!`)
-      setCheckedIds({})
-      setIsSelectionMode(false)
-      if (selectedId && ids.includes(selectedId)) {
-        setSelectedId(null)
-      }
-    } catch (err: unknown) {
-      toast.error('Erro na exclusão em lote: ' + (err instanceof Error ? err.message : String(err)))
-    }
-  }
-
-  const handleBulkAddToLista = async () => {
-    if (!selectedListaTarget) return
-    const ids = Object.keys(checkedIds).filter(id => checkedIds[id])
-    if (ids.length === 0) return
-    try {
-      const toastId = toast.loading('Adicionando contatos à lista...')
-      const count = await crmActions.addLeadsToListaDisparo(selectedListaTarget, ids, 'contact')
-      toast.dismiss(toastId)
-      toast.success(`${count} contatos adicionados à lista de disparo com sucesso!`)
-      setCheckedIds({})
-      setIsSelectionMode(false)
-      setSelectedListaTarget('')
-    } catch (e: any) {
-      toast.error(e.message || 'Erro ao adicionar contatos à lista de disparo')
-    }
-  }
-
-  const handleBulkAddToCadence = async () => {
-    if (!selectedCadenciaTarget) return
-    const ids = Object.keys(checkedIds).filter(id => checkedIds[id])
-    if (ids.length === 0) return
-    try {
-      const toastId = toast.loading('Adicionando contatos à cadência...')
-      const count = await crmActions.addLeadsToCadence(selectedCadenciaTarget, ids, 'contact')
-      toast.dismiss(toastId)
-      toast.success(`${count} contatos adicionados à cadência com sucesso!`)
-      setCheckedIds({})
-      setIsSelectionMode(false)
-      setSelectedCadenciaTarget('')
-    } catch (e: any) {
-      toast.error(e.message || 'Erro ao adicionar contatos à cadência')
-    }
-  }
-
-  // Open creation modal
-  const openCreateModal = () => {
-    setEditingContact(null)
-    setFormData({
-      nome: '',
-      sobrenome: '',
-      email: '',
-      telefone: '',
-      cidade: '',
-      estado: '',
-      documento: '',
-      dataNascimento: '',
-      origem: '',
-      consentimentoLgpd: true,
-      enderecoCompleto: {
-        rua: '',
-        numero: '',
-        complemento: '',
-        bairro: '',
-        cidade: '',
-        estado: '',
-        cep: ''
-      },
-      tags: [],
-      camposCustomizados: {}
-    })
-    setFormTab('dados')
-    setShowFormModal(true)
-  }
-
-  // Open edit modal
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const openEditModal = (contact: any) => {
-    setEditingContact({ id: contact.id, nome: contact.nome, ...contact })
-    setFormData({
-      nome: contact.nome || '',
-      sobrenome: contact.sobrenome || '',
-      email: contact.email || '',
-      telefone: contact.telefone || '',
-      cidade: contact.cidade || '',
-      estado: contact.estado || '',
-      documento: contact.documento || '',
-      dataNascimento: contact.dataNascimento || '',
-      origem: contact.origem || '',
-      consentimentoLgpd: contact.consentimentoLgpd ?? true,
-      enderecoCompleto: {
-        rua: contact.enderecoCompleto?.rua || '',
-        numero: contact.enderecoCompleto?.numero || '',
-        complemento: contact.enderecoCompleto?.complemento || '',
-        bairro: contact.enderecoCompleto?.bairro || '',
-        cidade: contact.enderecoCompleto?.cidade || '',
-        estado: contact.enderecoCompleto?.estado || '',
-        cep: contact.enderecoCompleto?.cep || ''
-      },
-      tags: contact.tags || [],
-      camposCustomizados: (contact.camposCustomizados || {}) as Record<string, string>
-    })
-    setFormTab('dados')
-    setShowFormModal(true)
-  }
-
-  // Submit contact form
-  const handleSubmit = async () => {
-    // Validate with Zod
-    const validation = contactSchema.safeParse(formData)
-    if (!validation.success) {
-      const errors = validation.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
-      toast.error('Erro de validação:\n' + errors)
-      return
-    }
-
-    try {
-      const payload: ContactInput = {
-        nome: formData.nome,
-        sobrenome: formData.sobrenome || undefined,
-        email: formData.email || undefined,
-        telefone: formData.telefone,
-        cidade: formData.cidade || undefined,
-        estado: formData.estado || undefined,
-        documento: formData.documento || undefined,
-        dataNascimento: formData.dataNascimento || undefined,
-        origem: formData.origem || undefined,
-        consentimentoLgpd: formData.consentimentoLgpd,
-        tags: formData.tags,
-        enderecoCompleto: formData.enderecoCompleto,
-        camposCustomizados: formData.camposCustomizados,
-      }
-
-      if (editingContact) {
-        await updateContact.execute(editingContact.id, payload)
-        toast.success('Contato atualizado com sucesso!')
-      } else {
-        const created = await createContact.execute(payload)
-        setSelectedId(created.id)
-        toast.success('Contato criado com sucesso!')
-      }
-      setShowFormModal(false)
-      mutate()
-    } catch (err: unknown) {
-      toast.error('Erro ao salvar contato: ' + (err instanceof Error ? err.message : String(err)))
-    }
-  }
-
-  // Delete single contact
-  const handleSingleDelete = async (id: string) => {
-    const alvo = contacts.find((c) => c.id === id)
-    const ok = await confirmar({
-      titulo: 'Excluir este contato para sempre?',
-      alvo: alvo ? `${alvo.nome}${alvo.sobrenome ? ' ' + alvo.sobrenome : ''}` : undefined,
-      descricao: 'Os negócios ligados a ele vão junto. Não dá para desfazer.',
-      confirmar: 'Excluir',
-    })
     if (!ok) return
     try {
-      await deleteContact.execute(id)
-      setSelectedId(null)
-      toast.success('Contato excluído com sucesso!')
-      mutate()
-    } catch (err: unknown) {
-      toast.error('Erro ao excluir contato: ' + (err instanceof Error ? err.message : String(err)))
+      await excluirVarios.execute(idsMarcados)
+      toast.success(`${idsMarcados.length} contatos excluídos`)
+      sairDaSelecao()
+    } catch (e) {
+      toast.error('Erro ao excluir: ' + (e instanceof Error ? e.message : String(e)))
     }
   }
 
-  // Merge contact submission
-  const handleMerge = async () => {
-    if (!selectedId || !mergeTargetId) return
-    const ok = await confirmar({
-      titulo: 'Juntar os dois contatos?',
-      descricao:
-        'O contato secundário deixa de existir, e os negócios e atividades dele passam para o principal. Não dá para separar depois.',
-      confirmar: 'Juntar',
-    })
-    if (!ok) return
+  async function adicionarALista() {
+    if (!listaAlvo || !idsMarcados.length) return
     try {
-      const merged = await mergeContacts.execute(selectedId, mergeTargetId)
-      setSelectedId(merged.id)
-      setShowMergeModal(false)
-      setMergeTargetId('')
-      toast.success('Contatos mesclados com sucesso!')
-      mutate()
-    } catch (err: unknown) {
-      toast.error('Erro ao mesclar contatos: ' + (err instanceof Error ? err.message : String(err)))
+      const n = await crmActions.addLeadsToListaDisparo(listaAlvo, idsMarcados, 'contact')
+      toast.success(`${n} contatos adicionados à lista de disparo`)
+      sairDaSelecao()
+      setListaAlvo('')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao adicionar à lista')
     }
   }
 
-  // WhatsApp click handler
-  const handleWhatsApp = (phone: string) => {
-    const cleanPhone = phone.replace(/\D/g, '')
-    window.open(`https://wa.me/${cleanPhone}`, '_blank')
-  }
-
-  // Trigger test webhook
-  const handleTestWebhook = async (phone: string, name: string) => {
+  async function adicionarACadencia() {
+    if (!cadenciaAlvo || !idsMarcados.length) return
     try {
-      const toastId = toast.loading('Ingerindo lead de teste no webhook...')
-      await crmService.webhookElementor({
-        nome: name,
-        telefone: phone,
-        email: `${name.toLowerCase()}@teste-webhook.com`,
-        utm_source: 'Meta Ads',
-        utm_medium: 'cpc',
-        utm_campaign: 'HMI_caixa_rapido_campanha',
-        campos_customizados: {
-          fb_lead_id: 'fb-lead-webhook-' + Math.random().toString(36).substr(2, 9),
-          form_name: 'Formulário Elementor Teste Webhook'
-        }
-      })
-      toast.dismiss(toastId)
-      toast.success('Lead simulado ingerido! Recarregando contatos...')
-      mutate()
-    } catch (err: unknown) {
-      toast.error('Erro na simulação do webhook: ' + (err instanceof Error ? err.message : String(err)))
+      const n = await crmActions.addLeadsToCadence(cadenciaAlvo, idsMarcados, 'contact')
+      toast.success(`${n} contatos adicionados à cadência`)
+      sairDaSelecao()
+      setCadenciaAlvo('')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao adicionar à cadência')
     }
   }
 
-  // Tag list editing helpers
-  const addTag = () => {
-    if (!newTagInput.trim()) return
-    if (formData.tags.includes(newTagInput.trim())) return
-    setFormData(prev => ({
-      ...prev,
-      tags: [...prev.tags, newTagInput.trim()]
-    }))
-    setNewTagInput('')
-  }
+  const cartoes: { chave: '' | StatusContato; rotulo: string; valor: number; cor: string; ativa: string }[] = [
+    { chave: '', rotulo: 'Total', valor: metricas.total, cor: 'text-foreground', ativa: 'border-foreground/40' },
+    { chave: 'LEAD', rotulo: 'Leads', valor: metricas.LEAD, cor: 'text-success', ativa: 'border-success/60' },
+    { chave: 'CLIENTE', rotulo: 'Clientes', valor: metricas.CLIENTE, cor: 'text-primary', ativa: 'border-primary/60' },
+    { chave: 'RECUPERAR', rotulo: 'Recuperar', valor: metricas.RECUPERAR, cor: 'text-warning', ativa: 'border-warning/60' },
+    { chave: 'PERDIDO', rotulo: 'Perdidos', valor: metricas.PERDIDO, cor: 'text-destructive', ativa: 'border-destructive/60' },
+  ]
 
-  const removeTag = (t: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== t)
-    }))
-  }
+  const Avatar = ({ c, grande }: { c: (typeof contacts)[number]; grande?: boolean }) => (
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-xl bg-brand-ink font-bold text-white ${
+        grande ? 'h-11 w-11 text-base' : 'h-11 w-11 text-sm'
+      }`}
+    >
+      {iniciais(c)}
+    </div>
+  )
 
-  // Custom fields helpers
-  const addCustomField = () => {
-    if (!customFieldKey.trim() || !customFieldValue.trim()) return
-    const key = customFieldKey.trim().toLowerCase().replace(/\s+/g, '_')
-    setFormData(prev => ({
-      ...prev,
-      camposCustomizados: {
-        ...prev.camposCustomizados,
-        [key]: customFieldValue.trim()
-      }
-    }))
-    setCustomFieldKey('')
-    setCustomFieldValue('')
-  }
-
-  const removeCustomField = (key: string) => {
-    setFormData(prev => {
-      const next = { ...prev.camposCustomizados }
-      delete next[key]
-      return {
-        ...prev,
-        camposCustomizados: next
-      }
-    })
-  }
-
-  // UI helper colors
-  const initials = (c: { nome: string; sobrenome?: string | null; telefone?: string | null }) => iniciaisDoContato(c)
-  const avatarColor = (id: string) => {
-    const colors = ['bg-success', 'bg-info', 'bg-brand-ink', 'bg-warning', 'bg-destructive']
-    return colors[id.charCodeAt(id.length - 1) % colors.length]
-  }
-
-  // Filters for merge contacts dropdown
-  const mergeEligibleContacts = useMemo(() => {
-    if (!selectedId) return []
-    return contacts.filter(c => 
-      c.id !== selectedId && 
-      `${c.nome} ${c.sobrenome || ''}`.toLowerCase().includes(mergeQuery.toLowerCase())
-    )
-  }, [contacts, selectedId, mergeQuery])
-
-  // Filter deals & activities specifically for selected contact
-  const selectedContactDeals = useMemo(() => {
-    if (!selectedId) return []
-    return deals.filter(d => d.contactId === selectedId)
-  }, [deals, selectedId])
-
-  const selectedContactActivities = useMemo(() => {
-    if (!selectedId) return []
-    return activities.filter(a => a.contactId === selectedId)
-  }, [activities, selectedId])
+  const Selo = ({ st }: { st: StatusContato }) => (
+    <span className={`inline-block rounded-full border px-2.5 py-1 text-[10px] font-extrabold tracking-wide ${COR_STATUS[st].texto} ${COR_STATUS[st].borda} ${COR_STATUS[st].fundo}`}>
+      {st}
+    </span>
+  )
 
   return (
     <AppLayout>
-      <div className="flex h-full flex-col bg-background text-foreground relative">
-        
-        {/* MAIN COLUMN: LIST AND FILTERS */}
-        <div className="flex flex-col flex-1 bg-card shrink-0 select-none overflow-hidden">
-          
-          {/* List Header & KPIs */}
-          <div className="p-5 border-b border-border-subtle space-y-4">
-            {/* KPIs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6">
+          {/* ── Cabeçalho ─────────────────────────────────────────────── */}
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Contatos</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">Base unificada de leads e clientes da Doce Lilium</p>
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                type="button"
-                onClick={() => setCategoryFilter('all')}
-                className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
-                  categoryFilter === 'all'
-                    ? 'bg-muted border-border border-2 shadow-lg shadow-neutral-900/50 scale-[1.03]'
-                    : 'bg-card border border-border-subtle hover:bg-card/50 hover:border-border'
+                onClick={() => (selecionando ? sairDaSelecao() : setSelecionando(true))}
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                  selecionando ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:bg-muted'
                 }`}
               >
-                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total</span>
-                <span className="text-sm font-black text-foreground">{totalContatos}</span>
+                <CheckSquare className="h-4 w-4" /> <span className="max-sm:hidden">Selecionar</span>
               </button>
               <button
-                type="button"
-                onClick={() => setCategoryFilter('leads')}
-                className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
-                  categoryFilter === 'leads'
-                    ? 'bg-primary/20 border-primary border-2 shadow-lg shadow-primary/10 scale-[1.03]'
-                    : 'bg-primary/5 border border-border hover:bg-primary/10 hover:border-border'
-                }`}
+                onClick={() => setImportando(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted"
               >
-                <span className="text-[9px] text-primary/80 font-bold uppercase tracking-wider mb-0.5">Leads</span>
-                <span className="text-sm font-black text-primary">{totalLeads}</span>
+                <Upload className="h-4 w-4" /> <span className="max-sm:hidden">Importar</span>
               </button>
               <button
-                type="button"
-                onClick={() => setCategoryFilter('recuperar')}
-                className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
-                  categoryFilter === 'recuperar'
-                    ? 'bg-warning/20 border-warning border-2 shadow-lg shadow-warning/10 scale-[1.03]'
-                    : 'bg-warning/5 border border-warning/10 hover:bg-warning/10 hover:border-warning/30'
-                }`}
+                onClick={() => setCriando(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm active:scale-95"
               >
-                <span className="text-[9px] text-warning/80 font-bold uppercase tracking-wider mb-0.5">Recuperar</span>
-                <span className="text-sm font-black text-warning">{totalParaRecuperar}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('perdidos')}
-                className={`flex flex-col p-2 rounded-xl items-center justify-center transition-all ${
-                  categoryFilter === 'perdidos'
-                    ? 'bg-destructive/20 border-destructive border-2 shadow-lg shadow-destructive/10 scale-[1.03]'
-                    : 'bg-destructive/5 border border-destructive/10 hover:bg-destructive/10 hover:border-destructive/30'
-                }`}
-              >
-                <span className="text-[9px] text-destructive/80 font-bold uppercase tracking-wider mb-0.5">Perdidos</span>
-                <span className="text-sm font-black text-destructive">{totalPerdidos}</span>
+                <Plus className="h-4 w-4" /> Novo contato
               </button>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                  Contatos <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{filteredContacts.length}</span>
-                </h1>
-                <p className="text-xs text-muted-foreground mt-0.5">Todo mundo que já falou com a marca, num lugar só</p>
-              </div>
-              <div className="flex items-center gap-2">
+          </div>
+
+          {/* ── Cartões de status ─────────────────────────────────────── */}
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {cartoes.map((k) => {
+              const ativo = status === k.chave
+              return (
                 <button
-                  onClick={() => setIsSelectionMode(!isSelectionMode)}
-                  className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
-                    isSelectionMode 
-                      ? 'bg-primary/20 border-primary text-primary hover:bg-primary/30' 
-                      : 'border-border hover:bg-muted text-muted-foreground'
-                  }`}
-                  title="Seleção em Lote"
+                  key={k.rotulo}
+                  onClick={() => filtrar(setStatus)(k.chave)}
+                  className={`rounded-2xl border bg-card px-3 py-4 text-center transition-all ${
+                    ativo ? `${k.ativa} opacity-100 shadow-sm` : 'border-border-subtle opacity-70 hover:opacity-100'
+                  } ${k.chave === '' ? 'max-sm:col-span-2' : ''}`}
                 >
-                  <CheckSquare className="w-4 h-4" />
+                  <div className={`mb-1 text-[11px] font-extrabold uppercase tracking-widest ${k.chave ? k.cor : 'text-muted-foreground'}`}>{k.rotulo}</div>
+                  <div className={`text-2xl font-extrabold ${k.cor}`}>{k.valor}</div>
                 </button>
-                <button
-                  onClick={() => setImportando(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-secondary font-bold text-xs transition-all"
-                  title="Importar contatos de uma planilha"
-                >
-                  <Upload className="w-4 h-4" /> <span className="max-md:hidden">Importar</span>
-                </button>
-                <button
-                  onClick={openCreateModal}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4 text-primary-foreground stroke-[3px]" /> Criar
-                </button>
-              </div>
-            </div>
+              )
+            })}
+          </div>
 
-            {/* Search Box */}
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background shadow-inner focus-within:border-primary/70 transition-colors">
-              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar por nome, telefone ou email..."
-                className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted-foreground text-foreground"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="p-0.5 rounded-full hover:bg-muted">
-                  <X className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+          {/* ── Título da lista, busca e filtros ─────────────────────── */}
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-xl font-extrabold text-foreground">Contatos</span>
+            <span className="rounded-full border border-border-subtle bg-card px-2 py-0.5 text-xs font-bold text-muted-foreground">
+              {filtrados.length}
+            </span>
+          </div>
 
-            {/* Tag/Origin filters */}
-            <div className="flex flex-col gap-2 pt-1">
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                <Tag className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground shrink-0 mr-1">Tags:</span>
-                {categoriesStore.categories.tags.map(tagObj => {
-                  const tag = tagObj.label
-                  const isSelected = selectedTags.includes(tag)
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                      className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
-                        isSelected 
-                          ? 'bg-primary/20 border-primary/70 text-primary' 
-                          : 'bg-card border-border-subtle text-muted-foreground hover:border-border'
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                <Globe className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground shrink-0 mr-1">Origem:</span>
-                {categoriesStore.categories.origins.map(orig => {
-                  const isSelected = selectedOrigens.includes(orig)
-                  return (
-                    <button
-                      key={orig}
-                      onClick={() => setSelectedOrigens(prev => isSelected ? prev.filter(o => o !== orig) : [...prev, orig])}
-                      className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 transition-all font-medium ${
-                        isSelected 
-                          ? 'bg-primary/20 border-primary/70 text-primary' 
-                          : 'bg-card border-border-subtle text-muted-foreground hover:border-border'
-                      }`}
-                    >
-                      {orig}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Selection Toolbar */}
-            {isSelectionMode && (
-              <div className="flex items-center justify-between p-3.5 bg-background border border-border rounded-2xl animate-scale-in">
-                <div className="flex items-center gap-2">
-                  <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-foreground">
-                    {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
-                  </button>
-                  <span className="text-xs text-muted-foreground font-semibold">{checkedCount} selecionados</span>
-                </div>
-                {checkedCount > 0 && (
-                  <button
-                    onClick={handleBulkDelete}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-[11px] font-bold hover:bg-destructive hover:text-primary-foreground transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
-                  </button>
-                )}
-              </div>
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-3 h-4 w-4 text-muted-foreground" />
+            <input
+              className="h-10 w-full rounded-xl border border-border bg-card pl-11 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+              placeholder="Buscar por nome, telefone ou e-mail..."
+              value={busca}
+              onChange={(e) => filtrar(setBusca)(e.target.value)}
+            />
+            {busca && (
+              <button onClick={() => filtrar(setBusca)('')} className="absolute right-3 top-2.5 rounded-full p-1 hover:bg-muted" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
             )}
           </div>
 
-          {/* Contact List Scroll Area - Table Style */}
-          <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-thin px-5 pb-5">
-            <div className="min-w-[800px] flex flex-col h-full">
-              {/* Table Header */}
-              <div className="grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 px-5 py-3 border-b border-border-subtle text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0 bg-background backdrop-blur-md z-10 rounded-t-xl mt-2">
-                <div className="w-5 flex items-center justify-center">
-                  {isSelectionMode && (
-                    <button onClick={toggleAllChecked} className="p-0.5 rounded text-muted-foreground hover:text-foreground">
-                      {isAllChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
-                    </button>
-                  )}
-                </div>
-                <div>Identidade</div>
-                <div>Status</div>
-                <div>Canal</div>
-                <div>Logs</div>
-                <div className="text-right">Ações</div>
-              </div>
-
-              {/* Table Body */}
-              <div className="flex flex-col gap-2 mt-3 pb-6">
-                {loading && (
-                  <div className="flex flex-col items-center justify-center py-20 gap-3">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-muted-foreground">Carregando contatos...</span>
-                  </div>
-                )}
-                
-                {!loading && filteredContacts.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground p-6">
-                    <Info className="w-10 h-10 stroke-[1.5] opacity-25 mb-2" />
-                    <p className="text-sm font-semibold">Nenhum contato encontrado</p>
-                    <p className="text-xs mt-0.5 opacity-70">Ajuste os filtros de busca ou crie um novo contato.</p>
-                  </div>
-                )}
-
-                {paginatedContacts.map(c => {
-                  const isSelected = selectedId === c.id
-                  const isChecked = !!checkedIds[c.id]
-                  const isHmi = c.productGroup === 'HMI'
-                  const isLead = leadsIds.has(c.id)
-                  
-                  return (
-                    <div
-                      key={c.id}
-                      onClick={() => isSelectionMode ? toggleChecked(c.id) : setSelectedId(c.id)}
-                      className={`grid grid-cols-[auto_2fr_1fr_1.5fr_1.5fr_auto] gap-4 items-center px-5 py-3 rounded-xl border transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'bg-primary/5 border-border' 
-                          : 'bg-background border-border-subtle hover:border-border-subtle hover:bg-card'
-                      } ${isSelectionMode && isChecked ? 'bg-primary/5 border-primary/70' : ''}`}
-                    >
-                      {/* Checkbox */}
-                      <div className="w-5 flex items-center justify-center">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); toggleChecked(c.id, e); }} 
-                          className="shrink-0 p-0.5 rounded text-muted-foreground hover:text-foreground"
-                        >
-                          {isChecked ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
-                        </button>
-                      </div>
-
-                      {/* Identidade */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-10 h-10 rounded-xl ${avatarColor(c.id)} flex items-center justify-center font-bold text-xs text-primary-foreground shrink-0 shadow-md`}>
-                          {initials(c)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-bold truncate ${temNome(c) ? 'text-foreground' : 'text-muted-foreground italic'}`}>{nomeDeExibicao(c)}</p>
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{telefoneDeExibicao(c.telefone) || cleanVal(c.email) || 'Sem contato'}</p>
-                        </div>
-                      </div>
-
-                      {/* Status */}
-                      <div>
-                        {wonIds.has(c.id) ? (
-                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-success/10 text-success border border-success/30 tracking-wider">
-                            CLIENTE
-                          </span>
-                        ) : isLead ? (
-                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-warning/10 text-warning border border-warning/20 tracking-wider">
-                            LEAD
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-muted text-muted-foreground border border-border tracking-wider">
-                            CONTATO
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Canal */}
-                      <div className="flex items-center gap-1.5">
-                        {c.derivedOrigem?.toLowerCase().includes('google') ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-card border border-border-subtle">
-                            <span className="text-[10px] font-black text-info">G</span>
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Google</span>
-                          </div>
-                        ) : isHmi ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-card border border-border-subtle">
-                            <span className="text-[10px] font-black text-brand-ink">M</span>
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Meta Ads</span>
-                          </div>
-                        ) : c.derivedOrigem ? (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-card border border-border-subtle">
-                            <span className="text-[10px] font-black text-muted-foreground">{c.derivedOrigem.charAt(0)}</span>
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase truncate max-w-[100px]">{c.derivedOrigem}</span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground">-</span>
-                        )}
-                      </div>
-
-                      {/* Logs */}
-                      <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-                          Último movimento: {new Date((c as any).updatedAt || c.createdAt).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-
-                      {/* Ações */}
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); }}
-                          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                          title="Ver Detalhes"
-                        >
-                          <Info className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openEditModal(c); }}
-                          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-1 items-center gap-2">
+              <span className="flex w-[78px] shrink-0 items-center text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                <Tag className="mr-1 h-3.5 w-3.5" /> Tags:
+              </span>
+              <MultiSelecao opcoes={tagsDisponiveis} escolhidas={tags} aoMudar={filtrar(setTags)} vazio="Todas as tags" />
+            </div>
+            <div className="flex flex-1 items-center gap-2">
+              <span className="flex w-[78px] shrink-0 items-center text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                <Globe className="mr-1 h-3.5 w-3.5" /> Origem:
+              </span>
+              <MultiSelecao opcoes={origensDisponiveis} escolhidas={origens} aoMudar={filtrar(setOrigens)} vazio="Todas as origens" />
             </div>
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="p-4 border-t border-border-subtle flex items-center justify-between bg-card">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted disabled:opacity-50 hover:bg-muted"
-              >
+          {/* ── Lista ─────────────────────────────────────────────────── */}
+          {loading && contacts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-20">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span className="text-sm text-muted-foreground">Carregando contatos...</span>
+            </div>
+          ) : filtrados.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center text-muted-foreground">
+              <Users className="mb-2 h-10 w-10 opacity-30" />
+              <p className="text-sm font-semibold">Nenhum contato encontrado com esses filtros.</p>
+            </div>
+          ) : isMobile ? (
+            <div className="mb-6 flex flex-col gap-3">
+              {visiveis.map(({ c, st }) => (
+                <div
+                  key={c.id}
+                  onClick={() => (selecionando ? alternar(c.id) : abrir(c.id))}
+                  className={`flex cursor-pointer items-center justify-between rounded-2xl border bg-card p-4 ${
+                    marcados[c.id] ? 'border-primary' : 'border-border-subtle'
+                  }`}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {selecionando && (marcados[c.id] ? <CheckSquare className="h-5 w-5 shrink-0 text-primary" /> : <Square className="h-5 w-5 shrink-0 text-muted-foreground" />)}
+                    <Avatar c={c} grande />
+                    <div className="flex min-w-0 flex-col">
+                      <span className={`truncate text-[15px] font-extrabold ${temNome(c) ? 'text-foreground' : 'italic text-muted-foreground'}`}>{nomeDeExibicao(c)}</span>
+                      <span className="truncate text-xs font-semibold text-muted-foreground">{telefoneDeExibicao(c.telefone) || c.email || 'Sem contato'}</span>
+                    </div>
+                  </div>
+                  <div className="pl-3"><Selo st={st} /></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto pb-6">
+              <div className="flex min-w-[960px] flex-col">
+                <div className={`grid ${selecionando ? 'grid-cols-[28px_2.5fr_1fr_1.5fr_1fr_1.5fr_auto]' : 'grid-cols-[2.5fr_1fr_1.5fr_1fr_1.5fr_auto]'} gap-4 border-b border-border-subtle px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground`}>
+                  {selecionando && (
+                    <button onClick={alternarTodos} aria-label="Marcar todos">
+                      {todosMarcados ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
+                    </button>
+                  )}
+                  <div>Identidade</div>
+                  <div>Status</div>
+                  <div>Canal</div>
+                  <div>Logs</div>
+                  <div>Tags</div>
+                  <div className="text-right">Ações</div>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2">
+                  {visiveis.map(({ c, st }) => {
+                    const origem = c.derivedOrigem || ''
+                    const ultimo = resumo[c.id]?.ultimoNegocio || (c as { updatedAt?: string }).updatedAt || c.createdAt
+                    return (
+                      <div
+                        key={c.id}
+                        onClick={() => (selecionando ? alternar(c.id) : abrir(c.id))}
+                        className={`grid ${selecionando ? 'grid-cols-[28px_2.5fr_1fr_1.5fr_1fr_1.5fr_auto]' : 'grid-cols-[2.5fr_1fr_1.5fr_1fr_1.5fr_auto]'} cursor-pointer items-center gap-4 rounded-2xl border bg-card px-5 py-3 transition-all hover:border-primary/40 hover:shadow-sm ${
+                          marcados[c.id] ? 'border-primary' : 'border-border-subtle'
+                        }`}
+                      >
+                        {selecionando && (marcados[c.id] ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4 text-muted-foreground" />)}
+
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Avatar c={c} />
+                          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className={`truncate text-sm font-bold ${temNome(c) ? 'text-foreground' : 'italic text-muted-foreground'}`}>{nomeDeExibicao(c)}</span>
+                            <span className="truncate text-xs text-muted-foreground">{telefoneDeExibicao(c.telefone) || c.email || 'Sem contato'}</span>
+                          </div>
+                        </div>
+
+                        <div><Selo st={st} /></div>
+
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <div className="rounded-md border border-border-subtle bg-background px-2 py-1">
+                            <span className="text-[11px] font-extrabold text-foreground">{origem ? origem.charAt(0).toUpperCase() : '-'}</span>
+                          </div>
+                          <span className="truncate text-xs font-bold uppercase text-muted-foreground">{origem || 'Direto'}</span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-muted-foreground">Criado em:</span>
+                          <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</span>
+                          {ultimo && ultimo !== c.createdAt && (
+                            <span className="text-[11px] text-muted-foreground/90">Mexido {new Date(ultimo).toLocaleDateString('pt-BR')}</span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          {(c.tags ?? []).length ? (
+                            (c.tags ?? []).slice(0, 4).map((t) => (
+                              <span key={t} className="rounded-xl border border-border-subtle bg-background px-2 py-0.5 text-[11px] font-bold text-foreground">{t}</span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                          {(c.tags ?? []).length > 4 && <span className="text-[11px] text-muted-foreground">+{(c.tags ?? []).length - 4}</span>}
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); abrir(c.id) }}
+                            className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            title="Abrir ficha"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {totalPaginas > 1 && (
+            <div className="mb-24 flex items-center justify-between rounded-2xl border border-border-subtle bg-card p-3">
+              <button disabled={pagina === 1} onClick={() => setPagina((p) => p - 1)} className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold disabled:opacity-40">
                 Anterior
               </button>
-              <span className="text-xs text-muted-foreground">
-                Página {page} de {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted disabled:opacity-50 hover:bg-muted"
-              >
+              <span className="text-xs text-muted-foreground">Página {pagina} de {totalPaginas}</span>
+              <button disabled={pagina === totalPaginas} onClick={() => setPagina((p) => p + 1)} className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold disabled:opacity-40">
                 Próxima
               </button>
             </div>
           )}
         </div>
-
-        {/* MODAL: DETAILS PANE */}
-        {selectedId && selectedContact && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background backdrop-blur-sm animate-fade-in" onClick={() => setSelectedId(null)}>
-            <div className="w-full max-w-5xl h-[95vh] bg-background border border-border rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
-              
-              {/* Modal Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-5 border-b border-border-subtle bg-background backdrop-blur-md sticky top-0 z-20">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <button onClick={() => setSelectedId(null)} className="p-2 rounded-xl border border-border text-muted-foreground hover:bg-muted shrink-0 mr-1" title="Fechar">
-                      <X className="w-4 h-4" />
-                    </button>
-                    <div className={`w-12 h-12 rounded-2xl ${avatarColor(selectedContact.id)} flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shrink-0`}>
-                      {initials(selectedContact)}
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="text-base sm:text-xl font-bold text-primary-foreground leading-tight truncate">
-                        {cleanVal(selectedContact.nome)} {cleanVal(selectedContact.sobrenome)}
-                      </h2>
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                          selectedContact.productGroup === 'HMI'
-                            ? 'bg-gradient-to-r from-warning/25 to-brand-ink/25 text-warning border border-warning/30' 
-                            : 'border border-info/30 text-info bg-info/5'
-                        }`}>
-                          {selectedContact.productGroup === 'HMI' ? 'HMI · Meta Ads' : 'Sistema'}
-                        </span>
-                        {selectedContact.consentimentoLgpd ? (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-success/10 text-success border border-success/20">
-                            LGPD Consentido
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive border border-destructive/20">
-                            LGPD Indefinido
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                
-                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                  <button
-                    onClick={() => setShowMergeModal(true)}
-                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title="Mesclar Contato"
-                  >
-                    <Merge className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => openEditModal(selectedContact)}
-                    className="p-2 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title="Editar Contato"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleSingleDelete(selectedContact.id)}
-                    className="p-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive hover:text-primary-foreground transition-all"
-                    title="Excluir Contato"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Main Content Area */}
-              <div className="p-6 space-y-6 max-w-4xl mx-auto w-full">
-                
-                {/* QUICK ACTIONS BAR */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-background p-3 rounded-2xl border border-border-subtle">
-                  <button
-                    onClick={() => handleWhatsApp(selectedContact.telefone)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-success/50 hover:bg-success/5 text-xs font-semibold text-foreground transition-all hover:scale-[1.02]"
-                  >
-                    <Phone className="w-4 h-4 text-success" /> Abrir WhatsApp
-                  </button>
-                  <a
-                    href={`/activities?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-info/50 hover:bg-info/5 text-xs font-semibold text-foreground transition-all text-center hover:scale-[1.02]"
-                  >
-                    <Calendar className="w-4 h-4 text-info" /> Agendar Atividade
-                  </a>
-                  <a
-                    href={`/pipeline?contact=${selectedContact.id}`}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-primary/70 hover:bg-primary/5 text-xs font-semibold text-foreground transition-all text-center hover:scale-[1.02]"
-                  >
-                    <Zap className="w-4 h-4 text-primary" /> Criar Negócio
-                  </a>
-                  <button
-                    onClick={() => handleTestWebhook(selectedContact.telefone, selectedContact.nome)}
-                    className="flex justify-center items-center gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-warning/50 hover:bg-warning/5 text-xs font-semibold text-foreground transition-all hover:scale-[1.02]"
-                    title="Simula a chegada de um lead via Webhook Elementor"
-                  >
-                    <Globe className="w-4 h-4 text-warning" /> Disparar Webhook
-                  </button>
-                </div>
-
-                {/* STATS MATRIX GRID */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    {
-                      label: 'Vendas Fechadas (WON)',
-                      value: contactStats?.wonDealsCount ?? 0,
-                      desc: 'Negócios finalizados',
-                      icon: () => <Check className="w-5 h-5 text-success" />
-                    },
-                    {
-                      label: 'Total Gasto (LTV)',
-                      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(contactStats?.totalValue ?? 0),
-                      desc: 'Receita líquida',
-                      icon: () => <ShoppingBag className="w-5 h-5 text-info" />
-                    },
-                    {
-                      label: 'Total de Negócios',
-                      value: contactStats?.dealsCount ?? 0,
-                      desc: 'Histórico no CRM',
-                      icon: () => <Database className="w-5 h-5 text-info" />
-                    },
-                    {
-                      label: 'Compromissos',
-                      value: contactStats?.activitiesCount ?? 0,
-                      desc: 'Atividades registradas',
-                      icon: () => <FileText className="w-5 h-5 text-warning" />
-                    }
-                  ].map((stat, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl border border-border-subtle bg-card backdrop-blur-sm relative overflow-hidden shadow-md">
-                      <div className="absolute top-0 right-0 p-3 opacity-20">
-                        {stat.icon()}
-                      </div>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                      <p className="text-xl font-bold text-foreground mt-1">{stat.value}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{stat.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* DETAIL TABS */}
-                <div className="border-b border-border-subtle flex gap-6 overflow-x-auto scrollbar-none pb-0">
-                  {[
-                    { id: 'dados', label: 'Dados de Cadastro' },
-                    { id: 'vendas', label: 'Histórico de Compras' },
-                    { id: 'deals', label: 'Linha do Tempo (Negócios)' },
-                    { id: 'atividades', label: 'Compromissos e Tarefas' }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setDetailTab(tab.id as 'dados' | 'vendas' | 'deals' | 'atividades')}
-                      className={`pb-3 font-semibold text-xs transition-all shrink-0 tracking-wider uppercase relative ${
-                        detailTab === tab.id 
-                          ? 'text-primary' 
-                          : 'text-muted-foreground hover:text-primary-foreground'
-                      }`}
-                    >
-                      {tab.label}
-                      {detailTab === tab.id && (
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary animate-fade-in" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* TAB CONTENT: DADOS */}
-                {detailTab === 'dados' && (
-                  <div className="space-y-6">
-                    
-                    {/* Informações Pessoais & Endereço */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 text-primary" /> Informações Pessoais
-                        </h4>
-                        <div className="space-y-3 text-sm">
-                          {[
-                            { label: 'Nome Completo', value: `${cleanVal(selectedContact.nome)} ${cleanVal(selectedContact.sobrenome)}`.trim() || '-' },
-                            { label: 'E-mail', value: cleanDisplayVal(selectedContact.email), copyable: !!cleanVal(selectedContact.email) },
-                            { label: 'Telefone', value: cleanDisplayVal(selectedContact.telefone), copyable: !!cleanVal(selectedContact.telefone) },
-                            { label: 'Documento (CPF/CNPJ)', value: cleanDisplayVal(selectedContact.documento) },
-                            { label: 'Data de Nascimento', value: cleanVal(selectedContact.dataNascimento) ? new Date(selectedContact.dataNascimento as string).toLocaleDateString('pt-BR') : '-' }
-                          ].map(item => (
-                            <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border-subtle gap-1">
-                              <span className="text-muted-foreground text-xs shrink-0">{item.label}</span>
-                              <span className="font-semibold text-foreground text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-primary" /> Endereço Completo
-                        </h4>
-                        <div className="space-y-3 text-sm">
-                          {[
-                            { label: 'CEP', value: cleanDisplayVal(selectedContact.enderecoCompleto?.cep) },
-                            { label: 'Logradouro', value: cleanDisplayVal(selectedContact.enderecoCompleto?.rua) },
-                            { label: 'Número', value: cleanDisplayVal(selectedContact.enderecoCompleto?.numero) },
-                            { label: 'Complemento', value: cleanDisplayVal(selectedContact.enderecoCompleto?.complemento) },
-                            { label: 'Bairro', value: cleanDisplayVal(selectedContact.enderecoCompleto?.bairro) },
-                            { label: 'Cidade / Estado', value: cleanVal(selectedContact.enderecoCompleto?.cidade) ? `${selectedContact.enderecoCompleto?.cidade} - ${cleanDisplayVal(selectedContact.enderecoCompleto?.estado, '')}`.replace(/\s-\s$/, '') : '-' }
-                          ].map(item => (
-                            <div key={item.label} className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-border-subtle gap-1">
-                              <span className="text-muted-foreground text-xs shrink-0">{item.label}</span>
-                              <span className="font-semibold text-foreground text-xs sm:text-sm break-all text-left sm:text-right">{item.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Marketing & UTM info */}
-                    <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-primary" /> Atribuição de Marketing (UTMs)
-                      </h4>
-                      
-                      <div className="grid md:grid-cols-2 gap-6">
-                        {/* First Touch UTM */}
-                        <div className="space-y-2 border-r border-border-subtle pr-2">
-                          <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Primeiro Toque (Congelado)</h5>
-                          <div className="space-y-1.5 text-xs">
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmSource)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmMedium)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmCampaign)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.firstUtmTerm)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Capturado em</span><span className="font-semibold text-muted-foreground text-xs sm:text-right break-all">{cleanVal(selectedContact.firstUtmAt) ? new Date(selectedContact.firstUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
-                          </div>
-                        </div>
-
-                        {/* Last Touch UTM */}
-                        <div className="space-y-2">
-                          <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Último Toque (Mais Recente)</h5>
-                          <div className="space-y-1.5 text-xs">
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Origem (Source)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmSource)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Mídia (Medium)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmMedium)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Campanha (Campaign)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmCampaign)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Term (Palavra-chave)</span><span className="font-semibold text-foreground text-xs sm:text-right break-all">{cleanDisplayVal(selectedContact.lastUtmTerm)}</span></div>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle"><span className="text-muted-foreground text-[11px] shrink-0">Atualizado em</span><span className="font-semibold text-muted-foreground text-xs sm:text-right break-all">{cleanVal(selectedContact.lastUtmAt) ? new Date(selectedContact.lastUtmAt as string).toLocaleString('pt-BR') : '-'}</span></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tags e Campos Customizados */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      
-                      <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-primary" /> Tags Comerciais
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {(selectedContact.tags || []).length === 0 && (
-                            <span className="text-xs text-muted-foreground">Nenhuma tag cadastrada.</span>
-                          )}
-                          {(selectedContact.tags || []).map((tag: string) => (
-                            <span key={tag} className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-border">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Settings className="w-3.5 h-3.5 text-primary" /> Campos Customizados
-                        </h4>
-                        <div className="space-y-2 text-xs">
-                          {Object.keys(selectedContact.camposCustomizados || {}).length === 0 ? (
-                            <span className="text-muted-foreground">Nenhum campo customizado inserido.</span>
-                          ) : (
-                            Object.entries(selectedContact.camposCustomizados || {}).map(([key, val]) => (
-                              <div key={key} className="flex flex-col sm:flex-row sm:justify-between gap-1 py-1 border-b border-border-subtle">
-                                <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
-                                <span className="font-semibold text-foreground break-all text-left sm:text-right">{String(val)}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* Webhook Meta fbMetadata */}
-                    {selectedContact.fbMetadata && Object.keys(selectedContact.fbMetadata).length > 0 && (
-                      <div className="p-5 rounded-2xl border border-border-subtle bg-card space-y-4">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-primary" /> Metadata Lead Ads (Facebook Ads Integration)
-                        </h4>
-                        <pre className="p-4 rounded-xl bg-background border border-border-subtle text-muted-foreground font-mono text-[11px] overflow-x-auto">
-                          {JSON.stringify(selectedContact.fbMetadata, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-
-                  </div>
-                )}
-
-                {/* TAB CONTENT: VENDAS (WON DEALS) */}
-                {detailTab === 'vendas' && (
-                  <div className="space-y-4">
-                    {selectedContactDeals.filter(d => d.status === 'WON').length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border-subtle rounded-2xl text-muted-foreground text-xs">
-                        Nenhuma compra finalizada registrada no CRM.
-                      </div>
-                    ) : (
-                      selectedContactDeals.filter(d => d.status === 'WON').map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border-subtle bg-background flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center">
-                              <ShoppingBag className="w-4 h-4 text-success" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">
-                                Fechado em: {deal.fechadoEm ? new Date(deal.fechadoEm).toLocaleDateString('pt-BR') : new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-extrabold text-success">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}
-                            </p>
-                            <span className="text-[9px] px-1.5 py-0.5 bg-card text-muted-foreground rounded-md border border-border">
-                              WON Deal
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-
-                {/* TAB CONTENT: DEALS (ALL HISTORIES / STEPS) */}
-                {detailTab === 'deals' && (
-                  <div className="space-y-4">
-                    {selectedContactDeals.length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border-subtle rounded-2xl text-muted-foreground text-xs">
-                        Nenhum negócio ativo ou histórico para este lead.
-                      </div>
-                    ) : (
-                      selectedContactDeals.map(deal => (
-                        <div key={deal.id} className="p-4 rounded-2xl border border-border-subtle bg-background space-y-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-bold text-foreground">{deal.titulo}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                              deal.status === 'WON' 
-                                ? 'bg-success/20 text-success border border-success/30' 
-                                : deal.status === 'LOST' 
-                                  ? 'bg-destructive/20 text-destructive border border-destructive/30'
-                                  : 'bg-info/10 text-info border border-info/20'
-                            }`}>
-                              {deal.status}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-muted-foreground">
-                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Valor</span><span className="font-semibold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.valorEstimado)}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Prioridade</span><span className="font-semibold text-foreground">{deal.prioridade}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Produto</span><span className="font-semibold text-foreground">{deal.produtoInteresse || '-'}</span></div>
-                            <div><span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Criado em</span><span className="font-semibold text-muted-foreground">{new Date(deal.createdAt).toLocaleDateString('pt-BR')}</span></div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-
-                {/* TAB CONTENT: ACTIVITIES */}
-                {detailTab === 'atividades' && (
-                  <div className="space-y-4">
-                    {selectedContactActivities.length === 0 ? (
-                      <div className="text-center py-10 border border-dashed border-border-subtle rounded-2xl text-muted-foreground text-xs">
-                        Nenhuma atividade cadastrada para este contato.
-                      </div>
-                    ) : (
-                      selectedContactActivities.map(act => (
-                        <div key={act.id} className="p-4 rounded-2xl border border-border-subtle bg-background flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              act.status === 'DONE' 
-                                ? 'bg-muted border border-border text-muted-foreground' 
-                                : 'bg-primary/10 border border-border text-primary'
-                            }`}>
-                              <Calendar className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <p className={`text-sm font-semibold ${act.status === 'DONE' ? 'line-through text-muted-foreground' : 'text-primary-foreground'}`}>
-                                {act.titulo}
-                              </p>
-                              {act.descricao && (
-                                <p className="text-[11px] text-muted-foreground truncate mt-0.5 max-w-sm">{act.descricao}</p>
-                              )}
-                              <p className="text-[10px] text-muted-foreground mt-0.5">
-                                Vencimento: {new Date(act.dueAt).toLocaleDateString('pt-BR')}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                            act.status === 'DONE' 
-                              ? 'bg-muted text-muted-foreground' 
-                              : 'bg-warning/10 text-warning border border-warning/20'
-                          }`}>
-                            {act.status}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
 
-      {/* CREATE & EDIT CONTACT DIALOG (TABBED FORM) */}
-      {showFormModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFormModal(false)}>
-          <div className="absolute inset-0 bg-background backdrop-blur-md" />
-          <div 
-            className="relative w-full max-w-lg bg-background border border-border-subtle rounded-3xl p-6 space-y-5 animate-scale-in shadow-2xl overflow-y-auto max-h-[90vh]" 
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-foreground">{editingContact ? 'Editar Contato' : 'Criar Novo Contato'}</h3>
-              <button onClick={() => setShowFormModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Form Tabs */}
-            <div className="flex gap-4 border-b border-border-subtle">
-              {[
-                { id: 'dados', label: 'Cadastro' },
-                { id: 'endereco', label: 'Endereço' },
-                { id: 'marketing', label: 'Atribuição/Tags' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setFormTab(tab.id as 'dados' | 'endereco' | 'marketing')}
-                  className={`pb-2 text-xs font-bold uppercase tracking-wider relative transition-colors ${
-                    formTab === tab.id ? 'text-primary' : 'text-muted-foreground hover:text-primary-foreground'
-                  }`}
-                >
-                  {tab.label}
-                  {formTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary" />}
-                </button>
-              ))}
-            </div>
-
-            {/* TAB CONTENT: DADOS */}
-            {formTab === 'dados' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Nome *</label>
-                  <input
-                    value={formData.nome}
-                    onChange={e => setFormData(p => ({ ...p, nome: e.target.value }))}
-                    placeholder="João"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Sobrenome</label>
-                  <input
-                    value={formData.sobrenome}
-                    onChange={e => setFormData(p => ({ ...p, sobrenome: e.target.value }))}
-                    placeholder="Silva"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Telefone *</label>
-                  <input
-                    value={formData.telefone}
-                    onChange={e => setFormData(p => ({ ...p, telefone: e.target.value }))}
-                    placeholder="5562999999999"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">E-mail</label>
-                  <input
-                    value={formData.email}
-                    onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                    placeholder="joao@empresa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">CPF ou CNPJ</label>
-                  <input
-                    value={formData.documento}
-                    onChange={e => setFormData(p => ({ ...p, documento: e.target.value }))}
-                    placeholder="123.456.789-00"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Data Nascimento</label>
-                  <input
-                    value={formData.dataNascimento}
-                    onChange={e => setFormData(p => ({ ...p, dataNascimento: e.target.value }))}
-                    type="date"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 flex items-center gap-2 pt-2">
-                  <input
-                    id="consentimento"
-                    type="checkbox"
-                    checked={formData.consentimentoLgpd}
-                    onChange={e => setFormData(p => ({ ...p, consentimentoLgpd: e.target.checked }))}
-                    className="rounded border-border bg-background text-primary focus:ring-0 focus:ring-offset-0"
-                  />
-                  <label htmlFor="consentimento" className="text-xs text-muted-foreground cursor-pointer">Aceita os termos de consentimento LGPD</label>
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT: ENDERECO */}
-            {formTab === 'endereco' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">CEP</label>
-                  <input
-                    value={formData.enderecoCompleto.cep}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cep: e.target.value } }))}
-                    placeholder="74000-000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Logradouro (Rua/Av.)</label>
-                  <input
-                    value={formData.enderecoCompleto.rua}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, rua: e.target.value } }))}
-                    placeholder="Av. Anhanguera"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Número</label>
-                  <input
-                    value={formData.enderecoCompleto.numero}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, numero: e.target.value } }))}
-                    placeholder="100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Complemento</label>
-                  <input
-                    value={formData.enderecoCompleto.complemento}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, complemento: e.target.value } }))}
-                    placeholder="Quadra 12"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Bairro</label>
-                  <input
-                    value={formData.enderecoCompleto.bairro}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, bairro: e.target.value } }))}
-                    placeholder="Setor Central"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Cidade</label>
-                  <input
-                    value={formData.enderecoCompleto.cidade}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, cidade: e.target.value }, cidade: e.target.value }))}
-                    placeholder="Goiânia"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Estado</label>
-                  <input
-                    value={formData.enderecoCompleto.estado}
-                    onChange={e => setFormData(p => ({ ...p, enderecoCompleto: { ...p.enderecoCompleto, estado: e.target.value }, estado: e.target.value }))}
-                    placeholder="GO"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT: MARKETING */}
-            {formTab === 'marketing' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Origem Comercial (Mídia)</label>
-                  <input
-                    value={formData.origem}
-                    onChange={e => setFormData(p => ({ ...p, origem: e.target.value }))}
-                    placeholder="Meta Ads"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                  />
-                </div>
-
-                {/* Tags management */}
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block">Adicionar Tags</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={newTagInput}
-                      onChange={e => setNewTagInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                      placeholder="Nova tag"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-subtle bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary/45 text-foreground"
-                    />
-                    <button
-                      type="button"
-                      onClick={addTag}
-                      className="px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs"
-                    >
-                      Incluir
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {formData.tags.map(tag => (
-                      <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-border flex items-center gap-1">
-                        {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary hover:text-foreground font-bold ml-0.5">×</button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom fields management */}
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground block">Campos Customizados</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={customFieldKey}
-                      onChange={e => setCustomFieldKey(e.target.value)}
-                      placeholder="Nome do campo (ex: Ramo)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-foreground focus:outline-none"
-                    />
-                    <input
-                      value={customFieldValue}
-                      onChange={e => setCustomFieldValue(e.target.value)}
-                      placeholder="Valor"
-                      className="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-background text-xs text-foreground focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={addCustomField}
-                      className="px-3 rounded-xl bg-muted hover:bg-muted text-foreground font-semibold text-xs"
-                    >
-                      Adicionar
-                    </button>
-                  </div>
-                  <div className="space-y-1.5 max-h-[120px] overflow-y-auto scrollbar-thin">
-                    {Object.entries(formData.camposCustomizados).map(([key, val]) => (
-                      <div key={key} className="flex justify-between items-center p-2 rounded-lg bg-background border border-border-subtle text-xs">
-                        <span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-foreground font-semibold">{val}</span>
-                          <button type="button" onClick={() => removeCustomField(key)} className="text-destructive hover:text-destructive font-bold">×</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-border-subtle">
-              <button 
-                type="button"
-                onClick={() => setShowFormModal(false)} 
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="button"
-                onClick={handleSubmit} 
-                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
-              >
-                {editingContact ? 'Salvar Alterações' : 'Criar Contato'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MERGE CONTACTS DIALOG */}
-      {showMergeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowMergeModal(false)}>
-          <div className="absolute inset-0 bg-background backdrop-blur-md" />
-          <div 
-            className="relative w-full max-w-md bg-background border border-border-subtle rounded-3xl p-6 space-y-4 animate-scale-in shadow-2xl" 
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Merge className="w-5 h-5 text-primary" /> Mesclar Contatos
-              </h3>
-              <button onClick={() => setShowMergeModal(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-warning/10 border border-warning/20 text-xs text-warning flex items-start gap-2 leading-relaxed">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-warning" />
-              <div>
-                <span className="font-extrabold block">Instrução importante:</span>
-                O contato principal será mantido: <span className="font-extrabold text-foreground">{selectedContact?.nome} {selectedContact?.sobrenome}</span>. Todos os negócios e compromissos do contato que você selecionar abaixo serão mesclados a ele.
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Buscar Contato Secundário</label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border-subtle bg-background focus-within:border-primary/70 transition-colors">
-                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-                <input
-                  value={mergeQuery}
-                  onChange={e => setMergeQuery(e.target.value)}
-                  placeholder="Buscar contato secundário..."
-                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="max-h-[160px] overflow-y-auto scrollbar-thin divide-y divide-border/10 border border-border-subtle rounded-2xl bg-background">
-              {mergeEligibleContacts.length === 0 && (
-                <div className="p-4 text-center text-xs text-muted-foreground">Nenhum outro contato elegível encontrado.</div>
-              )}
-              {mergeEligibleContacts.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setMergeTargetId(c.id)}
-                  className={`w-full flex items-center justify-between p-3 text-left text-xs transition-colors ${
-                    mergeTargetId === c.id 
-                      ? 'bg-primary/10 text-primary' 
-                      : 'text-muted-foreground hover:bg-card'
-                  }`}
-                >
-                  <div>
-                    <p className="font-bold">{c.nome} {c.sobrenome || ''}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{c.telefone}</p>
-                  </div>
-                  {mergeTargetId === c.id && <Check className="w-4 h-4 text-primary" />}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setShowMergeModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleMerge}
-                disabled={!mergeTargetId}
-                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
-              >
-                Confirmar e Mesclar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Bulk Actions Bar */}
-      {isSelectionMode && checkedCount > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-4xl bg-background border border-border rounded-2xl p-4 shadow-[0_0_24px_rgba(57,255,136,0.15)] flex flex-wrap items-center justify-between gap-4 animate-scale-in max-md:bottom-20 max-md:w-[95%]">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping shrink-0" />
-            <p className="text-xs font-bold text-foreground">
-              {checkedCount} selecionados
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Lista de Disparo"
-                value={selectedListaTarget}
-                onChange={setSelectedListaTarget}
-                options={listasDisparo.map((l) => ({ value: l.id, label: l.nomeLista }))}
-                placeholder="Disparo..."
-                className="bg-card border border-border rounded-xl px-2.5 py-1 text-xs text-foreground"
-              />
-              <button
-                onClick={handleBulkAddToLista}
-                disabled={!selectedListaTarget}
-                className="p-1.5 rounded-xl bg-success text-primary-foreground font-semibold text-xs disabled:opacity-40"
-              >
-                Disparo
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <MobileActionSelect
-                label="Cadência"
-                value={selectedCadenciaTarget}
-                onChange={setSelectedCadenciaTarget}
-                options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
-                placeholder="Cadência..."
-                className="bg-card border border-border rounded-xl px-2.5 py-1 text-xs text-foreground"
-              />
-              <button
-                onClick={handleBulkAddToCadence}
-                disabled={!selectedCadenciaTarget}
-                className="p-1.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs disabled:opacity-40"
-              >
-                Cadência
-              </button>
-            </div>
-
-            <button
-              onClick={handleBulkDelete}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-destructive/35 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive hover:text-primary-foreground transition-all"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Excluir em Lote
+      {/* ── Ações em lote ──────────────────────────────────────────────── */}
+      {selecionando && idsMarcados.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-40 flex w-[95%] max-w-4xl -translate-x-1/2 flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-2xl max-md:bottom-20">
+          <p className="text-sm font-bold text-foreground">{idsMarcados.length} selecionados</p>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <MobileActionSelect
+              label="Lista de disparo"
+              value={listaAlvo}
+              onChange={setListaAlvo}
+              options={listas.map((l) => ({ value: l.id, label: l.nomeLista }))}
+              placeholder="Lista de disparo..."
+              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs text-foreground"
+            />
+            <button onClick={adicionarALista} disabled={!listaAlvo} className="rounded-xl bg-success px-3 py-1.5 font-semibold text-white disabled:opacity-40">Adicionar</button>
+            <MobileActionSelect
+              label="Cadência"
+              value={cadenciaAlvo}
+              onChange={setCadenciaAlvo}
+              options={cadencias.map((c) => ({ value: c.id, label: c.nome }))}
+              placeholder="Cadência..."
+              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs text-foreground"
+            />
+            <button onClick={adicionarACadencia} disabled={!cadenciaAlvo} className="rounded-xl bg-primary px-3 py-1.5 font-semibold text-primary-foreground disabled:opacity-40">Adicionar</button>
+            <button onClick={excluirMarcados} className="flex items-center gap-1 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-1.5 font-bold text-destructive">
+              <Trash2 className="h-3.5 w-3.5" /> Excluir
             </button>
-            
-            <button
-              onClick={() => {
-                setCheckedIds({})
-                setIsSelectionMode(false)
-              }}
-              className="text-muted-foreground hover:text-foreground font-bold pl-1 text-[11px]"
-            >
-              Limpar
-            </button>
+            <button onClick={sairDaSelecao} className="px-1 font-bold text-muted-foreground hover:text-foreground">Limpar</button>
           </div>
         </div>
       )}
 
-      <ImportarContatos
-        aberto={importando}
-        aoFechar={() => setImportando(false)}
-        aoConcluir={() => { void mutate() }}
-      />
+      {criando && (
+        <ContatoModal
+          onClose={() => setCriando(false)}
+          onSaved={(id) => { setCriando(false); mutate(); router.push(`/contacts/${id}`) }}
+        />
+      )}
+
+      <ImportarContatos aberto={importando} aoFechar={() => setImportando(false)} aoConcluir={() => { void mutate() }} />
     </AppLayout>
   )
 }

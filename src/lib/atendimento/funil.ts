@@ -38,13 +38,24 @@ const ETAPAS: { chave: EtapaFunil; nome: string; cor: string; probabilidade: num
   { chave: 'comprou', nome: 'Comprou', cor: '#22c55e', probabilidade: 100 },
 ]
 
+export type DefinicaoEtapa = { nome: string; cor: string; probabilidade: number }
+
 /** O funil e as etapas, criados na primeira vez com o dono do funil padrão. */
 async function garantirFunil() {
+  return garantirFunilDefinido(NOME_FUNIL, ETAPAS, 0)
+}
+
+/**
+ * Qualquer funil do atendimento automático — WhatsApp, carrinho, pós-venda.
+ * Cria o que falta e nunca apaga etapa: a Marília pode ter renomeado ou
+ * acrescentado, e isso é dela.
+ */
+export async function garantirFunilDefinido(nome: string, etapas: DefinicaoEtapa[], ordemFunil: number) {
   const existente = await prisma.pipeline.findFirst({
-    where: { nome: NOME_FUNIL },
+    where: { nome },
     include: { stages: { orderBy: { ordem: 'asc' } } },
   })
-  if (existente && existente.stages.length >= ETAPAS.length) return existente
+  if (existente && etapas.every((e) => existente.stages.some((s) => s.nome === e.nome))) return existente
 
   const base =
     (await prisma.pipeline.findFirst({ where: { isDefault: true }, orderBy: { createdAt: 'asc' } })) ??
@@ -54,11 +65,11 @@ async function garantirFunil() {
   const funil =
     existente ??
     (await prisma.pipeline.create({
-      data: { nome: NOME_FUNIL, userId: base!.userId, teamId: base!.teamId, isDefault: false, ordem: 99 },
+      data: { nome, userId: base!.userId, teamId: base!.teamId, isDefault: false, ordem: ordemFunil },
     }))
 
   const nomes = new Set((existente?.stages ?? []).map((s) => s.nome))
-  for (const [i, e] of ETAPAS.entries()) {
+  for (const [i, e] of etapas.entries()) {
     if (nomes.has(e.nome)) continue
     await prisma.stage.create({
       data: { pipelineId: funil.id, nome: e.nome, cor: e.cor, ordem: i, probabilidade: e.probabilidade, slaHours: 24 },

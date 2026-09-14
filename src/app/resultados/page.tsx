@@ -32,6 +32,7 @@ const dataCurta = (iso: string | null) =>
 const ORIGEM_ROTULO: Record<string, string> = {
   carrinho: 'Carrinho',
   pedido: 'Pedido',
+  pedido_enviado: 'Rastreio',
   pipeline: 'Funil',
 }
 

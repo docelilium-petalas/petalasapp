@@ -75,6 +75,9 @@ export type Pedido = {
   shipping_status?: string | null
   shipping_tracking_number?: string | null
   shipping_tracking_url?: string | null
+  shipping_carrier_name?: string | null
+  shipped_at?: string | null
+  updated_at?: string | null
   total: string
   currency: string
   products: ItemCarrinho[]
@@ -120,6 +123,78 @@ export async function buscarPedido(id: number): Promise<Pedido> {
 
 export async function listarPedidos(desde: Date): Promise<Pedido[]> {
   return listarTudo<Pedido>('orders', { created_at_min: desde.toISOString() })
+}
+
+/**
+ * Pedidos MEXIDOS desde `desde` — e não criados. É o filtro do rastreio: a
+ * compra é de dias atrás, o código entra no pedido quando a loja posta.
+ */
+export async function listarPedidosAtualizados(desde: Date): Promise<Pedido[]> {
+  return listarTudo<Pedido>('orders', { updated_at_min: desde.toISOString() })
+}
+
+type OrdemDeEnvio = {
+  status?: string | null
+  tracking_info?: { code?: string | null; url?: string | null; carrier?: string | null } | null
+  shipping?: { carrier?: { name?: string | null } | null } | null
+}
+
+export type RastreioDoPedido = {
+  codigo: string
+  url: string | null
+  transportadora: string | null
+}
+
+/**
+ * O código de rastreio de um pedido, onde quer que a loja o tenha posto.
+ *
+ * A Nuvemshop guarda em dois lugares, conforme a versão do painel e do
+ * frete: no próprio pedido (`shipping_tracking_number`) e, no modelo novo de
+ * envio, na ordem de envio (`fulfillment-orders` → `tracking_info`). Ler só
+ * o primeiro deixa passar calado o pedido postado pelo fluxo novo.
+ *
+ * A segunda leitura custa uma chamada por pedido, então só acontece quando o
+ * pedido já diz que saiu (`shipping_status`) e não trouxe o código consigo.
+ */
+export async function rastreioDoPedido(pedido: Pedido): Promise<RastreioDoPedido | null> {
+  const direto = (pedido.shipping_tracking_number ?? '').trim()
+  if (direto) {
+    return {
+      codigo: direto,
+      url: pedido.shipping_tracking_url?.trim() || null,
+      transportadora: pedido.shipping_carrier_name?.trim() || null,
+    }
+  }
+  if (!/fulfilled|shipped|delivered/i.test(pedido.shipping_status ?? '')) return null
+  try {
+    const { dados } = await requisitar<OrdemDeEnvio[] | { fulfillment_orders?: OrdemDeEnvio[] }>(
+      `orders/${pedido.id}/fulfillment-orders`,
+    )
+    const lista = Array.isArray(dados) ? dados : (dados.fulfillment_orders ?? [])
+    for (const o of lista) {
+      const codigo = (o.tracking_info?.code ?? '').trim()
+      if (codigo) {
+        return {
+          codigo,
+          url: o.tracking_info?.url?.trim() || null,
+          transportadora: o.tracking_info?.carrier?.trim() || o.shipping?.carrier?.name?.trim() || null,
+        }
+      }
+    }
+  } catch {
+    // Loja sem o modelo novo de envio: o endpoint não existe, e não é erro.
+  }
+  return null
+}
+
+/**
+ * Para onde o botão "Rastrear pedido" leva quando a loja não deu URL.
+ * Código no padrão dos Correios (AA123456789BR) abre o rastreio público deles.
+ */
+export function urlDeRastreioPadrao(codigo: string): string | null {
+  const c = codigo.trim().toUpperCase()
+  if (/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(c)) return `https://rastreamento.correios.com.br/app/index.php?objetos=${c}`
+  return null
 }
 
 // ── Tradução para o vocabulário do CRM ────────────────────────────────────

@@ -48,6 +48,7 @@ const GATILHO_ROTULO: Record<string, string> = {
 const ORIGEM_ROTULO: Record<string, string> = {
   carrinho: 'Carrinho',
   pedido: 'Pedido',
+  pedido_enviado: 'Rastreio',
   pipeline: 'Funil',
 }
 

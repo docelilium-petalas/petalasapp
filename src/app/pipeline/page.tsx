@@ -3509,7 +3509,7 @@ function DealDetailDrawer({
 
                   <button
                     onClick={() => {
-                      router.push(`/contacts?id=${dealContact.id}`)
+                      router.push(`/contacts/${dealContact.id}`)
                     }}
                     className="w-full py-2.5 rounded-xl border border-border-subtle text-xs font-semibold hover:bg-secondary text-foreground transition-colors"
                   >

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { observarCarrinhosAbandonados } from '@/lib/maquina-vendas/observador'
 import { despachar } from '@/lib/maquina-vendas/despachante'
+import { observarRastreios } from '@/lib/maquina-vendas/observador-rastreio'
+import { sincronizarFunis } from '@/lib/maquina-vendas/funis-crm'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -48,6 +50,13 @@ export async function GET(request: Request) {
     // carrinho abandonado. É a única porta que a plataforma abriu.
     const observacao = await observarCarrinhosAbandonados()
 
+    // FASE 1b — RASTREIO: pedido pago que ganhou código de rastreio desde o
+    // último tique. Reunião de 14/09: verificação de 5 em 5 minutos, que é
+    // exatamente o ritmo deste tique. Falha aqui não segura o despacho.
+    const rastreio = await observarRastreios().catch((e) => ({
+      erro: e instanceof Error ? e.message : String(e),
+    }))
+
     // FASE 2 — DESPACHAR: o que sai agora.
     //
     // Ligada, e mesmo assim inerte por padrão: `envioPausado` nasce `true` e o
@@ -56,11 +65,19 @@ export async function GET(request: Request) {
     // tela, sem deploy — e não um efeito colateral deste código existir.
     const despacho = await despachar()
 
+    // FASE 3 — FUNIS: o pipeline do CRM espelha o que a Máquina fez. Depois do
+    // despacho, para a mensagem que acabou de sair já aparecer no negócio.
+    const funis = await sincronizarFunis().catch((e) => ({
+      erro: e instanceof Error ? e.message : String(e),
+    }))
+
     const resultado = {
       ok: true,
       ms: Date.now() - inicio,
       observacao,
+      rastreio,
       despacho,
+      funis,
     }
 
     await registrar('INFO', 'tique', 'Tique da Máquina', resultado)

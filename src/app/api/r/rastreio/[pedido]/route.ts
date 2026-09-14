@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { conferirRastreio } from '@/lib/maquina-vendas/rastreio'
-import { buscarPedido } from '@/lib/nuvemshop/loja'
+import { buscarPedido, rastreioDoPedido, urlDeRastreioPadrao } from '@/lib/nuvemshop/loja'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +21,8 @@ export async function GET(_request: Request, ctx: { params: Promise<{ pedido: st
 
   try {
     const p = await buscarPedido(Number(id))
-    const destino = p.shipping_tracking_url?.trim()
+    const r = await rastreioDoPedido(p)
+    const destino = r?.url || (r ? urlDeRastreioPadrao(r.codigo) : null)
     if (destino && /^https?:\/\//i.test(destino)) return NextResponse.redirect(destino, 302)
   } catch {
     // cai na loja

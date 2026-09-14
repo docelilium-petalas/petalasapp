@@ -4,6 +4,7 @@ import { assinaturaValida } from '@/lib/nuvemshop/cliente'
 import { obterCredenciais } from '@/lib/nuvemshop/config'
 import { buscarPedido } from '@/lib/nuvemshop/loja'
 import { tratarEventoPedido } from '@/lib/maquina-vendas/gatilho-pedido'
+import { avisarRastreio } from '@/lib/maquina-vendas/observador-rastreio'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,6 +105,14 @@ async function tratar(event: string, pedidoId: number): Promise<void> {
 
   const pedido = await buscarPedido(pedidoId)
   const r = await tratarEventoPedido(event, pedido)
+
+  // Pedido postado: o aviso com o rastreio sai no ato, sem esperar a varredura.
+  if (event !== 'order/created' && event !== 'order/cancelled') {
+    const aviso = await avisarRastreio(pedido).catch((e) => ({ inscrito: false, motivo: String(e) }))
+    if (aviso.inscrito || event === 'order/fulfilled') {
+      await logar('INFO', 'rastreio', `Pedido ${pedido.number} · rastreio`, aviso)
+    }
+  }
 
   if (r.cadenciasEncerradas || r.inscritoEmPedido || r.valorGravado) {
     await logar('INFO', 'gatilho_pedido', `Pedido ${pedido.number} · ${event}`, {

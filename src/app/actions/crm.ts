@@ -550,6 +550,73 @@ export async function getContactStats(contactId: string) {
   }
 }
 
+/**
+ * O status de cada contato para a tela de Contatos (modelo CarBoss).
+ *
+ * Existe porque a tela antiga classificava pelo `getAllDeals()`, que traz só
+ * os 100 negócios mais recentes: contato com negócio mais antigo aparecia como
+ * "sem negócio" e caía em Recuperar. Aqui a conta é sobre TODOS os negócios,
+ * agrupada no banco.
+ */
+export async function getResumoContatos() {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const grupos = await prisma.deal.groupBy({
+    by: ['contactId', 'status'],
+    where: { OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] },
+    _count: { _all: true },
+    _sum: { valorEstimado: true },
+    _max: { updatedAt: true },
+  })
+  const resumo: Record<string, { abertos: number; ganhos: number; perdidos: number; valorGanho: number; ultimoNegocio: string | null }> = {}
+  for (const g of grupos) {
+    const r = (resumo[g.contactId] ??= { abertos: 0, ganhos: 0, perdidos: 0, valorGanho: 0, ultimoNegocio: null })
+    if (g.status === 'OPEN') r.abertos += g._count._all
+    if (g.status === 'WON') {
+      r.ganhos += g._count._all
+      r.valorGanho += g._sum.valorEstimado ?? 0
+    }
+    if (g.status === 'LOST') r.perdidos += g._count._all
+    const quando = g._max.updatedAt?.toISOString() ?? null
+    if (quando && (!r.ultimoNegocio || quando > r.ultimoNegocio)) r.ultimoNegocio = quando
+  }
+  return resumo
+}
+
+/** A ficha de um contato: ele, todos os negócios (com funil e etapa) e toda a linha do tempo. */
+export async function getFichaContato(contactId: string) {
+  const auth = await requireAuth()
+  const scope = await getTeamScope(auth.userId)
+  const contato = await prisma.contact.findFirst({
+    where: { id: contactId, OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] },
+  })
+  if (!contato) return null
+  const [negocios, atividades] = await Promise.all([
+    prisma.deal.findMany({
+      where: { contactId },
+      include: { stage: true, pipeline: { select: { id: true, nome: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.activity.findMany({
+      where: { OR: [{ contactId }, { deal: { contactId } }] },
+      orderBy: [{ doneAt: 'desc' }, { createdAt: 'desc' }],
+      take: 300,
+    }),
+  ])
+  return {
+    contato: serializeContact(contato),
+    atualizadoEm: contato.updatedAt.toISOString(),
+    negocios: negocios.map((d) => ({
+      ...serializeDeal(d),
+      etapaNome: d.stage?.nome ?? null,
+      etapaCor: d.stage?.cor ?? null,
+      funilNome: d.pipeline?.nome ?? null,
+      criadoEm: d.createdAt.toISOString(),
+    })),
+    atividades: atividades.map((a) => serializeActivity(a)),
+  }
+}
+
 export async function mergeContacts(primaryId: string, secondaryId: string) {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)

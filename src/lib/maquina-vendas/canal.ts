@@ -318,6 +318,40 @@ async function postarMensagem(cred: CredenciaisCanal, corpo: unknown): Promise<R
 }
 
 /**
+ * O status de cada template na WABA (APPROVED, PENDING, REJECTED, PAUSED...).
+ *
+ * Existe para o que depende de template novo esperar a Meta sozinho: a trilha
+ * de rastreio só inscreve quando `dl_pedido_enviado_v1` estiver APPROVED. Sem
+ * isso, o primeiro pedido postado antes da aprovação viraria erro 132001 e a
+ * cliente nunca receberia o código — a falha é permanente, não re-tentável.
+ *
+ * Cache de 20 min: o tique roda de 5 em 5, e a aprovação da Meta leva horas.
+ * Devolve `null` quando não dá para saber (sem WABA ou canal fora) — quem
+ * chama trata "não sei" como "ainda não".
+ */
+let cacheTemplates: { em: number; mapa: Map<string, string> } | null = null
+
+export async function statusDosTemplates(forcar = false): Promise<Map<string, string> | null> {
+  if (!forcar && cacheTemplates && Date.now() - cacheTemplates.em < 20 * 60_000) return cacheTemplates.mapa
+  const waba = process.env.DATAFY_WABA_ID
+  if (!waba) return null
+  try {
+    const cred = await obterCredenciaisCanal()
+    const r = await fetch(`${cred.baseUrl}/${waba}/message_templates?limit=200`, {
+      headers: { Authorization: `Bearer ${cred.token}` },
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!r.ok) return null
+    const json = (await r.json()) as { data?: { name: string; status: string }[] }
+    const mapa = new Map((json.data ?? []).map((t) => [t.name, t.status]))
+    cacheTemplates = { em: Date.now(), mapa }
+    return mapa
+  } catch {
+    return null
+  }
+}
+
+/**
  * Prova que o canal responde, SEM mandar mensagem para ninguém.
  *
  * Lê o próprio número. Se as credenciais estiverem certas e o caminho for o
