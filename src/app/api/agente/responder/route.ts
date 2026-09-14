@@ -3,6 +3,7 @@ import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { registrarTurno, ultimaMensagem } from '@/lib/atendimento/conversa'
 import prisma from '@/lib/prisma'
+import { funilSemFalhar, temLinkDaLoja } from '@/lib/atendimento/funil'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,6 +55,11 @@ export async function POST(request: Request) {
         .catch(() => undefined)
       break
     }
+  }
+
+  if (enviadas) {
+    const dito = baloes.slice(0, enviadas).join('\n\n')
+    await funilSemFalhar({ e164: telefone, etapa: temLinkDaLoja(dito) ? 'link' : 'novo', atividade: `IA: ${dito}` })
   }
 
   const nova = corpo.msg_id && (await ultimaMensagem(telefone)) !== corpo.msg_id

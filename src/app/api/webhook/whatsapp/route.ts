@@ -5,6 +5,7 @@ import { pediuParaSair } from '@/lib/maquina-vendas/opt-out'
 import { classificar } from '@/lib/maquina-vendas/canal'
 import { registrarTurno } from '@/lib/atendimento/conversa'
 import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
+import { funilSemFalhar } from '@/lib/atendimento/funil'
 
 export const dynamic = 'force-dynamic'
 
@@ -296,6 +297,9 @@ async function tratarMensagem(msg: MensagemMeta, nomeWhatsApp: string | null): P
   // O turno entra no histórico da conversa — é a memória da IA — e move
   // `respondidoEm`, que é o que a Máquina lê.
   await registrarTurno(e164!, { em: quando.toISOString(), de: 'cliente', texto: textoDoTurno, id: msg.id })
+
+  // A conversa aparece no CRM: contato, negócio no funil do WhatsApp e a fala na linha do tempo.
+  await funilSemFalhar({ e164: e164!, nome: nomeWhatsApp, etapa: 'novo', atividade: `Cliente: ${textoDoTurno}` })
 
   // Sai da régua na hora — e não só no próximo tique.
   await prisma.mvInscricao.updateMany({

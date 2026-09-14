@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { HUMANO_HORAS, marcarHumano } from '@/lib/atendimento/conversa'
 import prisma from '@/lib/prisma'
+import { funilSemFalhar } from '@/lib/atendimento/funil'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
       },
     })
     .catch(() => undefined)
+
+  await funilSemFalhar({
+    e164: telefone,
+    etapa: 'humano',
+    atividade: `Passou para atendente: ${String(corpo.motivo ?? '')} — ${String(corpo.resumo ?? '')}`,
+  })
 
   return NextResponse.json({
     ok: true,

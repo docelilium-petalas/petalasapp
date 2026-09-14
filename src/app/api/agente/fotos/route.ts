@@ -3,6 +3,7 @@ import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { catalogoDaLoja, formatarPreco } from '@/lib/nuvemshop/catalogo'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { registrarTurno, turnosDe, pendentesEHistorico } from '@/lib/atendimento/conversa'
+import { funilSemFalhar } from '@/lib/atendimento/funil'
 
 /** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
 const JANELA_REPETIDA_MS = 24 * 3_600_000
@@ -74,6 +75,15 @@ export async function POST(request: Request) {
     } catch (e) {
       falhas.push(`${p.nome}: ${e instanceof Error ? e.message : String(e)}`)
     }
+  }
+
+  if (enviadas.length) {
+    await funilSemFalhar({
+      e164: telefone,
+      etapa: 'produto',
+      produto: enviadas.join(', ').slice(0, 180),
+      atividade: `IA mandou foto: ${enviadas.join(', ')}`,
+    })
   }
 
   return NextResponse.json({
