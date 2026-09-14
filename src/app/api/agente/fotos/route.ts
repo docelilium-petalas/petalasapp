@@ -2,10 +2,21 @@ import { NextResponse } from 'next/server'
 import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { catalogoDaLoja, formatarPreco } from '@/lib/nuvemshop/catalogo'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
-import { registrarTurno, turnosDe } from '@/lib/atendimento/conversa'
+import { registrarTurno, turnosDe, pendentesEHistorico } from '@/lib/atendimento/conversa'
 
 /** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
 const JANELA_REPETIDA_MS = 24 * 3_600_000
+
+/**
+ * ...A MENOS que ela peça a foto. Quem decide é o texto da cliente, não o
+ * modelo: as mensagens dela que ainda não tiveram resposta falam em foto,
+ * imagem ou "manda/mostra de novo"? Então reenvia. Pedido do Owner em 14/09.
+ */
+const PEDIU_FOTO = /\b(foto|fotos|imagem|imagens|figura|print|manda de novo|mostra de novo|envia de novo|reenvia|ver de novo|ver ela|ver a peca)\b/
+
+function semAcento(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -32,10 +43,15 @@ export async function POST(request: Request) {
 
   const catalogo = await catalogoDaLoja()
   const agora = Date.now()
+  const turnos = await turnosDe(telefone)
+  const { pendentes } = pendentesEHistorico(turnos)
+  const pediuFoto = PEDIU_FOTO.test(semAcento(pendentes.map((t) => t.texto).join(' ')))
   const jaMandadas = new Set(
-    (await turnosDe(telefone))
-      .filter((t) => t.de === 'loja' && t.texto.startsWith('[foto] ') && agora - new Date(t.em).getTime() < JANELA_REPETIDA_MS)
-      .map((t) => t.texto.slice(7).split(' · ')[0].trim()),
+    pediuFoto
+      ? []
+      : turnos
+          .filter((t) => t.de === 'loja' && t.texto.startsWith('[foto] ') && agora - new Date(t.em).getTime() < JANELA_REPETIDA_MS)
+          .map((t) => t.texto.slice(7).split(' · ')[0].trim()),
   )
   const enviadas: string[] = []
   const repetidas: string[] = []
