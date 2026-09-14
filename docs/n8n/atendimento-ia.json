@@ -50,7 +50,7 @@
           "value": "gpt-4.1-mini"
         },
         "options": {
-          "temperature": 0.4
+          "temperature": 0
         }
       },
       "id": "0d2952cd-f034-4a54-96f9-189817dd4e28",
