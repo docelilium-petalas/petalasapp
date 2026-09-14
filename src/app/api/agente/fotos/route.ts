@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { catalogoDaLoja, formatarPreco } from '@/lib/nuvemshop/catalogo'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
-import { registrarTurno } from '@/lib/atendimento/conversa'
+import { registrarTurno, turnosDe } from '@/lib/atendimento/conversa'
+
+/** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
+const JANELA_REPETIDA_MS = 24 * 3_600_000
 
 export const dynamic = 'force-dynamic'
 
@@ -28,12 +31,23 @@ export async function POST(request: Request) {
   if (!ids.length) return NextResponse.json({ enviadas: 0, dica: 'Mande os ids que vieram de buscar_catalogo.' })
 
   const catalogo = await catalogoDaLoja()
+  const agora = Date.now()
+  const jaMandadas = new Set(
+    (await turnosDe(telefone))
+      .filter((t) => t.de === 'loja' && t.texto.startsWith('[foto] ') && agora - new Date(t.em).getTime() < JANELA_REPETIDA_MS)
+      .map((t) => t.texto.slice(7).split(' · ')[0].trim()),
+  )
   const enviadas: string[] = []
+  const repetidas: string[] = []
   const falhas: string[] = []
   for (const id of ids) {
     const p = catalogo.find((x) => x.id === id)
     if (!p || !p.fotos[0]) {
       falhas.push(`${id}: não está no catálogo`)
+      continue
+    }
+    if (jaMandadas.has(p.nome)) {
+      repetidas.push(p.nome)
       continue
     }
     const legenda = `${p.nome} · ${formatarPreco(p.preco)}${p.disponivel ? '' : ' · esgotada'}\n${p.link}`
@@ -49,9 +63,12 @@ export async function POST(request: Request) {
   return NextResponse.json({
     enviadas: enviadas.length,
     pecas: enviadas,
+    ja_estavam_na_conversa: repetidas,
     falhas,
     dica: enviadas.length
       ? 'As fotos JÁ chegaram para ela, com preço e link. Não repita a lista: pergunte numa frase curta se alguma agradou ou qual tamanho ela usa.'
-      : 'Nenhuma foto saiu. Mande os links das peças em texto.',
+      : repetidas.length && !falhas.length
+        ? 'Ela JÁ tem a foto dessa peça na conversa. Não mande de novo: responda direto o que ela perguntou.'
+        : 'Nenhuma foto saiu. Mande os links das peças em texto.',
   })
 }
