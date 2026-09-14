@@ -62,7 +62,10 @@
   --secondary-foreground: 345 45% 14%;
 
   --muted: 345 26% 92.0%;        /* #F0E5E8 - era OLIVA. 193 usos corrigidos */
-  --muted-foreground: 345 16% 38.9%; /* #73535B - 6.01:1 sobre card */
+  /* Reunião de 14/09/2026: "a letra está muito cinza, estou quase ficando cega".
+     As meninas usam o CRM no meio da loja, com muita luz. Era 38,9% (6:1);
+     agora 28% — ~9,5:1 sobre o card, sem virar preto. */
+  --muted-foreground: 345 20% 28%;   /* #56383F */
   --accent: 345 34% 90.5%;       /* #EFDFE3 - era OLIVA */
   --accent-foreground: 345 45% 14%;
 
@@ -754,7 +757,30 @@ body .bg-black\/80 {
 
 body .text-neutral-600 { color: hsl(var(--muted-foreground)) !important; }
 body .text-neutral-500 { color: hsl(var(--muted-foreground)) !important; }
-body .text-neutral-400 { color: hsl(var(--muted-foreground) / 0.85) !important; }
+body .text-neutral-400 { color: hsl(var(--muted-foreground)) !important; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LEITURA NA LOJA — contraste e tamanho (reunião de 14/09/2026)
+   Decisão: manter o tema claro, escurecer o texto e aumentar a letra.
+   ~430 textos do CRM têm tamanho cravado em px (9, 10, 11px): subir a base
+   do rem não os alcança, então eles sobem aqui. E cinza com transparência
+   (text-muted-foreground/40…/60) é o "cinza clarinho" que ninguém lia.
+   ══════════════════════════════════════════════════════════════════════════ */
+html { font-size: 106.25%; } /* 16px → 17px: tudo que é rem cresce 6% */
+
+body .text-\[8px\] { font-size: 10px !important; }
+body .text-\[9px\] { font-size: 11px !important; }
+body .text-\[10px\] { font-size: 11.5px !important; }
+body .text-\[11px\] { font-size: 12.5px !important; }
+
+body .text-muted-foreground\/30,
+body .text-muted-foreground\/40,
+body .text-muted-foreground\/45,
+body .text-muted-foreground\/50,
+body .text-muted-foreground\/60,
+body .text-muted-foreground\/80 {
+  color: hsl(var(--muted-foreground)) !important;
+}
 
 body .border-neutral-800 { border-color: hsl(var(--border)) !important; }
 body .border-neutral-700 { border-color: hsl(var(--border-strong) / 0.6) !important; }

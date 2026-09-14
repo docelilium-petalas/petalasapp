@@ -14,6 +14,7 @@ import {
 import { crmService } from '@/lib/services'
 import type { ContactInput } from '@/app/actions/crm'
 import * as crmActions from '@/app/actions/crm'
+import { nomeDeExibicao, iniciais as iniciaisDoContato, telefoneDeExibicao, temNome } from '@/lib/contato-exibicao'
 import {
   Plus, Search, X, Phone, Mail, MapPin, Tag, Edit2, Trash2, Upload,
   UserCheck, Merge, Zap, ArrowLeft, Calendar, FileText,
@@ -596,11 +597,7 @@ export default function ContactsPage() {
   }
 
   // UI helper colors
-  const initials = (c: { nome: string; sobrenome?: string | null }) => {
-    const n = cleanVal(c.nome)
-    const s = cleanVal(c.sobrenome)
-    return `${n[0] || ''}${s[0] || ''}`.toUpperCase()
-  }
+  const initials = (c: { nome: string; sobrenome?: string | null; telefone?: string | null }) => iniciaisDoContato(c)
   const avatarColor = (id: string) => {
     const colors = ['bg-success', 'bg-info', 'bg-brand-ink', 'bg-warning', 'bg-destructive']
     return colors[id.charCodeAt(id.length - 1) % colors.length]
@@ -872,14 +869,18 @@ export default function ContactsPage() {
                           {initials(c)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-foreground truncate">{cleanVal(c.nome)} {cleanVal(c.sobrenome)}</p>
-                          <p className="text-[10px] text-muted-foreground truncate mt-0.5">{c.telefone || cleanVal(c.email) || 'Sem contato'}</p>
+                          <p className={`text-sm font-bold truncate ${temNome(c) ? 'text-foreground' : 'text-muted-foreground italic'}`}>{nomeDeExibicao(c)}</p>
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{telefoneDeExibicao(c.telefone) || cleanVal(c.email) || 'Sem contato'}</p>
                         </div>
                       </div>
 
                       {/* Status */}
                       <div>
-                        {isLead ? (
+                        {wonIds.has(c.id) ? (
+                          <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-success/10 text-success border border-success/30 tracking-wider">
+                            CLIENTE
+                          </span>
+                        ) : isLead ? (
                           <span className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-warning/10 text-warning border border-warning/20 tracking-wider">
                             LEAD
                           </span>
@@ -915,7 +916,7 @@ export default function ContactsPage() {
                       {/* Logs */}
                       <div>
                         <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-                          Atualizado em: {new Date((c as any).updatedAt || c.createdAt).toLocaleDateString('pt-BR')}
+                          Último movimento: {new Date((c as any).updatedAt || c.createdAt).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
 

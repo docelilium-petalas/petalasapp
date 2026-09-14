@@ -131,7 +131,7 @@ export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | nu
     dicas.push(
       `Ela tem um carrinho montado com: ${pecasDoCarrinho}. Só mande o link do carrinho se ela quiser comprar EXATAMENTE essas peças. ` +
         'Se na conversa ela escolheu outra peça, mande o link DESSA peça (o que veio em buscar_catalogo ou na legenda da foto) e não fale do carrinho. ' +
-        'Quando ela disser que quer comprar, mande o link na mesma resposta, sem perguntar se pode mandar. NUNCA ofereça cupom: a loja não trabalha com cupom acumulado.',
+        'Quando ela disser que quer comprar, mande o link na mesma resposta, sem perguntar se pode mandar. NUNCA ofereça cupom: a loja não acumula cupom e o desconto máximo é de 5% a 10%, sempre decidido pela Marília. Se ela pedir desconto, chame chamar_atendente.',
     )
   }
   if (!ultimos.length && !carrinhoVivo) {

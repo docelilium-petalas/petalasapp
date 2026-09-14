@@ -18,13 +18,21 @@ export const DEFAULT_ORIGINS = [
   'Loja Física',
 ]
 
+// Tags de VAREJO. As anteriores (Decisor, PME, Corporativo, Agronegócio,
+// Tecnologia) eram da OCR, venda B2B — apontado na reunião de 14/09/2026.
 export const DEFAULT_TAGS = [
-  { label: 'Decisor', color: '#00E676' },
-  { label: 'PME', color: '#60A5FA' },
-  { label: 'Corporativo', color: '#a855f7' },
-  { label: 'Agronegócio', color: '#FFB300' },
-  { label: 'Tecnologia', color: '#FF5722' },
+  { label: 'Cliente da casa', color: '#22c55e' },
+  { label: 'VIP', color: '#a855f7' },
+  { label: 'Recompra', color: '#60A5FA' },
+  { label: 'Atacado', color: '#FFB300' },
+  { label: 'Collab DL by Lari', color: '#ec4899' },
 ]
+
+/** O conjunto herdado da OCR: se o navegador guardou exatamente ele, troca pelo de varejo. */
+const TAGS_OCR = ['Decisor', 'PME', 'Corporativo', 'Agronegócio', 'Tecnologia']
+function ehConjuntoOcr(tags?: { label: string }[]): boolean {
+  return !!tags && tags.length === TAGS_OCR.length && tags.every((t) => TAGS_OCR.includes(t.label))
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -52,7 +60,7 @@ function loadFromStorage(): Categories {
     return {
       products: parsed.products?.length ? parsed.products : DEFAULT_PRODUCTS,
       origins: parsed.origins?.length ? parsed.origins : DEFAULT_ORIGINS,
-      tags: parsed.tags?.length ? parsed.tags : DEFAULT_TAGS,
+      tags: parsed.tags?.length && !ehConjuntoOcr(parsed.tags) ? parsed.tags : DEFAULT_TAGS,
     }
   } catch {
     return { products: DEFAULT_PRODUCTS, origins: DEFAULT_ORIGINS, tags: DEFAULT_TAGS }

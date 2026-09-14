@@ -24,6 +24,7 @@
 
 import prisma from '@/lib/prisma'
 import { chaveTelefone, apenasDigitos } from '@/lib/maquina-vendas/telefone'
+import { temNome } from '@/lib/contato-exibicao'
 
 export const NOME_FUNIL = 'WhatsApp · Atendimento IA'
 
@@ -103,8 +104,14 @@ export async function registrarNoFunil(r: Registro): Promise<void> {
         lastUtmAt: new Date(),
       },
     })
-  } else if (nomeLimpo.length >= 2 && /^WhatsApp \d{4}$/.test(contato.nome)) {
-    contato = await prisma.contact.update({ where: { id: contato.id }, data: { nome: nomeLimpo } })
+  } else if (temNome({ nome: nomeLimpo }) && (!temNome(contato) || /^WhatsApp \d{4}$/.test(contato.nome))) {
+    // Contato que chegou sem nome (ou com "æ", "WhatsApp 1215") ganha o nome do
+    // perfil do WhatsApp na primeira mensagem — reunião de 14/09/2026.
+    contato = await prisma.contact.update({ where: { id: contato.id }, data: { nome: nomeLimpo, sobrenome: null } })
+    await prisma.deal.updateMany({
+      where: { contactId: contato.id, titulo: { startsWith: 'WhatsApp ·' } },
+      data: { titulo: `WhatsApp · ${nomeLimpo}` },
+    })
   }
 
   let negocio = await prisma.deal.findFirst({

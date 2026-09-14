@@ -22,8 +22,12 @@ export function getProductGroup(titulo?: string): 'HMI' | 'Sistema' {
 }
 
 export function normalizeSourceLabel(source?: string): string {
-  if (!source || source === 'undefined' || source === 'null') return 'Tráfego Direto'
+  if (!source || source === 'undefined' || source === 'null') return 'Direto'
   const src = source.toLowerCase().trim()
+  // Canais do varejo (Doce Lilium): a conversa com a IA e a loja online.
+  if (src === 'whatsapp-ia') return 'WhatsApp · IA'
+  if (/^(whatsapp|wpp|zap)$/.test(src)) return 'WhatsApp'
+  if (/nuvemshop|loja[- ]?online|site|checkout/.test(src)) return 'Loja online'
   if (/^(facebook|fb|meta|instagram|ig|meta ads)$/.test(src)) {
     return 'Meta Ads'
   }

@@ -31,6 +31,7 @@ const BRL = (v: number) =>
   }).format(v)
 
 import * as crmActions from '@/app/actions/crm'
+import { nomeDeExibicao, temNome } from '@/lib/contato-exibicao'
 
 // Priority config mapping (Inverted semantic)
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; emoji: string }> = {
@@ -315,8 +316,8 @@ function DraggableDealCard({
       <div className="flex flex-col gap-1.5 mt-1.5 w-full pl-5">
         {/* Row 2: Contact Name & Phone */}
         <div className="flex flex-col gap-0.5 pointer-events-none">
-          <p className="text-[12px] font-semibold text-foreground/90 leading-tight">
-            {contact?.nome} {contact?.sobrenome || ''}
+          <p className={`text-[12px] font-semibold leading-tight ${contact && temNome(contact) ? 'text-foreground/90' : 'text-muted-foreground italic'}`}>
+            {nomeDeExibicao(contact)}
           </p>
           {contact?.telefone && (
             <a
@@ -606,12 +607,6 @@ function DroppableColumn({
     </div>
   )
 }
-
-// Internal type for mock service state access
-type CrmInternal = typeof crmService & {
-  getState?: () => { users: MockUser[]; history: MockDealStageHistory[]; deals: MockDeal[] }
-}
-const crmInternal = crmService as unknown as CrmInternal
 
 // ─── PIPELINE MAIN CONTENT ──────────────────────────────────────────────────
 function PipelineContent() {
@@ -2677,12 +2672,21 @@ function ArchivedDealsView({
   const [search, setSearch] = useState('')
   const [archived, setArchived] = useState<MockDeal[]>([])
 
+  // Lê do BANCO. A versão herdada da OCR lia `crmInternal.getState()`, o estado
+  // simulado em memória — que em produção nunca tem negócio nenhum. Por isso a
+  // janela abria "Nenhum negócio arquivado" com negócios arquivados no banco
+  // (apontado na reunião de 14/09/2026).
   useEffect(() => {
-    const state = crmInternal.getState?.() ?? { users: [], history: [], deals: [] }
-    const allPipelineDeals = state.deals.filter(
-      (d: MockDeal) => d.pipelineId === pipelineId && (d.status === 'WON' || d.status === 'LOST')
-    )
-    Promise.resolve().then(() => setArchived(allPipelineDeals))
+    let vivo = true
+    crmActions
+      .getArchivedDeals()
+      .then((rows) => {
+        if (vivo) setArchived((rows as unknown as MockDeal[]).filter((d) => d.pipelineId === pipelineId))
+      })
+      .catch(() => toast.error('Não consegui carregar os arquivados.'))
+    return () => {
+      vivo = false
+    }
   }, [pipelineId])
 
   const filtered = archived.filter((d) => {
