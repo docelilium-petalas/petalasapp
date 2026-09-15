@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
 import { DealPriority } from '@prisma/client'
+import { comprasDoContato } from '@/lib/contato-status'
 
 async function requireAuth() {
   const cookieStore = await cookies()
@@ -562,23 +563,32 @@ export async function getResumoContatos() {
   const auth = await requireAuth()
   const scope = await getTeamScope(auth.userId)
   const grupos = await prisma.deal.groupBy({
-    by: ['contactId', 'status'],
+    by: ['contactId', 'status', 'origem'],
     where: { OR: [{ userId: { in: scope } }, { ownerUserId: { in: scope } }] },
     _count: { _all: true },
     _sum: { valorEstimado: true },
     _max: { updatedAt: true },
   })
   const resumo: Record<string, { abertos: number; ganhos: number; perdidos: number; valorGanho: number; ultimoNegocio: string | null }> = {}
+  const porContato = new Map<string, typeof grupos>()
   for (const g of grupos) {
-    const r = (resumo[g.contactId] ??= { abertos: 0, ganhos: 0, perdidos: 0, valorGanho: 0, ultimoNegocio: null })
-    if (g.status === 'OPEN') r.abertos += g._count._all
-    if (g.status === 'WON') {
+    const lista = porContato.get(g.contactId) ?? []
+    lista.push(g)
+    porContato.set(g.contactId, lista)
+  }
+  for (const [contactId, lista] of porContato) {
+    const r = (resumo[contactId] = { abertos: 0, ganhos: 0, perdidos: 0, valorGanho: 0, ultimoNegocio: null as string | null })
+    // `ganhos` = compras, pela mesma regra da ficha (lib/contato-status.ts).
+    for (const g of comprasDoContato(lista)) {
       r.ganhos += g._count._all
       r.valorGanho += g._sum.valorEstimado ?? 0
     }
-    if (g.status === 'LOST') r.perdidos += g._count._all
-    const quando = g._max.updatedAt?.toISOString() ?? null
-    if (quando && (!r.ultimoNegocio || quando > r.ultimoNegocio)) r.ultimoNegocio = quando
+    for (const g of lista) {
+      if (g.status === 'OPEN') r.abertos += g._count._all
+      if (g.status === 'LOST') r.perdidos += g._count._all
+      const quando = g._max.updatedAt?.toISOString() ?? null
+      if (quando && (!r.ultimoNegocio || quando > r.ultimoNegocio)) r.ultimoNegocio = quando
+    }
   }
   return resumo
 }

@@ -49,6 +49,9 @@ const ORIGEM_ROTULO: Record<string, string> = {
   carrinho: 'Carrinho',
   pedido: 'Pedido',
   pedido_enviado: 'Rastreio',
+  reativacao: 'Reativação',
+  colecao_nova: 'Coleção nova',
+  lista_desejos: 'Voltou ao estoque',
   pipeline: 'Funil',
 }
 

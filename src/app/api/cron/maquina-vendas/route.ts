@@ -3,6 +3,7 @@ import { observarCarrinhosAbandonados } from '@/lib/maquina-vendas/observador'
 import { despachar } from '@/lib/maquina-vendas/despachante'
 import { observarRastreios } from '@/lib/maquina-vendas/observador-rastreio'
 import { sincronizarFunis } from '@/lib/maquina-vendas/funis-crm'
+import { observarMarketing } from '@/lib/maquina-vendas/observador-marketing'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -57,6 +58,12 @@ export async function GET(request: Request) {
       erro: e instanceof Error ? e.message : String(e),
     }))
 
+    // FASE 1c — MARKETING: reativação 60 dias, coleção nova e peça que voltou
+    // ao estoque. Roda de hora em hora (cursor próprio) e não segura o despacho.
+    const marketing = await observarMarketing().catch((e) => ({
+      erro: e instanceof Error ? e.message : String(e),
+    }))
+
     // FASE 2 — DESPACHAR: o que sai agora.
     //
     // Ligada, e mesmo assim inerte por padrão: `envioPausado` nasce `true` e o
@@ -76,6 +83,7 @@ export async function GET(request: Request) {
       ms: Date.now() - inicio,
       observacao,
       rastreio,
+      marketing,
       despacho,
       funis,
     }

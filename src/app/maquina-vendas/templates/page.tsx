@@ -36,8 +36,6 @@ import { getRevisoes, salvarRevisao, validarEdicao, restaurarOriginal, type Revi
 const BLOQUEIOS: Record<string, string> = {
   dl_pix_pendente_v1: 'A API de pedido da Nuvemshop não devolve a validade do PIX.',
   dl_pedido_enviado_v1: 'Os 62 pedidos dos últimos 60 dias estão com o código de rastreio VAZIO. Não é limite da API — é preenchimento. Se a loja informar o código, destrava sozinho.',
-  dl_reativacao_60d_v1: 'O CRM ainda não lê as coleções da loja.',
-  dl_colecao_nova_v1: 'O CRM ainda não lê as coleções da loja.',
 }
 
 const TRILHAS = [

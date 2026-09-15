@@ -20,7 +20,7 @@ import { AppLayout } from '@/components/AppLayout'
 import * as crmActions from '@/app/actions/crm'
 import { useContacts, useDeleteContact, useMergeContacts } from '@/hooks/useContacts'
 import { nomeDeExibicao, iniciais, telefoneDeExibicao, temNome } from '@/lib/contato-exibicao'
-import { statusDoContato, COR_STATUS } from '@/lib/contato-status'
+import { statusDoContato, COR_STATUS, comprasDoContato } from '@/lib/contato-status'
 import { confirmar } from '@/components/ui/ConfirmSheet'
 import { ContatoModal } from '@/components/contatos/ContatoModal'
 
@@ -99,7 +99,8 @@ export default function FichaContatoPage() {
   const derivados = useMemo(() => {
     if (!ficha) return null
     const n = ficha.negocios
-    const ganhos = n.filter((d) => d.status === 'WON')
+    // Pedido pago é compra mesmo com o negócio aberto no Pós-venda (lib/contato-status.ts).
+    const ganhos = comprasDoContato(n)
     return {
       ganhos,
       totalGasto: ganhos.reduce((s, d) => s + (d.valorEstimado || 0), 0),
