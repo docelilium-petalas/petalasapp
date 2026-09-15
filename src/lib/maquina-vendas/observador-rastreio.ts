@@ -91,6 +91,10 @@ async function garantirCadencia() {
 
 /** Por que a trilha ainda não pode inscrever ninguém — ou `null` se pode. */
 async function bloqueio(cadencia: Cadencia): Promise<string | null> {
+  // 15/09/2026: o aviso de rastreio fica para depois (decisão do dono). Com o
+  // template já aprovado, sem esta trava o primeiro código lançado na loja
+  // viraria mensagem para cliente real. Religar: MV_RASTREIO_LIGADO=1.
+  if (process.env.MV_RASTREIO_LIGADO !== '1') return 'aviso de rastreio desligado (MV_RASTREIO_LIGADO)'
   if (!cadencia.ativo) return 'cadência de pedido enviado desligada'
   const status = await statusDosTemplates()
   if (!status) return 'sem como conferir a aprovação do template (DATAFY_WABA_ID ou canal)'
