@@ -161,6 +161,19 @@ export type FiltroCatalogo = {
 const VAZIAS = new Set(['de', 'da', 'do', 'para', 'pra', 'um', 'uma', 'com', 'e', 'o', 'a', 'tem', 'quero', 'algum', 'alguma', 'peca', 'roupa'])
 
 /**
+ * Plural simples: "saias" vira "saia". Só em palavra longa, para não comer
+ * "mais" nem "sale".
+ *
+ * A IA escreve a categoria do jeito dela — "acessorios" quando a loja cadastrou
+ * "Acessório". Em 25/09/2026 isso fez a cliente ouvir "não temos lenço no
+ * catálogo" com o Lenço Ave Maria publicado e à venda: a busca pela palavra
+ * achava a peça, o filtro de categoria a derrubava depois.
+ */
+function semPlural(p: string): string {
+  return p.length > 4 && p.endsWith('s') ? p.slice(0, -1) : p
+}
+
+/**
  * A busca que a IA usa. Ordena por: quantas palavras da busca aparecem no
  * nome/categoria/tags/descrição (nome vale mais), depois disponível na frente,
  * depois o mais novo. Nunca devolve item que não bate com NENHUMA palavra
@@ -171,13 +184,21 @@ export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo):
   const palavras = dobrar(f.busca ?? '')
     .split(/[^a-z0-9]+/)
     .filter((p) => p.length > 1 && !VAZIAS.has(p))
-    // plural simples: "saias" acha "saia"
-    .map((p) => (p.length > 4 && p.endsWith('s') ? p.slice(0, -1) : p))
-  const categoria = f.categoria ? dobrar(f.categoria) : null
+    .map(semPlural)
+  const categoria = f.categoria ? semPlural(dobrar(f.categoria).trim()) : null
   const tamanho = f.tamanho ? dobrar(f.tamanho).trim() : null
 
   const pontuados = produtos
-    .filter((p) => !categoria || p.categorias.some((c) => dobrar(c).includes(categoria)))
+    // Compara nos dois sentidos, já sem plural: "acessorios" tem de achar
+    // "Acessório", e "vestido de festa" tem de achar "Vestidos".
+    .filter(
+      (p) =>
+        !categoria ||
+        p.categorias.some((c) => {
+          const cat = semPlural(dobrar(c).trim())
+          return cat.includes(categoria) || (cat.length >= 4 && categoria.includes(cat))
+        }),
+    )
     .filter((p) => !f.precoMax || (p.preco ?? Infinity) <= f.precoMax)
     .filter((p) => !tamanho || p.tamanhos.some((t) => dobrar(t.nome) === tamanho && t.disponivel))
     .map((p) => {
