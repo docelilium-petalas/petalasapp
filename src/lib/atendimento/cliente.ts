@@ -11,6 +11,8 @@ import { listarPedidos, listarCarrinhosAbandonados, type Pedido, type CarrinhoAb
 import { chaveTelefone, primeiroNome } from '@/lib/maquina-vendas/telefone'
 import { linkDeRastreio } from '@/lib/maquina-vendas/rastreio'
 import { formatarPreco } from '@/lib/nuvemshop/catalogo'
+import { obterAjustes } from '@/lib/maquina-vendas/config'
+import { acharCupom, cupomVale, cuponsVigentes, descreverDesconto } from '@/lib/nuvemshop/cupons'
 
 const TTL_MS = 5 * 60_000
 let pedidosCache: { em: number; lista: Pedido[] } | null = null
@@ -65,15 +67,33 @@ export type ContextoCliente = {
     rastreio: string | null
   }[]
   carrinho_aberto: { pecas: string[]; total: string; link: string; montado_em: string } | null
+  /**
+   * Os códigos que existem na loja AGORA, para a IA conferir quando a cliente
+   * chegar dizendo "tenho o cupom X". Conhecer não é oferecer: o que ela pode
+   * oferecer está escrito na `dica`, e só ali.
+   */
+  cupons_existentes: { codigo: string; desconto: string }[]
   dica: string
 }
 
 export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | null): Promise<ContextoCliente> {
   const chave = chaveTelefone(e164)
-  const [pedidos, carrinhos] = await Promise.all([
+  const [pedidos, carrinhos, vigentes, ajustes] = await Promise.all([
     pedidosRecentes().catch(() => [] as Pedido[]),
     carrinhosRecentes().catch(() => [] as CarrinhoAbandonado[]),
+    cuponsVigentes().catch(() => []),
+    obterAjustes().catch(() => null),
   ])
+
+  // O cupom de recuperação de carrinho: o que Ajustes escolheu, CONFERIDO na
+  // loja. Um código que só existe no banco do CRM é um código que a cliente
+  // digita no checkout e leva um "cupom inválido" — com a compra na mão.
+  const recuperacao = await (async () => {
+    const codigo = ajustes?.cupomCarrinho?.trim()
+    if (!codigo) return null
+    const achado = await acharCupom(codigo).catch(() => null)
+    return achado && cupomVale(achado) ? achado : null
+  })()
 
   const meus = pedidos
     .filter((p) => chave && chaveTelefone(p.contact_phone ?? '') === chave)
@@ -131,8 +151,24 @@ export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | nu
     dicas.push(
       `Ela tem um carrinho montado com: ${pecasDoCarrinho}. Só mande o link do carrinho se ela quiser comprar EXATAMENTE essas peças. ` +
         'Se na conversa ela escolheu outra peça, mande o link DESSA peça (o que veio em buscar_catalogo ou na legenda da foto) e não fale do carrinho. ' +
-        'Quando ela disser que quer comprar, mande o link na mesma resposta, sem perguntar se pode mandar. NUNCA ofereça cupom: a loja não acumula cupom e o desconto máximo é de 5% a 10%, sempre decidido pela Marília. Se ela pedir desconto, chame chamar_atendente.',
+        'Quando ela disser que quer comprar, mande o link na mesma resposta, sem perguntar se pode mandar.',
     )
+    // A ÚNICA porta por onde a IA pode oferecer desconto — e ela só abre com
+    // as duas chaves na fechadura: o cupom escolhido em Ajustes E esse mesmo
+    // código valendo na loja neste instante. Faltando qualquer uma, volta a
+    // valer a proibição. Foi isto que faltou até 26/09: o cupom estava nos
+    // ajustes, o prompt falava dele, e a dica mandava nunca oferecer — então
+    // a IA (corretamente) nunca ofereceu.
+    if (recuperacao) {
+      dicas.push(
+        `AUTORIZADO oferecer o cupom ${recuperacao.codigo} (${descreverDesconto(recuperacao)}) para ela fechar este carrinho. ` +
+          'Não acumula com outro cupom nem com o desconto do Pix. Só este código, e só nesta conversa de carrinho.',
+      )
+    } else {
+      dicas.push(
+        'NUNCA ofereça cupom: não há cupom de recuperação valendo agora. Se ela pedir desconto, chame chamar_atendente.',
+      )
+    }
   }
   if (!ultimos.length && !carrinhoVivo) {
     dicas.push('Cliente sem compra nem carrinho: descubra o que ela procura com UMA pergunta por vez.')
@@ -144,6 +180,7 @@ export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | nu
     cliente: { primeiro_nome: nome, ja_comprou: pagos.length > 0, pedidos_pagos: pagos.length },
     pedidos: ultimos,
     carrinho_aberto: carrinhoVivo,
+    cupons_existentes: vigentes.map((c) => ({ codigo: c.codigo, desconto: descreverDesconto(c) })),
     dica: dicas.join(' '),
   }
 }
