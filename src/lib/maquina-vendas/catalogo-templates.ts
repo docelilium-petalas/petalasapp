@@ -60,7 +60,7 @@ export type TemplateMeta = {
   categoria: CategoriaMeta
   idioma: 'pt_BR'
   /** Trilha da jornada a que pertence. Só documental. */
-  trilha: 'carrinho' | 'pedido' | 'pagamento' | 'pos_venda' | 'reativacao'
+  trilha: 'carrinho' | 'pedido' | 'pagamento' | 'pos_venda' | 'reativacao' | 'campanha'
   /** Quando este template é o certo. Lido por humano, não por código. */
   quando: string
   corpo: string
@@ -101,6 +101,10 @@ export const VARIAVEIS: Record<string, (keyof Contexto)[]> = {
   dl_reativacao_60d_v1: ['primeiro_nome', 'colecao'],
   dl_colecao_nova_v1: ['primeiro_nome', 'colecao'],
   dl_lista_desejos_voltou_v1: ['primeiro_nome', 'peca'],
+  // Campanha 10.10 — textos da Marília, aprovados pelo Owner em 27/09/2026.
+  dl_drop_1010_save_the_date_v1: ['primeiro_nome'],
+  dl_drop_1010_vespera_v1: ['primeiro_nome'],
+  dl_drop_1010_chegou_v1: ['primeiro_nome'],
 }
 
 /**
@@ -351,6 +355,64 @@ export const CATALOGO: TemplateMeta[] = [
       SAIR,
     ],
     exemplos: ['Marina', 'Vestido Alícia'],
+  },
+
+  // ── TRILHA 5 · CAMPANHA DROP 10.10 (MARKETING) ─────────────────────────
+  // Três toques com data marcada, escritos pela Marília. São os textos dela:
+  // o único ajuste foi pôr o primeiro nome e TIRAR A URL DO CORPO do último.
+  // Link solto no corpo de MARKETING é motivo recorrente de reprovação e de
+  // queda de quality_rating; o destino vira botão, que é o caminho que a Meta
+  // aprova. Submeter os TRÊS de uma vez — revisão leva até 24h e o primeiro
+  // disparo é 01/10.
+  //
+  // ⚠️ Nenhum deles tem gatilho automático: são disparos de campanha, com
+  // data escolhida a mão e só para a base com opt-in.
+  {
+    nome: 'dl_drop_1010_save_the_date_v1',
+    categoria: 'MARKETING',
+    idioma: 'pt_BR',
+    trilha: 'campanha',
+    quando: '01/10 — anuncia que vem drop novo e crava a data. Sem link: ainda não há o que ver.',
+    corpo:
+      'Oi, {{1}}! Passando para te contar em primeira mão: tem coisa nova chegando por aqui. 🎀\n\n' +
+      'Depois de um tempinho preparando tudo com muito carinho, o novo drop da Doce Lilium já tem data para chegar.\n\n' +
+      'save the date: 10.10 💖\n\n' +
+      'Não vejo a hora de te mostrar tudo! 🤍',
+    rodape: 'Doce Lilium',
+    botoes: [SAIR],
+    exemplos: ['Marina'],
+  },
+  {
+    nome: 'dl_drop_1010_vespera_v1',
+    categoria: 'MARKETING',
+    idioma: 'pt_BR',
+    trilha: 'campanha',
+    quando: '09/10 — véspera. Só para quem recebeu o save the date, senão o "lembrar" não faz sentido.',
+    corpo:
+      'Oi, {{1}}! Vim te lembrar que é amanhã!\n\n' +
+      'O novo drop da Doce Lilium chega dia 10.10 e estamos contando as horas para finalmente liberar tudo que preparamos! 💌\n\n' +
+      'Tenho a sensação de que você vai se apaixonar por algumas peças… 🤭',
+    rodape: 'Doce Lilium',
+    botoes: [SAIR],
+    exemplos: ['Marina'],
+  },
+  {
+    nome: 'dl_drop_1010_chegou_v1',
+    categoria: 'MARKETING',
+    idioma: 'pt_BR',
+    trilha: 'campanha',
+    quando: '10/10 — o drop no ar. O único dos três com link, porque agora existe vitrine para abrir.',
+    corpo:
+      'É hoje, {{1}}! 🎀🎀🎀\n\n' +
+      'O novo drop da Doce Lilium finalmente chegou e eu não poderia estar mais animada para dividir tudo com você 🥰\n\n' +
+      'Agora quero saber: qual vai ser a sua escolhida? 🤍\n\n' +
+      'Mal posso esperar para começar a ver vocês usando nossas peças por aí!',
+    rodape: 'Doce Lilium',
+    botoes: [
+      { tipo: 'URL', texto: 'Ver o drop', url: '{{1}}', exemplo: 'https://docelilium.com.br/' },
+      SAIR,
+    ],
+    exemplos: ['Marina'],
   },
 ]
 

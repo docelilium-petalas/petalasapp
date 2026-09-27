@@ -48,6 +48,19 @@ const RESOLVIDOS: Record<string, string> = {
   dl_carrinho_ultimo_v2:
     'Texto escrito pela própria dona da marca no grupo MKT Doce Lilium em 11/09/2026, 10h06, ' +
     'para substituir a v1 que prometia cupom.',
+  // Campanha 10.10 — os três textos vieram prontos da Marília e foram
+  // repassados pelo Owner em 27/09/2026 com OK explícito de submissão. Único
+  // ajuste: {{1}} de primeiro nome e, no do dia 10, a URL saiu do corpo e
+  // virou botão (link cru em MARKETING reprova e derruba quality_rating).
+  dl_drop_1010_save_the_date_v1:
+    'Texto da Marília para 01/10, aprovado pelo Owner em 27/09/2026. Sem link de propósito: ' +
+    'no save the date ainda não existe vitrine para abrir.',
+  dl_drop_1010_vespera_v1:
+    'Texto da Marília para 09/10, aprovado pelo Owner em 27/09/2026. Só para quem recebeu o ' +
+    'save the date — "vim te lembrar" não faz sentido para quem não foi avisado.',
+  dl_drop_1010_chegou_v1:
+    'Texto da Marília para 10/10, aprovado pelo Owner em 27/09/2026. A URL https://docelilium.com.br/ ' +
+    'saiu do corpo e virou botão, a pedido da regra da Meta, não da autora.',
 }
 
 type Revisao = { nome: string; status: string; corpoRevisado: string | null }
