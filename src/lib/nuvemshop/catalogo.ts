@@ -157,6 +157,18 @@ export type FiltroCatalogo = {
   limite?: number
 }
 
+export type ResultadoCatalogo = {
+  /** O que a IA pode oferecer. Só peça com estoque entra aqui. */
+  pecas: ProdutoCatalogo[]
+  /**
+   * Bateram com a busca mas estão sem estoque. Não vão para a oferta — vão
+   * para a IA saber a diferença entre "a loja não tem isso" e "tem, mas
+   * esgotou". Dizer "não temos vestido" numa loja de vestidos é tão errado
+   * quanto oferecer o que não dá para comprar.
+   */
+  esgotadas: ProdutoCatalogo[]
+}
+
 /** Palavras que não distinguem peça nenhuma e só sujam a pontuação. */
 const VAZIAS = new Set(['de', 'da', 'do', 'para', 'pra', 'um', 'uma', 'com', 'e', 'o', 'a', 'tem', 'quero', 'algum', 'alguma', 'peca', 'roupa'])
 
@@ -174,13 +186,21 @@ function semPlural(p: string): string {
 }
 
 /**
- * A busca que a IA usa. Ordena por: quantas palavras da busca aparecem no
- * nome/categoria/tags/descrição (nome vale mais), depois disponível na frente,
- * depois o mais novo. Nunca devolve item que não bate com NENHUMA palavra
- * quando houve busca — "tem blazer?" numa loja sem blazer tem de voltar vazio,
- * senão a IA oferece vestido como se fosse blazer.
+ * A busca que a IA usa. Ordena por quantas palavras da busca aparecem no
+ * nome/categoria/tags/descrição (nome vale mais); empate fica com o mais novo,
+ * porque `produtos` já chega ordenado assim e o sort do JS é estável. Nunca
+ * devolve item que não bate com NENHUMA palavra quando houve busca — "tem
+ * blazer?" numa loja sem blazer tem de voltar vazio, senão a IA oferece
+ * vestido como se fosse blazer.
+ *
+ * ── Esgotada não é oferta ─────────────────────────────────────────────────
+ * Até 27/09/2026 esta função só empurrava a peça sem estoque para o fim da
+ * fila: com `limite: 4` numa busca por "vestidos", peça esgotada entrava na
+ * resposta, a IA a listava e mandava a foto. Medido na conversa do Owner.
+ * A decisão saiu do modelo e virou regra: esgotada sai da lista de oferta e
+ * volta em `esgotadas`, separada, só como contexto.
  */
-export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo): ProdutoCatalogo[] {
+export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo): ResultadoCatalogo {
   const palavras = dobrar(f.busca ?? '')
     .split(/[^a-z0-9]+/)
     .filter((p) => p.length > 1 && !VAZIAS.has(p))
@@ -212,9 +232,14 @@ export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo):
       return { p, pontos }
     })
     .filter((x) => palavras.length === 0 || x.pontos > 0)
-    .sort((a, b) => b.pontos - a.pontos || Number(b.p.disponivel) - Number(a.p.disponivel))
+    .sort((a, b) => b.pontos - a.pontos)
+    .map((x) => x.p)
 
-  return pontuados.slice(0, f.limite ?? 4).map((x) => x.p)
+  const limite = f.limite ?? 4
+  return {
+    pecas: pontuados.filter((p) => p.disponivel).slice(0, limite),
+    esgotadas: pontuados.filter((p) => !p.disponivel).slice(0, limite),
+  }
 }
 
 export function formatarPreco(v: number | null): string {

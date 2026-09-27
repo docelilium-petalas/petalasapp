@@ -57,6 +57,7 @@ export async function POST(request: Request) {
   )
   const enviadas: string[] = []
   const repetidas: string[] = []
+  const esgotadas: string[] = []
   const falhas: string[] = []
   for (const id of ids) {
     const p = catalogo.find((x) => x.id === id)
@@ -64,11 +65,18 @@ export async function POST(request: Request) {
       falhas.push(`${id}: não está no catálogo`)
       continue
     }
+    // A ÚLTIMA PORTA. buscar_catalogo já não devolve esgotada, mas o modelo
+    // pode repetir um id de antes na conversa — e o estoque muda no meio dela.
+    // Vitrine de peça que não dá para comprar é frustração, não atendimento.
+    if (!p.disponivel) {
+      esgotadas.push(p.nome)
+      continue
+    }
     if (jaMandadas.has(p.nome)) {
       repetidas.push(p.nome)
       continue
     }
-    const legenda = `${p.nome} · ${formatarPreco(p.preco)}${p.disponivel ? '' : ' · esgotada'}\n${p.link}`
+    const legenda = `${p.nome} · ${formatarPreco(p.preco)}\n${p.link}`
     try {
       await enviarMensagemLivre(telefone, { tipo: 'imagem', link: linkDeFotoParaWhatsApp(p.fotos[0]), legenda })
       await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: `[foto] ${p.nome} · ${formatarPreco(p.preco)}` })
@@ -87,15 +95,23 @@ export async function POST(request: Request) {
     })
   }
 
+  const avisoEsgotadas = esgotadas.length
+    ? ` NÃO saiu a foto de: ${esgotadas.join(', ')} — essa(s) peça(s) esgotou/esgotaram. Diga isso a ela e ofereça avisar quando voltar; não mande o link dessas.`
+    : ''
+
   return NextResponse.json({
     enviadas: enviadas.length,
     pecas: enviadas,
     ja_estavam_na_conversa: repetidas,
+    nao_enviadas_esgotadas: esgotadas,
     falhas,
-    dica: enviadas.length
-      ? 'As fotos JÁ chegaram para ela, com preço e link. Não repita a lista: pergunte numa frase curta se alguma agradou ou qual tamanho ela usa.'
-      : repetidas.length && !falhas.length
-        ? 'Ela JÁ tem a foto dessa peça na conversa. Não mande de novo: responda direto o que ela perguntou.'
-        : 'Nenhuma foto saiu. Mande os links das peças em texto.',
+    dica:
+      (enviadas.length
+        ? 'As fotos JÁ chegaram para ela, com preço e link. Não repita a lista: pergunte numa frase curta se alguma agradou ou qual tamanho ela usa.'
+        : repetidas.length && !falhas.length && !esgotadas.length
+          ? 'Ela JÁ tem a foto dessa peça na conversa. Não mande de novo: responda direto o que ela perguntou.'
+          : esgotadas.length && !falhas.length
+            ? 'Nenhuma foto saiu.'
+            : 'Nenhuma foto saiu. Mande os links das peças em texto.') + avisoEsgotadas,
   })
 }

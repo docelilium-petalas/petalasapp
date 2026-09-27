@@ -159,6 +159,9 @@ async function main() {
       variants: [{ id: 11, price: '459.90', stock_management: true, stock: 0, values: [{ pt: 'P' }] }, { id: 12, price: '459.90', stock_management: true, stock: 2, values: [{ pt: 'M' }] }] }),
     normalizarProduto({ id: 2, name: { pt: 'Saia Lis' }, attributes: [{ pt: 'Tamanho' }], categories: [{ name: { pt: 'Saias' } }],
       variants: [{ id: 21, price: '199.90', promotional_price: '149.90', stock_management: false, values: [{ pt: 'P' }] }] }),
+    // Esgotada de verdade: toda variante com estoque 0.
+    normalizarProduto({ id: 3, name: { pt: 'Vestido Aurora' }, attributes: [{ pt: 'Tamanho' }], categories: [{ name: { pt: 'Vestidos' } }],
+      variants: [{ id: 31, price: '529.90', stock_management: true, stock: 0, values: [{ pt: 'P' }] }, { id: 32, price: '529.90', stock_management: true, stock: 0, values: [{ pt: 'M' }] }] }),
   ]
   const azulM = filtrarCatalogo(vitrine, { busca: 'vestido monica', tamanho: 'm' })
   const semBlazer = filtrarCatalogo(vitrine, { busca: 'blazer' })
@@ -166,8 +169,32 @@ async function main() {
   checar(
     39,
     'catálogo acha sem acento, respeita tamanho com estoque e não oferece peça errada',
-    azulM.length === 1 && azulM[0].id === 1 && semBlazer.length === 0 && semP.length === 0 && vitrine[1].preco === 149.9 && vitrine[1].precoCheio === 199.9,
-    `azulM=${azulM.length} blazer=${semBlazer.length} P=${semP.length}`,
+    azulM.pecas.length === 1 && azulM.pecas[0].id === 1 && semBlazer.pecas.length === 0 && semP.pecas.length === 0 && vitrine[1].preco === 149.9 && vitrine[1].precoCheio === 199.9,
+    `azulM=${azulM.pecas.length} blazer=${semBlazer.pecas.length} P=${semP.pecas.length}`,
+  )
+
+  // ── Peça esgotada nunca vira oferta, 27/09/2026 ──────────────────────────────
+  // O Owner perguntou por vestidos e recebeu foto de vestido esgotado. A busca
+  // ordenava a esgotada para o fim, mas o `limite` ainda a alcançava e o modelo
+  // a mandava. Agora ela sai da oferta e volta só como contexto.
+  const vestidos = filtrarCatalogo(vitrine, { busca: 'vestidos' })
+  checar(
+    41,
+    'vestido esgotado fica fora da oferta e volta só como contexto',
+    vestidos.pecas.length === 1 &&
+      vestidos.pecas[0].id === 1 &&
+      vestidos.pecas.every((p) => p.disponivel) &&
+      vestidos.esgotadas.length === 1 &&
+      vestidos.esgotadas[0].id === 3,
+    `oferta=[${vestidos.pecas.map((p) => p.nome).join(', ')}] esgotadas=[${vestidos.esgotadas.map((p) => p.nome).join(', ')}]`,
+  )
+  // A loja tem vestido, mas o que ela pediu esgotou: não é "não temos".
+  const soEsgotada = filtrarCatalogo(vitrine, { busca: 'aurora' })
+  checar(
+    42,
+    'busca que só acha esgotada devolve oferta vazia sem apagar a peça',
+    soEsgotada.pecas.length === 0 && soEsgotada.esgotadas.length === 1 && soEsgotada.esgotadas[0].nome === 'Vestido Aurora',
+    `oferta=${soEsgotada.pecas.length} esgotadas=${soEsgotada.esgotadas.length}`,
   )
   const conversa = pendentesEHistorico([
     { em: '1', de: 'cliente', texto: 'oi' },
