@@ -124,7 +124,7 @@ function botoesUrl(t: TemplateMeta) {
 }
 
 function precisaDaLoja(t: TemplateMeta): boolean {
-  return botoesUrl(t).some((b) => (b.dominio ?? 'loja') === 'loja')
+  return botoesUrl(t).some((b) => !b.estatica && (b.dominio ?? 'loja') === 'loja')
 }
 
 function montar(t: TemplateMeta, corpo: string, baseLoja: string | null) {
@@ -141,6 +141,10 @@ function montar(t: TemplateMeta, corpo: string, baseLoja: string | null) {
       type: 'BUTTONS',
       buttons: t.botoes.map((b) => {
         if (b.tipo === 'QUICK_REPLY') return { type: 'QUICK_REPLY', text: b.texto }
+        // Endereço igual para todo mundo: vai inteiro, sem variável e sem
+        // exemplo. A Meta aprova URL fixa; o que ela exige exemplo é a que
+        // termina em `{{1}}`.
+        if (b.estatica) return { type: 'URL', text: b.texto, url: b.url }
         const base = (b.dominio ?? 'loja') === 'crm' ? BASE_CRM : baseLoja
         const sufixoExemplo = new URL(b.exemplo!).pathname.replace(/^\/+/, '')
         return { type: 'URL', text: b.texto, url: `${base}{{1}}`, example: [`${base}${sufixoExemplo}`] }
@@ -169,12 +173,20 @@ async function main() {
     throw new Error(`catálogo com ${errosCatalogo.length} erro(s):\n  ${errosCatalogo.join('\n  ')}`)
   }
 
-  const revisoes = new Map(
-    ((await prisma.mvTemplateRevisao.findMany()) as Revisao[]).map((r) => [r.nome, r]),
-  )
+  // O banco é a tela de revisão da dona da marca. Quando ele não responde —
+  // rodar de fora do servidor, por exemplo — o portão NÃO se abre: sem
+  // revisão, só passa quem está em RESOLVIDOS, que é lista explícita e
+  // versionada. Silenciar isso seria submeter texto que ela não leu.
+  let semBanco = false
+  const linhas = (await prisma.mvTemplateRevisao.findMany().catch(() => {
+    semBanco = true
+    return [] as Revisao[]
+  })) as Revisao[]
+  if (semBanco) console.log('⚠ banco fora de alcance: só os de RESOLVIDOS podem ir nesta execução.')
+  const revisoes = new Map(linhas.map((r) => [r.nome, r]))
   // O domínio da LOJA vem de um carrinho real (www × sem www decide se o link
   // abre): checkout, página de produto e de coleção moram nele.
-  const base = CATALOGO.some(precisaDaLoja) ? await baseDoCheckout() : null
+  const base = CATALOGO.some(precisaDaLoja) ? await baseDoCheckout().catch(() => null) : null
 
   const vao: Array<{ t: TemplateMeta; corpo: string; origem: string }> = []
   const ficam: string[] = []
@@ -185,7 +197,7 @@ async function main() {
       ficam.push(`${t.nome} — ${rev ? `status ${rev.status}` : 'não revisado'}`)
       continue
     }
-    if (botoesUrl(t).some((b) => !b.exemplo)) {
+    if (botoesUrl(t).some((b) => !b.estatica && !b.exemplo)) {
       ficam.push(`${t.nome} — botão de URL sem exemplo`)
       continue
     }

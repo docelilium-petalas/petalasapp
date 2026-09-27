@@ -52,6 +52,13 @@ export type BotaoTemplate =
        * muda de domínio (rastreio de transportadora).
        */
       dominio?: 'loja' | 'crm'
+      /**
+       * O endereço é SEMPRE o mesmo para toda cliente — vai inteiro, sem
+       * `{{1}}` e sem exemplo. É o caso da home numa campanha: não existe
+       * sufixo por pessoa. Sem isto, o submissor monta `dominio/{{1}}` e pede
+       * um sufixo que não existe, e a Meta recebe um exemplo vazio.
+       */
+      estatica?: boolean
     }
 
 export type TemplateMeta = {
@@ -409,7 +416,9 @@ export const CATALOGO: TemplateMeta[] = [
       'Mal posso esperar para começar a ver vocês usando nossas peças por aí!',
     rodape: 'Doce Lilium',
     botoes: [
-      { tipo: 'URL', texto: 'Ver o drop', url: '{{1}}', exemplo: 'https://docelilium.com.br/' },
+      // Estática de propósito: todas vão para a mesma vitrine. Um botão com
+      // variável exigiria um sufixo por cliente, que aqui não existe.
+      { tipo: 'URL', texto: 'Ver o drop', url: 'https://www.docelilium.com.br/', estatica: true },
       SAIR,
     ],
     exemplos: ['Marina'],
