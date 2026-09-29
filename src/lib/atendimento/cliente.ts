@@ -119,7 +119,11 @@ export async function contextoDoCliente(e164: string, nomeWhatsApp?: string | nu
     pagamento: PAGAMENTO[p.payment_status] ?? p.payment_status,
     envio: ENVIO[p.shipping_status ?? ''] ?? 'em separação',
     pecas: (p.products ?? []).map((i) => `${i.name}${i.quantity > 1 ? ` (x${i.quantity})` : ''}`),
-    rastreio: p.shipping_tracking_url ? linkDeRastreio(p.id) : null,
+    // Na API 2025-03 o pedido não traz mais `shipping_tracking_url`: o que diz
+    // "já saiu" é o `shipping_status`. O link resolve o código na hora do
+    // clique (e cai na loja se ainda não houver) — sem custar chamada aqui.
+    rastreio:
+      p.shipping_tracking_url || /fulfilled|shipped|delivered/i.test(p.shipping_status ?? '') ? linkDeRastreio(p.id) : null,
   }))
 
   // Carrinho que já virou pedido não é carrinho: a loja preenche `completed_at`,

@@ -77,6 +77,8 @@ type Opcoes = {
   busca?: Record<string, string | number | undefined>
   /** Injeta credenciais já resolvidas — evita uma ida ao banco por página. */
   credenciais?: CredenciaisNuvemshop
+  /** Versão da API. Omitida = `VERSAO_API`. Ver `VERSAO_LEGADA` em config. */
+  versao?: string
 }
 
 function montarUrl(base: string, caminho: string, busca?: Opcoes['busca']): string {
@@ -90,7 +92,7 @@ function montarUrl(base: string, caminho: string, busca?: Opcoes['busca']): stri
 /** Uma chamada, com freio, retentativa de 429 e o fallback do header antigo. */
 export async function requisitar<T>(caminho: string, opcoes: Opcoes = {}): Promise<{ dados: T; resposta: Response }> {
   const cred = opcoes.credenciais ?? (await obterCredenciais())
-  const url = montarUrl(urlBase(cred.storeId), caminho, opcoes.busca)
+  const url = montarUrl(urlBase(cred.storeId, opcoes.versao), caminho, opcoes.busca)
 
   const cabecalhos = (moderno: boolean): Record<string, string> => ({
     ...(moderno

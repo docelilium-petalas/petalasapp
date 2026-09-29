@@ -40,6 +40,18 @@ import { decryptField } from '@/lib/encryption'
  */
 export const VERSAO_API = '2025-03'
 
+/**
+ * A versão antiga, usada para UMA leitura só: o rastreio do pedido.
+ *
+ * Medido em 29/09/2026 no pedido #163: na `2025-03` o pedido não traz mais
+ * `shipping_tracking_number` nem `shipping_tracking_url` — o código passou a
+ * morar em `fulfillment-orders`, que exige o escopo `read_fulfillment_orders`,
+ * e o app instalado não tem esse escopo (403). A `v1`, com o MESMO token,
+ * ainda devolve os dois campos. Quando o app ganhar o escopo, a leitura nova
+ * responde primeiro e esta nem é chamada.
+ */
+export const VERSAO_LEGADA = 'v1'
+
 export const BASE_API = 'https://api.nuvemshop.com.br'
 
 export type CredenciaisNuvemshop = {
@@ -143,6 +155,6 @@ export async function obterCredenciais(): Promise<CredenciaisNuvemshop> {
 }
 
 /** A raiz das chamadas desta loja. */
-export function urlBase(storeId: string): string {
-  return `${BASE_API}/${VERSAO_API}/${storeId}`
+export function urlBase(storeId: string, versao: string = VERSAO_API): string {
+  return `${BASE_API}/${versao}/${storeId}`
 }

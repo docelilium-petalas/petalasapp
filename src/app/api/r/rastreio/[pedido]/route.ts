@@ -17,15 +17,21 @@ const LOJA = 'https://www.docelilium.com.br/'
 export async function GET(_request: Request, ctx: { params: Promise<{ pedido: string }> }) {
   const { pedido } = await ctx.params
   const id = conferirRastreio(pedido)
-  if (!id) return NextResponse.redirect(LOJA, 302)
+  if (!id) {
+    console.warn('[rastreio] assinatura não confere → loja')
+    return NextResponse.redirect(LOJA, 302)
+  }
 
   try {
     const p = await buscarPedido(Number(id))
     const r = await rastreioDoPedido(p)
     const destino = r?.url || (r ? urlDeRastreioPadrao(r.codigo) : null)
     if (destino && /^https?:\/\//i.test(destino)) return NextResponse.redirect(destino, 302)
-  } catch {
-    // cai na loja
+    console.warn(`[rastreio] pedido ${id} sem código de rastreio → loja`)
+  } catch (e) {
+    // A cliente vai para a loja, mas o log diz por quê: o catch mudo escondeu
+    // por dias que a API 2025-03 tinha parado de mandar o rastreio.
+    console.warn(`[rastreio] pedido ${id} falhou → loja:`, e instanceof Error ? e.message : String(e))
   }
   return NextResponse.redirect(LOJA, 302)
 }

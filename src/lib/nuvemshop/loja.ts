@@ -28,6 +28,7 @@
  */
 
 import { listarTudo, requisitar } from './cliente'
+import { VERSAO_LEGADA } from './config'
 
 // ── Formas ────────────────────────────────────────────────────────────────
 // Só os campos que o CRM usa. A API devolve muito mais; declarar tudo cria a
@@ -182,9 +183,35 @@ export async function rastreioDoPedido(pedido: Pedido): Promise<RastreioDoPedido
       }
     }
   } catch {
-    // Loja sem o modelo novo de envio: o endpoint não existe, e não é erro.
+    // Loja sem o modelo novo de envio, ou app sem `read_fulfillment_orders`
+    // (é o caso hoje: 403). Não é erro — a leitura legada abaixo cobre.
   }
-  return null
+  return rastreioLegado(pedido.id)
+}
+
+/**
+ * O rastreio pela `v1`, que ainda traz os campos no próprio pedido.
+ *
+ * ⚠️ Sem isto, na `2025-03` o rastreio NUNCA aparece: o botão "Rastrear
+ * pedido" cai na vitrine, o contexto da IA diz que não há rastreio e o
+ * observador nunca inscreve o aviso de envio. Ver `VERSAO_LEGADA`.
+ */
+async function rastreioLegado(id: number): Promise<RastreioDoPedido | null> {
+  try {
+    const { dados } = await requisitar<Pick<Pedido, 'shipping_tracking_number' | 'shipping_tracking_url' | 'shipping_carrier_name'>>(
+      `orders/${id}`,
+      { versao: VERSAO_LEGADA, busca: { fields: 'id,shipping_tracking_number,shipping_tracking_url,shipping_carrier_name' } },
+    )
+    const codigo = (dados.shipping_tracking_number ?? '').trim()
+    if (!codigo) return null
+    return {
+      codigo,
+      url: dados.shipping_tracking_url?.trim() || null,
+      transportadora: dados.shipping_carrier_name?.trim() || null,
+    }
+  } catch {
+    return null
+  }
 }
 
 /**
