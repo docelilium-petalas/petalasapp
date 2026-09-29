@@ -4,6 +4,7 @@ import { despachar } from '@/lib/maquina-vendas/despachante'
 import { observarRastreios } from '@/lib/maquina-vendas/observador-rastreio'
 import { sincronizarFunis } from '@/lib/maquina-vendas/funis-crm'
 import { observarMarketing } from '@/lib/maquina-vendas/observador-marketing'
+import { observarCampanhas } from '@/lib/maquina-vendas/campanha-datada'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -64,6 +65,14 @@ export async function GET(request: Request) {
       erro: e instanceof Error ? e.message : String(e),
     }))
 
+    // FASE 1d — CAMPANHA COM DATA: as ondas do drop 10.10. Nasce desarmada
+    // (MV_CAMPANHA_1010) e, mesmo desarmada, MEDE quantas pessoas a onda
+    // atingiria — é esse número que se olha antes de armar. Falha aqui não
+    // segura o despacho.
+    const campanha = await observarCampanhas().catch((e) => ({
+      erro: e instanceof Error ? e.message : String(e),
+    }))
+
     // FASE 2 — DESPACHAR: o que sai agora.
     //
     // Ligada, e mesmo assim inerte por padrão: `envioPausado` nasce `true` e o
@@ -84,6 +93,7 @@ export async function GET(request: Request) {
       observacao,
       rastreio,
       marketing,
+      campanha,
       despacho,
       funis,
     }
