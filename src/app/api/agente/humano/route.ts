@@ -3,6 +3,7 @@ import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
 import { HUMANO_HORAS, marcarHumano } from '@/lib/atendimento/conversa'
 import prisma from '@/lib/prisma'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
+import { usuarioPadrao } from '@/lib/atendimento/atendente'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,10 +33,14 @@ export async function POST(request: Request) {
     })
     .catch(() => undefined)
 
+  // Os dois caminhos que tiram a IA da conversa — este (ela pede) e o eco do
+  // celular (a pessoa assume) — entregam a conversa à MESMA dona. Conversa
+  // que a IA larga e ninguém pega some da fila de todo mundo.
   await funilSemFalhar({
     e164: telefone,
     etapa: 'humano',
     atividade: `Passou para atendente: ${String(corpo.motivo ?? '')} — ${String(corpo.resumo ?? '')}`,
+    responsavelId: await usuarioPadrao().catch(() => null),
   })
 
   return NextResponse.json({

@@ -78,8 +78,11 @@ export async function POST(request: Request) {
     }
     const legenda = `${p.nome} · ${formatarPreco(p.preco)}\n${p.link}`
     try {
-      await enviarMensagemLivre(telefone, { tipo: 'imagem', link: linkDeFotoParaWhatsApp(p.fotos[0]), legenda })
-      await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: `[foto] ${p.nome} · ${formatarPreco(p.preco)}` })
+      // O `idExterno` é como a IA reconhece o próprio eco quando ele volta
+      // pelo webhook — sem ele, mandar uma foto faria a IA se calar sozinha.
+      // Mesma razão de `agente/responder`.
+      const { idExterno } = await enviarMensagemLivre(telefone, { tipo: 'imagem', link: linkDeFotoParaWhatsApp(p.fotos[0]), legenda })
+      await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: `[foto] ${p.nome} · ${formatarPreco(p.preco)}`, id: idExterno })
       enviadas.push(p.nome)
     } catch (e) {
       falhas.push(`${p.nome}: ${e instanceof Error ? e.message : String(e)}`)

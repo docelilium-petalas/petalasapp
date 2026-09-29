@@ -88,6 +88,15 @@ type Registro = {
   /** Linha da linha do tempo do negócio: "Cliente: ...", "IA: ...", "[foto] ...". */
   atividade?: string
   produto?: string | null
+  /**
+   * Quem passa a responder por esta conversa.
+   *
+   * ⚠️ Só preenche `ownerUserId` quando ele está VAZIO. Um negócio que já tem
+   * dona pertence a quem a pegou: sobrescrever aqui faria a atribuição
+   * automática roubar da atendente que já estava trabalhando na conversa — e
+   * roubar calado, porque nada na tela diria que mudou de mão.
+   */
+  responsavelId?: string | null
 }
 
 export async function registrarNoFunil(r: Registro): Promise<void> {
@@ -142,6 +151,7 @@ export async function registrarNoFunil(r: Registro): Promise<void> {
         origem: 'whatsapp-ia',
         telefone: digitos,
         produtoInteresse: r.produto ?? null,
+        ownerUserId: r.responsavelId ?? null,
       },
     })
     await prisma.dealStageHistory.create({
@@ -149,6 +159,13 @@ export async function registrarNoFunil(r: Registro): Promise<void> {
     })
     negocio = await prisma.deal.findFirstOrThrow({ where: { id: criado.id }, include: { stage: true } })
   } else {
+    // Conversa órfã ganha dona. Ver a nota em `Registro.responsavelId`: já ter
+    // dona vence a atribuição automática, sempre.
+    if (r.responsavelId && !negocio.ownerUserId) {
+      await prisma.deal.update({ where: { id: negocio.id }, data: { ownerUserId: r.responsavelId } })
+      negocio = { ...negocio, ownerUserId: r.responsavelId }
+    }
+
     const anda = r.etapa === 'humano' ? negocio.stageId !== etapaAlvo.id : etapaAlvo.ordem > negocio.stage.ordem
     if (anda) {
       await prisma.deal.update({
@@ -174,6 +191,7 @@ export async function registrarNoFunil(r: Registro): Promise<void> {
     await prisma.activity.create({
       data: {
         userId: funil.userId,
+        ownerUserId: negocio.ownerUserId ?? r.responsavelId ?? null,
         dealId: negocio.id,
         contactId: contato.id,
         tipo: 'WhatsApp',

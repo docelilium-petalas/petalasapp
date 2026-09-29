@@ -38,8 +38,13 @@ export async function POST(request: Request) {
   for (const [i, balao] of baloes.entries()) {
     if (i > 0) await new Promise((r) => setTimeout(r, 1200))
     try {
-      await enviarMensagemLivre(telefone, { tipo: 'texto', texto: balao })
-      await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: balao })
+      // ⚠️ O `idExterno` NÃO é detalhe de auditoria: ele é o que faz a IA
+      // reconhecer o próprio eco quando ele volta pelo webhook. Sem gravar
+      // aqui, `ecoENosso()` nunca casa, todo eco da IA é lido como "a
+      // atendente digitou no celular" — e a IA se cala sozinha depois da
+      // primeira resposta que dá. Um cadeado que se tranca por dentro.
+      const { idExterno } = await enviarMensagemLivre(telefone, { tipo: 'texto', texto: balao })
+      await registrarTurno(telefone, { em: new Date().toISOString(), de: 'loja', texto: balao, id: idExterno })
       enviadas++
     } catch (e) {
       await prisma.logEvento

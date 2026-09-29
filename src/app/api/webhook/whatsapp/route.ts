@@ -3,9 +3,11 @@ import prisma from '@/lib/prisma'
 import { chaveTelefone, paraE164 } from '@/lib/maquina-vendas/telefone'
 import { pediuParaSair } from '@/lib/maquina-vendas/opt-out'
 import { classificar } from '@/lib/maquina-vendas/canal'
-import { registrarTurno } from '@/lib/atendimento/conversa'
+import { registrarTurno, turnosDe } from '@/lib/atendimento/conversa'
 import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
+import { assumirConversa } from '@/lib/atendimento/atendente'
+import { ecosDoCorpo, type EcoDaLoja } from '@/lib/maquina-vendas/eco'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,6 +81,19 @@ export async function POST(request: Request) {
   let statuses = 0
   let respostas = 0
   let saidas = 0
+  let assumidas = 0
+
+  // ECO ANTES DE TUDO. Um corpo com eco NUNCA tem `messages` de cliente, mas
+  // se um dia tiver, o eco precisa ter calado a IA antes de o buffer de 9s do
+  // atendimento ser agendado — senão a IA responde por cima da pessoa que
+  // acabou de digitar, que é exatamente o defeito que isto existe para evitar.
+  try {
+    for (const eco of ecosDoCorpo(corpo)) {
+      if (await tratarEco(eco)) assumidas++
+    }
+  } catch (e) {
+    await logar('ERRO', 'eco_falhou', 'Falha ao tratar eco do WhatsApp', e)
+  }
 
   try {
     for (const entry of corpo.entry ?? []) {
@@ -110,8 +125,8 @@ export async function POST(request: Request) {
       statuses: (c.value?.statuses ?? []).map((s) => s.status),
     })),
   )
-  const conhecido = forma.some((f) => f.campos.some((k) => ['statuses', 'messages', 'message_template_status_update', 'event'].includes(k)))
-  if (statuses + respostas + saidas === 0 && !conhecido) {
+  const conhecido = forma.some((f) => f.campos.some((k) => ['statuses', 'messages', 'message_echoes', 'message_template_status_update', 'event'].includes(k)))
+  if (statuses + respostas + saidas + assumidas === 0 && !conhecido) {
     await logar('INFO', 'webhook_sem_efeito', 'Webhook do WhatsApp sem efeito', {
       raiz: Object.keys(corpo as object),
       forma,
@@ -120,7 +135,65 @@ export async function POST(request: Request) {
 
   // Sempre 200: a Meta re-entrega em quem não devolve 2XX, e uma falha nossa
   // não deve virar tempestade de reentrega.
-  return NextResponse.json({ ok: true, statuses, respostas, saidas })
+  return NextResponse.json({ ok: true, statuses, respostas, saidas, assumidas })
+}
+
+// ── O quarto fato: a loja falou ─────────────────────────────────────
+
+/**
+ * Uma mensagem saiu do nosso número. Foi robô ou foi gente?
+ *
+ * Só o `wamid` responde. Ver o cabeçalho de `maquina-vendas/eco.ts`: o nome do
+ * campo (`message_echoes` × `smb_message_echoes`) NÃO separa os dois, porque o
+ * painel da Datafy assina o segundo também para envio próprio.
+ *
+ * Devolve `true` quando a conversa passou para uma pessoa.
+ */
+async function tratarEco(eco: EcoDaLoja): Promise<boolean> {
+  const e164 = paraE164(eco.paraTelefone)
+  if (!e164) return false
+
+  // Idempotência: a Meta re-entrega o eco igual re-entrega tudo o mais, e
+  // reassumir a conversa a cada reentrega reiniciaria o prazo de silêncio
+  // indefinidamente — a IA nunca mais voltaria naquela conversa.
+  if (eco.wamid) {
+    const marca = `whatsapp:eco:${eco.wamid}`
+    try {
+      const visto = await prisma.eventIngestLog.findFirst({ where: { source: marca }, select: { id: true } })
+      if (visto) return false
+      await prisma.eventIngestLog.create({ data: { source: marca, payload: '', status: 'received' } })
+    } catch {
+      // sem o log a rota ainda funciona; perde só a proteção contra repetição
+    }
+  }
+
+  if (await ecoENosso(eco, e164)) return false
+
+  await assumirConversa({ e164, texto: eco.texto, quando: eco.quando, wamid: eco.wamid })
+  return true
+}
+
+/**
+ * O `wamid` deste eco foi gerado por nós?
+ *
+ * Duas fontes, porque são dois emissores com histórias separadas:
+ *   · a Máquina grava o id em `MvMensagem.idExterno`;
+ *   · a IA grava o id no turno da conversa.
+ *
+ * ⚠️ Eco SEM `wamid` conta como gente. É o lado seguro: no pior caso a IA se
+ * cala 12h numa conversa; o erro contrário faria ela escrever por cima da dona
+ * da marca na frente da cliente.
+ */
+async function ecoENosso(eco: EcoDaLoja, e164: string): Promise<boolean> {
+  if (!eco.wamid) return false
+
+  const daMaquina = await prisma.mvMensagem
+    .findFirst({ where: { idExterno: eco.wamid }, select: { id: true } })
+    .catch(() => null)
+  if (daMaquina) return true
+
+  const turnos = await turnosDe(e164).catch(() => [])
+  return turnos.some((t) => t.de === 'loja' && t.id === eco.wamid)
 }
 
 // ── Autorização ───────────────────────────────────────────────────────────
