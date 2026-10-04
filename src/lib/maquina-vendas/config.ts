@@ -238,7 +238,9 @@ export function numerosDeTeste(): string[] | null {
     .split(/[,;\s]+/)
     .map((n) => n.replace(/\D/g, ''))
     .filter((n) => n.length >= 8)
-  return lista.length ? lista : null
+  // Falha fechada: a env existe mas nenhum número presta → ninguém passa.
+  // Cair em `null` aqui transformaria um erro de digitação em produção aberta.
+  return lista
 }
 
 export function liberadoParaEnvio(telefone: string, lista: string[] | null = numerosDeTeste()): boolean {

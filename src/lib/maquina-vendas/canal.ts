@@ -27,6 +27,7 @@
 
 import prisma from '@/lib/prisma'
 import { decryptField } from '@/lib/encryption'
+import { liberadoParaEnvio, numerosDeTeste } from './config'
 
 export const BASE_DATAFY = 'https://cloud.datafyapi.com.br/v1'
 
@@ -86,7 +87,14 @@ export function classificar(codigo?: number): { natureza: NaturezaFalha; reTenta
   switch (codigo) {
     case 131026: // message undeliverable
     case 131052: // media/recipient issue no destinatário
+    case 133010: // número não registrado no WhatsApp (era CANAL_FORA — ver entrega-meta)
       return { natureza: 'NUMERO_INVALIDO', reTentavel: false }
+    // Limite POR DESTINATÁRIO de marketing / experimento da Meta: a pessoa
+    // existe, a Meta segurou ESTA mensagem. Não se insiste, e o disjuntor não
+    // conta (CODIGOS_DO_DESTINATARIO em entrega-meta.ts).
+    case 131049:
+    case 130472:
+      return { natureza: 'BLOQUEADA_META', reTentavel: false }
     case 131031: // conta restringida
     case 368: // conta temporariamente bloqueada por política
       return { natureza: 'BLOQUEADA_META', reTentavel: false }
@@ -97,10 +105,18 @@ export function classificar(codigo?: number): { natureza: NaturezaFalha; reTenta
     case 132001: // template não existe no idioma
     case 132005: // template pausado
     case 132007: // template reprovado
+    case 132012: // formato de parâmetro
+    case 132015: // template pausado por qualidade
+    case 132016: // template desativado
+    case 132068: // fluxo bloqueado
+    case 132069: // fluxo com limite
       return { natureza: 'CONFIGURACAO', reTentavel: false }
+    // Fatura em aberto: fala da NOSSA conta, nunca da cliente. A mensagem volta
+    // para a fila e quem para é o disjuntor (três falhas em série).
+    case 131042:
+      return { natureza: 'CANAL_FORA', reTentavel: true }
     case 130429: // rate limit
     case 131048: // limite de spam
-    case 133010: // conta não registrada
     case 500:
     case 503:
       return { natureza: 'CANAL_FORA', reTentavel: true }
@@ -261,8 +277,42 @@ export async function enviarMensagemLivre(para: string, conteudo: ConteudoLivre)
   return postarMensagem(cred, corpo)
 }
 
+/**
+ * Envio barrado pela LISTA DE TESTE (`MV_NUMEROS_TESTE`).
+ *
+ * ⚠️ O guard mora AQUI, na porta única, e não no despachante: briefing, vigia,
+ *    IA e scripts também saem por `postarMensagem`, e um guard que só vale
+ *    para um dos caminhos é um guard que alguém contorna sem querer.
+ *
+ * Bloqueia, nunca redireciona: mandar para "o número de teste" uma mensagem
+ * que era de outra pessoa é como o teste vira mentira (e como a CarBoss já
+ * mandou copy de cliente real para o celular do dev). Sem a env (`null`) é
+ * produção e tudo passa.
+ */
+export class EnvioVetado extends ErroCanal {
+  constructor(readonly para: string) {
+    super(`fora_da_lista_de_teste: ${para.replace(/\D/g, '').slice(0, -4)}****`, 'CONFIGURACAO', undefined, false)
+    this.name = 'EnvioVetado'
+  }
+}
+
 /** A ida à Meta, igual para template e mensagem livre: um só lugar classifica erro. */
 async function postarMensagem(cred: CredenciaisCanal, corpo: unknown): Promise<ResultadoEnvio> {
+  const para = String((corpo as { to?: unknown })?.to ?? '')
+  if (!liberadoParaEnvio(para, numerosDeTeste())) {
+    await prisma.logEvento
+      .create({
+        data: {
+          origem: 'maquina-vendas',
+          nivel: 'AVISO',
+          tipo: 'envio_vetado_teste',
+          titulo: 'Envio barrado: número fora de MV_NUMEROS_TESTE',
+          dados: JSON.stringify({ final: para.replace(/\D/g, '').slice(-4) }),
+        },
+      })
+      .catch((e) => console.error('[canal] log do veto falhou:', e))
+    throw new EnvioVetado(para)
+  }
   const payload = JSON.stringify(corpo)
 
   let resposta: Response
