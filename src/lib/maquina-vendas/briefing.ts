@@ -296,6 +296,11 @@ export async function montarBriefing(agora: Date = new Date()): Promise<Briefing
   const avisos: string[] = []
   if (ajustes.envioPausado) avisos.push('⛔ O envio está PAUSADO na tela. Nenhuma destas sai.')
   if (!temCanal) avisos.push('Canal sem credencial: os textos abaixo podem ser a copy da cadência, não o corpo aprovado.')
+  // O relato olha só o dia; fila VENCIDA de dias anteriores não aparece nele e
+  // sai toda no primeiro tique depois que o freio soltar. Dizer isso aqui é o
+  // que impede "hoje ninguém recebe" de ser lido como "a fila está vazia".
+  const vencidas = await prisma.mvMensagem.count({ where: { status: MENSAGEM_STATUS.AGENDADA, agendadaPara: { lt: inicio } } })
+  if (vencidas > 0) avisos.push(`${vencidas} mensagem(ns) de dias anteriores seguem na fila, vencidas — saem assim que o envio for liberado.`)
   const agendadas = linhas.filter((l) => l.status === MENSAGEM_STATUS.AGENDADA).length
   if (agendadas > ajustes.tetoDiario) {
     avisos.push(`A fila de hoje (${agendadas}) passa do teto diário (${ajustes.tetoDiario}). O que não couber escorrega para amanhã.`)
