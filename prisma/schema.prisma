@@ -881,6 +881,9 @@ model MvInscricao {
   converteuEm     DateTime? @map("converteu_em")
   valorConvertido Decimal?  @map("valor_convertido") @db.Decimal(12, 2)
 
+  /// nunca_comprou · ja_comprou · recorrente · default. Congelado na inscrição.
+  perfil String @default("default")
+
   /// Marcação manual do operador: CONTATO_ERRADO | DESCONSIDERAR. Ganha de
   /// todos os sinais automáticos — quem abriu a conversa sabe mais que a
   /// heurística. Desfazer é gravar NULL nos três.
@@ -897,6 +900,7 @@ model MvInscricao {
   /// Idempotência da inscrição: o mesmo carrinho não entra duas vezes na mesma
   /// cadência. É o que torna a varredura segura para reprocessar — e a
   /// varredura é obrigatória, porque a Nuvemshop não publica webhook de carrinho.
+  // + índice PARCIAL maquina_vendas_inscricoes_ativa_unica (cadencia_id, telefone_key) WHERE status='ATIVA' — só na migration
   @@unique([cadenciaId, origem, refExterna])
   @@index([status])
   @@index([telefoneKey])
@@ -948,6 +952,7 @@ model MvMensagem {
   /// `oficial` (Meta/Datafy) ou `nao_oficial` (uazapi). Mantido para o
   /// histórico anterior a uma migração de canal não virar mentira retroativa.
   canal         String  @default("nao_oficial")
+  textoEntregue String? @map("texto_entregue") // corpo aprovado + parâmetros, carimbado no envio
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
