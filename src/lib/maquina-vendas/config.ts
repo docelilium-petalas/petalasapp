@@ -163,3 +163,92 @@ export function proximaAbertura(ajustes: Ajustes, quando: Date = new Date()): Da
 /** Chaves de cursor usadas pelo módulo. */
 export const CURSOR_ULTIMO_ENVIO = 'mv:ultimo_envio'
 export const CURSOR_VARREDURA_CARRINHO = 'mv:varredura_carrinho'
+
+// ── PORTADO DA CARBOSS (src/lib/maquina-vendas/config.ts) ─────────────────
+// Os nomes de cursor ganham o prefixo `mv:` que este projeto já usa, para não
+// colidir com os cursores do atendimento (`atendimento:*`) na mesma tabela.
+
+/** Só existe status que algum guard discrimina. Superconjunto das duas origens. */
+export const INSCRICAO_STATUS = {
+  ATIVA: 'ATIVA',
+  PAUSADA: 'PAUSADA',
+  CONCLUIDA: 'CONCLUIDA',
+  RESPONDEU: 'RESPONDEU',
+  CONVERTEU: 'CONVERTEU',
+  CANCELADA: 'CANCELADA',
+  ERRO: 'ERRO',
+  /** Pediu para parar: nunca mais é inscrita, em cadência nenhuma. */
+  OPT_OUT: 'OPT_OUT',
+  /** WhatsApp disse que o número não recebe (131026/133010). Ação: conferir cadastro. */
+  NUMERO_INVALIDO: 'NUMERO_INVALIDO',
+  /** A Meta recusou a entrega (131049 e parentes). Não se reenvia. */
+  BLOQUEADA_META: 'BLOQUEADA_META',
+} as const
+
+export const MENSAGEM_STATUS = {
+  AGENDADA: 'AGENDADA',
+  ENVIADA: 'ENVIADA',
+  CANCELADA: 'CANCELADA',
+  PULADA: 'PULADA',
+  /** Recusada por guarda antes de sair (copy, template ausente, fora da lista de teste). */
+  VETADA: 'VETADA',
+  ERRO: 'ERRO',
+} as const
+
+/**
+ * Recorte padrão da tabela: o que já saiu e o que vai sair. É filtro, não
+ * remoção — a tela diz quantas linhas ficaram de fora e oferece o clique.
+ */
+export const STATUS_DA_REGUA = [MENSAGEM_STATUS.ENVIADA, MENSAGEM_STATUS.AGENDADA] as const
+
+export const CURSOR_PULSO_WEBHOOK = 'mv:datafy_ultimo_webhook'
+export const CURSOR_PULSO_STATUS = 'mv:datafy_ultimo_status'
+export const CURSOR_HANDOFF = 'mv:handoff_relogio'
+export const CURSOR_BRIEFING = 'mv:briefing_diario'
+export const CURSOR_BRIEFING_AVISO = 'mv:briefing_diario_aviso'
+export const CURSOR_BRIEFING_PORTA = 'mv:briefing_diario_porta'
+export const CURSOR_DISJUNTOR = 'mv:disjuntor_ultimo_codigo'
+export const CURSOR_CHATWOOT_NOTA = 'mv:chatwoot_nota'
+
+/** Sobreposição de varredura: o que entrou nos últimos 10 min é relido. */
+export const OVERLAP_MS = 10 * 60 * 1000
+
+/** A rampa de aberturas só limita com `MV_RAMPA=on` (a conta DL já tem histórico). */
+export function rampaLigada(): boolean {
+  return process.env.MV_RAMPA === 'on'
+}
+
+/**
+ * LISTA DE TESTE — `MV_NUMEROS_TESTE`, números separados por vírgula.
+ *
+ * Diferente da origem (`MV_NUMERO_DEV`, que REDIRECIONAVA todo envio para um
+ * número só), aqui a lista BLOQUEIA: com ela definida, quem está fora não
+ * recebe e a mensagem vira VETADA com motivo registrado. Redirecionar é o jeito
+ * de a cliente A receber, no teste, o pedido da cliente B — e de um teste
+ * "verde" esconder que a copy saiu com o nome errado.
+ *
+ * Ausente/vazia = produção normal. Comparação pelos últimos 8 dígitos, que é a
+ * chave que o resto do módulo já usa (`telefoneKey`), para o 9º dígito e o DDI
+ * não decidirem quem passa.
+ */
+export function numerosDeTeste(): string[] | null {
+  const bruto = (process.env.MV_NUMEROS_TESTE ?? '').trim()
+  if (!bruto) return null
+  const lista = bruto
+    .split(/[,;\s]+/)
+    .map((n) => n.replace(/\D/g, ''))
+    .filter((n) => n.length >= 8)
+  return lista.length ? lista : null
+}
+
+export function liberadoParaEnvio(telefone: string, lista: string[] | null = numerosDeTeste()): boolean {
+  if (!lista) return true
+  const chave = telefone.replace(/\D/g, '').slice(-8)
+  return chave.length === 8 && lista.some((n) => n.slice(-8) === chave)
+}
+
+/** Quem recebe o alerta do vigia/disjuntor por WhatsApp. Ausente = só LogEvento. */
+export function numeroDeAlerta(): string | null {
+  const n = (process.env.MV_ALERTA_NUMERO ?? '').replace(/\D/g, '')
+  return n.length >= 12 ? n : null
+}
