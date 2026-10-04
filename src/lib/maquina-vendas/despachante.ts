@@ -47,6 +47,7 @@
  * ══════════════════════════════════════════════════════════════════════════
  */
 
+import { randomUUID } from 'node:crypto'
 import prisma from '@/lib/prisma'
 import {
   obterAjustes,
@@ -108,6 +109,47 @@ const nada = (motivo: string): ResultadoDespacho => ({ enviadas: 0, motivo, falh
 // `envioPausado`, e o guarda 1 já respeita. O tique roda o vigia ANTES deste
 // despacho — um lugar só decide se o canal está doente.
 
+/**
+ * TRAVA DO DESPACHO — um tique por vez, entre réplicas e entre o cron e o
+ * botão.
+ *
+ * Medido no nível 2 (04/10/2026): dois `despachar()` simultâneos leram a
+ * mesma fila, os dois passaram no intervalo (o cursor só é gravado DEPOIS do
+ * envio) e a mesma mensagem saiu duas vezes para a mesma cliente. O cron de
+ * 5 min com uma reentrega do EasyPanel, ou o tique manual no meio do
+ * automático, reproduzem isso em produção.
+ *
+ * A trava é uma linha em `maquina_vendas_cursor` criada com `skipDuplicates`:
+ * o INSERT é atômico no Postgres, então só um tique ganha. Ela vence sozinha
+ * em 2 min (o POST tem timeout de 20 s) para um tique que morreu no meio não
+ * travar a fila para sempre — e a tomada da trava vencida é compare-and-set.
+ * Sem trava = sem envio (falha fechada).
+ */
+const CURSOR_TRAVA_DESPACHO = 'mv:despacho_trava'
+const TRAVA_VALIDADE_MS = 2 * 60_000
+
+async function pegarTrava(agora: Date): Promise<string | null> {
+  const minha = `${agora.toISOString()}|${randomUUID()}`
+  const { count } = await prisma.mvCursor.createMany({
+    data: [{ chave: CURSOR_TRAVA_DESPACHO, valor: minha }],
+    skipDuplicates: true,
+  })
+  if (count === 1) return minha
+  const atual = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_TRAVA_DESPACHO } })
+  if (!atual) return null // soltou agora; o próximo tique pega
+  const desde = Date.parse(atual.valor.split('|')[0])
+  if (Number.isFinite(desde) && agora.getTime() - desde < TRAVA_VALIDADE_MS) return null
+  const tomada = await prisma.mvCursor.updateMany({
+    where: { chave: CURSOR_TRAVA_DESPACHO, valor: atual.valor },
+    data: { valor: minha },
+  })
+  return tomada.count === 1 ? minha : null
+}
+
+async function soltarTrava(minha: string): Promise<void> {
+  await prisma.mvCursor.deleteMany({ where: { chave: CURSOR_TRAVA_DESPACHO, valor: minha } })
+}
+
 export async function despachar(): Promise<ResultadoDespacho> {
   const agora = new Date()
   const ajustes = await obterAjustes()
@@ -119,6 +161,20 @@ export async function despachar(): Promise<ResultadoDespacho> {
   // mensagem, gastando tentativa e sujando o log com um problema de config.
   if (!(await canalConfigurado())) return nada('canal de WhatsApp não configurado')
 
+  // 2c · TRAVA — daqui para baixo, um tique por vez.
+  const trava = await pegarTrava(agora)
+  if (!trava) return nada('outro tique está despachando')
+  try {
+    return await despacharTravado(agora, ajustes)
+  } finally {
+    await soltarTrava(trava)
+  }
+}
+
+async function despacharTravado(
+  agora: Date,
+  ajustes: Awaited<ReturnType<typeof obterAjustes>>,
+): Promise<ResultadoDespacho> {
   // 3 · INTERVALO — o espaçamento que sobrevive a reinício.
   const cursor = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_ULTIMO_ENVIO } })
   if (cursor) {
