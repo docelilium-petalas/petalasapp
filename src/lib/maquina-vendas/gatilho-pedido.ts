@@ -30,6 +30,7 @@ import { ancoraDaPeca, primeiroNome, telefoneDoCarrinho } from '@/lib/nuvemshop/
 import { chaveTelefone, paraE164 } from './telefone'
 import { obterAjustes } from './config'
 import { inscrever } from './observador'
+import { creditarPedido } from './respostas'
 import { CopyIncompleta, type Contexto } from './copy'
 
 export type ResultadoPedido = {
@@ -89,6 +90,12 @@ export async function tratarEventoPedido(event: string, pedido: Pedido): Promise
         data: { valorConvertido: total },
       })
       if (count) valorGravado = total
+    }
+    // Sem carrinho creditado, o pedido pode ser fruto de reativação/coleção:
+    // o último toque de marketing dentro da janela leva o crédito. Um pedido,
+    // uma inscrição — nunca carrinho E marketing.
+    if (!encerradas && valorGravado === null) {
+      await creditarPedido({ e164: e164!, pagoEm: pedido.paid_at ? new Date(pedido.paid_at) : agora, total })
     }
   }
 
