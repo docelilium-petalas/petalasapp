@@ -26,6 +26,15 @@
  *   7. teto do dia     40 por padrão, contados na parede de São Paulo.
  *   8. anti-eco        a mesma pessoa não recebe dois assuntos no mesmo dia.
  *
+ * ── PORTADOS DA CARBOSS (04/10/2026) ──
+ *   0. lista de teste  `MV_NUMEROS_TESTE`: fora da lista vira VETADA com
+ *                      motivo, nunca redireciona (o guard duro mora no canal).
+ *   2b. rampa          `MV_RAMPA=on` limita ABERTURAS (etapa 1) por dia.
+ *   5b. humano         a equipe atendendo (relógio de 12h) adia o marketing
+ *                      até o fim do prazo — não cancela a cadência.
+ *   Falha: só NÚMERO INVÁLIDO encerra a inscrição. 131049 (limite POR
+ *   destinatário) e conta suspensa não são culpa da cliente.
+ *
  * Os três últimos protegem a reputação do número contra disparo promocional.
  * Aplicá-los a uma confirmação de pagamento seria segurar até as 9h da manhã
  * uma mensagem que a pessoa está esperando agora — e a Meta trata UTILITY como
@@ -39,8 +48,18 @@
  */
 
 import prisma from '@/lib/prisma'
-import { obterAjustes, dentroDaJanela, paredeSP, CURSOR_ULTIMO_ENVIO } from './config'
-import { canalConfigurado, enviarTemplate, ErroCanal, type NaturezaFalha } from './canal'
+import {
+  obterAjustes,
+  dentroDaJanela,
+  paredeSP,
+  CURSOR_ULTIMO_ENVIO,
+  liberadoParaEnvio,
+  numerosDeTeste,
+  rampaLigada,
+} from './config'
+import { canalConfigurado, enviarTemplate, ErroCanal, EnvioVetado, type NaturezaFalha } from './canal'
+import { estadoDaRampa, ETAPA_DE_ABERTURA } from './rampa'
+import { HUMANO_HORAS } from '@/lib/atendimento/conversa'
 import { reancorarAposEnvio } from './agenda'
 import { CATALOGO } from './catalogo-templates'
 
@@ -118,6 +137,11 @@ export async function despachar(): Promise<ResultadoDespacho> {
   })
   const janelaAberta = dentroDaJanela(ajustes, agora)
 
+  // 2b · RAMPA — só limita aberturas (etapa 1). Cursor ilegível = rampa
+  // fechada (falha fechada, `calcularRampa`).
+  const rampa = rampaLigada() ? await estadoDaRampa(agora) : null
+  const listaTeste = numerosDeTeste()
+
   // A fila: vencidas, de inscrição viva, quem não respondeu na frente.
   // Prioridade menor primeiro (0 = já comprou alguma vez), depois a mais antiga.
   const candidatas = await prisma.mvMensagem.findMany({
@@ -148,6 +172,12 @@ export async function despachar(): Promise<ResultadoDespacho> {
   for (const msg of candidatas) {
     const insc = msg.inscricao
 
+    // 0 · LISTA DE TESTE — bloqueia, registra, não redireciona.
+    if (!liberadoParaEnvio(insc.telefoneE164, listaTeste)) {
+      await vetarForaDaLista(msg.id, insc.telefoneKey)
+      continue
+    }
+
     // 4 · OPT-OUT — reconferido agora, não na semeadura.
     const saiu = await prisma.mvOptOut.findUnique({ where: { telefoneKey: insc.telefoneKey } })
     if (saiu) {
@@ -170,6 +200,21 @@ export async function despachar(): Promise<ResultadoDespacho> {
     if (!ehTransacional(msg.templateNome)) {
       if (!janelaAberta) continue
       if (enviadasHoje >= ajustes.tetoDiario) continue
+      // `restante: null` = rampa não iniciada ou concluída (quem limita é o teto).
+      if (rampa && rampa.ativa && msg.etapaOrdem === ETAPA_DE_ABERTURA && (rampa.restante ?? 0) <= 0) continue
+
+      // 5b · HUMANO — a Marília está na conversa: o toque vai para depois do
+      // prazo de silêncio. Mesmo relógio da IA (`HUMANO_HORAS`).
+      const humano = await prisma.mvCursor.findUnique({ where: { chave: `atendimento:humano:${insc.telefoneKey}` } })
+      const desde = humano ? Date.parse(humano.valor) : NaN
+      if (Number.isFinite(desde) && agora.getTime() - desde < HUMANO_HORAS * 3_600_000) {
+        const depois = new Date(desde + HUMANO_HORAS * 3_600_000 + 60_000)
+        await prisma.mvMensagem.update({
+          where: { id: msg.id },
+          data: { agendadaPara: depois, erro: `adiada: equipe atendendo até ${depois.toISOString()}` },
+        })
+        continue
+      }
 
       const recente = await prisma.mvMensagem.findFirst({
         where: {
@@ -245,8 +290,12 @@ async function enviarUma(
         payloadEnvio: payload.slice(0, 4000),
         canal: 'oficial',
         tentativasEnvio: { increment: 1 },
+        erro: null,
       },
     })
+    // `tentativas` conta o que a cliente RECEBEU; `confirmacao.ts` devolve a
+    // tentativa quando a Meta avisa que falhou.
+    await prisma.mvInscricao.update({ where: { id: insc.id }, data: { tentativas: { increment: 1 } } })
     await prisma.mvCursor.upsert({
       where: { chave: CURSOR_ULTIMO_ENVIO },
       create: { chave: CURSOR_ULTIMO_ENVIO, valor: agora.toISOString() },
@@ -274,6 +323,10 @@ async function enviarUma(
 
     return { enviadas: 1, falhas: [], canceladas }
   } catch (e) {
+    if (e instanceof EnvioVetado) {
+      await vetarForaDaLista(msg.id, insc.telefoneE164)
+      return { enviadas: 0, motivo: 'fora_da_lista_de_teste', falhas: [], canceladas }
+    }
     if (!(e instanceof ErroCanal)) throw e
 
     await prisma.mvMensagem.update({
@@ -291,14 +344,32 @@ async function enviarUma(
       },
     })
 
-    // Falha que é da PESSOA, e não da mensagem, encerra a inscrição: insistir
-    // com número inválido ou conta bloqueada só gasta reputação.
-    if (e.natureza === 'NUMERO_INVALIDO' || e.natureza === 'BLOQUEADA_META') {
+    // Só o NÚMERO inválido encerra a inscrição. BLOQUEADA_META aqui é 131049
+    // (limite por destinatário, expira) ou conta restringida (131031/368, fala
+    // da NOSSA conta) — nenhum dos dois é culpa da cliente, e a CarBoss perdeu
+    // três semanas de cadência de gente boa por tratar assim (09/09/2026).
+    if (e.natureza === 'NUMERO_INVALIDO') {
       await encerrar(insc.id, e.natureza, e.message.slice(0, 200))
     }
 
     return { enviadas: 0, motivo: `falha no envio: ${e.natureza}`, falhas: [{ natureza: e.natureza, quantos: 1 }], canceladas }
   }
+}
+
+async function vetarForaDaLista(mensagemId: string, telefone: string): Promise<void> {
+  await prisma.mvMensagem.update({
+    where: { id: mensagemId },
+    data: { status: 'VETADA', erro: 'fora_da_lista_de_teste', falhaMotivo: 'fora_da_lista_de_teste' },
+  })
+  await prisma.logEvento.create({
+    data: {
+      origem: 'maquina-vendas',
+      nivel: 'AVISO',
+      tipo: 'envio_vetado_teste',
+      titulo: 'Mensagem vetada: número fora de MV_NUMEROS_TESTE',
+      dados: JSON.stringify({ mensagemId, final: telefone.replace(/\D/g, '').slice(-4) }),
+    },
+  })
 }
 
 /**
