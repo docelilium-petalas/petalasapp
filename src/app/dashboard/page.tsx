@@ -15,6 +15,7 @@ import {
   PieChart, Pie, Cell, CartesianGrid
 } from 'recharts'
 import { toast } from 'sonner'
+import { CartaoMensagensDeHoje } from '@/components/maquina-vendas/CartaoMensagensDeHoje'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 const BRL = (v: number) =>
@@ -351,6 +352,9 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground mt-1">+8% vs mês anterior</p>
           </div>
         </div>
+
+        {/* ── MÁQUINA DE VENDAS — o que sai hoje (só admin; some para as demais) ── */}
+        <CartaoMensagensDeHoje />
 
         {/* ── MID ROW: Funil + Atividades de Hoje + Deals Recentes ───────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -1225,7 +1225,12 @@ export async function getMvConversas(filtro: FiltroDeConversas = {}) {
 export async function getDossieDoContato(inscricaoId: string) {
   await exigirAuth()
   const d = await dossieDaCliente(inscricaoId)
-  return { ...d, telefone: mascarar(d.telefone) }
+  // O link sai do servidor (CHATWOOT_URL + conta): a tela não carrega URL fixa
+  // de instância — na origem ela era hardcoded e apontava para outra empresa.
+  const { configChatwoot } = await import('@/lib/maquina-vendas/chatwoot-api')
+  const cfg = configChatwoot()
+  const linkChatwoot = cfg && d.conversaChatwootId ? `${cfg.url}/app/accounts/${cfg.conta}/conversations/${d.conversaChatwootId}` : null
+  return { ...d, telefone: mascarar(d.telefone), linkChatwoot }
 }
 
 /** A fila de conversas que pedem uma pessoa (categorias da fala real da DL). */
