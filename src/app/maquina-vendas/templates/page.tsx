@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import {
   MessageSquare, ShoppingBag, Package, Sparkles, Heart, Rocket, Check,
   CheckCircle2, AlertTriangle, ArrowLeft, Pencil, RotateCcw, X, Loader2, Database, Undo2,
+  Megaphone, ClipboardCheck,
 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { CATALOGO, VARIAVEIS, type TemplateMeta } from '@/lib/maquina-vendas/catalogo-templates'
@@ -44,6 +45,8 @@ const TRILHAS = [
   { id: 'pagamento', nome: 'Pagamento', Icone: MessageSquare, sobre: 'Avisa sobre pagamento pendente ou aprovado.' },
   { id: 'pos_venda', nome: 'Pós-venda', Icone: Heart, sobre: 'Depois que a peça chegou — opinião e troca.' },
   { id: 'reativacao', nome: 'Reativação e novidades', Icone: Sparkles, sobre: 'Quem já comprou e sumiu, e quem quer saber da coleção nova.' },
+  { id: 'campanha', nome: 'Campanhas datadas', Icone: Megaphone, sobre: 'Drops com data marcada — cada onda só fala com quem recebeu a anterior.' },
+  { id: 'operacao', nome: 'Operação da equipe', Icone: ClipboardCheck, sobre: 'Avisos internos para a equipe, nunca para a cliente — o relatório do dia e os alertas da Máquina.' },
 ] as const
 
 const preencher = (corpo: string, t: TemplateMeta) =>
@@ -72,6 +75,8 @@ export default function TemplatesPage() {
       setCarregando(false)
     }
   }, [])
+  // Carga inicial: o setState acontece depois do await, não no corpo do efeito.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void carregar() }, [carregar])
 
   const rev = (nome: string) => revisoes.get(nome)
@@ -80,7 +85,7 @@ export default function TemplatesPage() {
 
   const contagem = useMemo(() => {
     const c = { APROVADO: 0, AJUSTAR: 0, PENDENTE: 0 }
-    for (const t of CATALOGO) c[statusDe(t.nome)]++
+    for (const t of CATALOGO) c[revisoes.get(t.nome)?.status ?? 'PENDENTE']++
     return c
   }, [revisoes])
 

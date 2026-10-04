@@ -34,6 +34,9 @@ export async function proxy(request: NextRequest) {
     // Ferramentas do agente de atendimento (n8n). Sem sessao de navegador: a
     // protecao e o CRON_SECRET, conferido em lib/atendimento/porta.ts.
     pathname.startsWith('/api/agente/') ||
+    // Ingestão de alerta do n8n. Protegida por WEBHOOK_CALLBACK_SECRET e
+    // fail-closed (sem a env, 503) — ver app/api/logs/route.ts.
+    pathname === '/api/logs' ||
     pathname.startsWith('/_next') ||
     pathname.includes('.')
 
