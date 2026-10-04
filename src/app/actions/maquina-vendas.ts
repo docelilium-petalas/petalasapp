@@ -672,7 +672,8 @@ export async function validarEtapasCadencia(etapas: EtapaInput[]) {
   const corpos = await buscarCorposAprovados()
 
   return etapas.map((etapa, i) => {
-    const ehUltima = i === etapas.length - 1
+    // Só régua de 2+ toques tem "última" a anunciar (ver `resincronizar.ts`).
+    const ehUltima = i === etapas.length - 1 && etapas.length > 1
     const previas: Array<{ rotulo: string; texto: string; erros: string[] }> = []
 
     if (etapa.templateNome) {

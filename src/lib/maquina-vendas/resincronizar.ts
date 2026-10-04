@@ -116,7 +116,10 @@ export async function resincronizarCopy({
       continue
     }
 
-    const v = validarCopy(texto, { ehUltima: etapa.ehUltima })
+    // "Anunciar a última" pressupõe uma régua: em cadência de toque único
+    // (pagamento, rastreio, coleção) não há anterior para a última encerrar, e
+    // a regra reprovaria o corpo aprovado pela Meta.
+    const v = validarCopy(texto, { ehUltima: etapa.ehUltima && insc.cadencia.etapas.length > 1 })
     if (!v.ok) {
       problemas.push(`${insc.nomeSnapshot} etapa ${m.etapaOrdem}: ${v.erros.join('; ')}`)
       continue
