@@ -61,6 +61,13 @@ const RESOLVIDOS: Record<string, string> = {
   dl_drop_1010_chegou_v1:
     'Texto da Marília para 10/10, aprovado pelo Owner em 27/09/2026. A URL https://docelilium.com.br/ ' +
     'saiu do corpo e virou botão, a pedido da regra da Meta, não da autora.',
+  // Porta do briefing — OPERACIONAL, nunca vai para cliente: só para
+  // `MV_BRIEFING_NUMERO` (da equipe). Texto sem voz de marca e sem variável;
+  // submetido no porte da CarBoss (04/10/2026) por ordem do Owner de executar
+  // o prompt inteiro, que pede a porta do briefing testada (§9, nível 3, item 8).
+  dl_relatorio_pronto_v1:
+    'Template interno da equipe (porta do briefing), sem cliente na ponta. Submetido em 04/10/2026 ' +
+    'no porte da Máquina de Vendas, com autorização do Owner para executar o prompt até o fim.',
 }
 
 type Revisao = { nome: string; status: string; corpoRevisado: string | null }
