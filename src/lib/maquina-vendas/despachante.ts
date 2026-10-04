@@ -51,7 +51,6 @@ import prisma from '@/lib/prisma'
 import {
   obterAjustes,
   dentroDaJanela,
-  paredeSP,
   CURSOR_ULTIMO_ENVIO,
   liberadoParaEnvio,
   numerosDeTeste,
@@ -62,6 +61,8 @@ import { estadoDaRampa, ETAPA_DE_ABERTURA } from './rampa'
 import { HUMANO_HORAS } from '@/lib/atendimento/conversa'
 import { reancorarAposEnvio } from './agenda'
 import { CATALOGO } from './catalogo-templates'
+import { inicioDoDiaSP } from './janela'
+import { corpoDoCatalogo, textoEntregueDoTemplate } from './corpo-template'
 
 /** Os nomes MARKETING, para o anti-eco não contar transacional como incômodo. */
 const NOMES_MARKETING = CATALOGO.filter((t) => t.categoria === 'MARKETING').map((t) => t.nome)
@@ -100,13 +101,12 @@ export type ResultadoDespacho = {
 
 const nada = (motivo: string): ResultadoDespacho => ({ enviadas: 0, motivo, falhas: [], canceladas: 0 })
 
-/** Meia-noite de hoje na parede de São Paulo, em UTC. */
-function inicioDoDiaSP(agora: Date): Date {
-  const { hora, minuto } = paredeSP(agora)
-  const d = new Date(agora.getTime() - (hora * 60 + minuto) * 60_000)
-  d.setSeconds(0, 0)
-  return d
-}
+// `inicioDoDiaSP` vem de `janela.ts` (porte): a cópia local errava por um
+// minuto quebrado e divergia da conta do teto da rampa.
+
+// O DISJUNTOR não tem guarda própria aqui: `vigia.ts` desarma gravando
+// `envioPausado`, e o guarda 1 já respeita. O tique roda o vigia ANTES deste
+// despacho — um lugar só decide se o canal está doente.
 
 export async function despachar(): Promise<ResultadoDespacho> {
   const agora = new Date()
@@ -267,6 +267,12 @@ async function enviarUma(
   }
 
   const ctx = (insc.contexto ?? {}) as { url?: string }
+  const variaveis = (msg.variaveis as string[] | null) ?? []
+  // Carimbo do que a cliente RECEBEU: corpo do catálogo (o mesmo submetido à
+  // Meta) com os parâmetros congelados. Sem corpo no catálogo, fica null e a
+  // tela diz "desconhecido" — nunca finge.
+  const corpo = corpoDoCatalogo(msg.templateNome)
+  const textoEntregue = corpo ? textoEntregueDoTemplate(corpo, variaveis) : null
 
   try {
     const { idExterno, payload } = await enviarTemplate({
@@ -277,7 +283,7 @@ async function enviarUma(
       // os valores de fora — quem monta a frase é a Meta, com o texto
       // aprovado — e eles têm que ser os MESMOS que a tela mostrou, mesmo que
       // o carrinho tenha mudado de conteúdo desde então.
-      variaveis: (msg.variaveis as string[] | null) ?? [],
+      variaveis,
       urlBotao: ctx.url,
     })
 
@@ -291,6 +297,7 @@ async function enviarUma(
         canal: 'oficial',
         tentativasEnvio: { increment: 1 },
         erro: null,
+        textoEntregue,
       },
     })
     // `tentativas` conta o que a cliente RECEBEU; `confirmacao.ts` devolve a

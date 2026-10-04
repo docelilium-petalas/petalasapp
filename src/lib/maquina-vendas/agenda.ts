@@ -33,6 +33,8 @@
 
 import prisma from '@/lib/prisma'
 import { dentroDaJanela, proximaAbertura, type Ajustes } from './config'
+import { GradeDeVagas } from './grade'
+import { parseJanela } from './janela'
 
 /** Piso de segurança entre duas mensagens da MESMA pessoa. */
 const ESPACO_MINIMO_MINUTOS = 60
@@ -137,12 +139,42 @@ export async function reancorarAposEnvio(args: {
     agora: args.enviadaEm,
   })
 
+  // GRADE (porte CarBoss, 14/08/2026): o reencaixe pergunta à MESMA grade que
+  // a semeadura — "uma por cliente por dia" e o silêncio mínimo valem aqui
+  // também, senão duas etapas deslizam para a mesma abertura de janela.
+  // Ocupado = o que esta inscrição já tem fora da cauda (enviadas e agendadas).
+  const ocupadas = await prisma.mvMensagem.findMany({
+    where: {
+      inscricaoId: args.inscricaoId,
+      id: { notIn: pendentes.map((p) => p.id) },
+      OR: [{ status: 'AGENDADA' }, { status: 'ENVIADA', enviadaEm: { not: null } }],
+    },
+    select: { agendadaPara: true, enviadaEm: true, status: true },
+    orderBy: { agendadaPara: 'asc' },
+    take: 50,
+  })
+  const grade = new GradeDeVagas(
+    ocupadas.map((o) => ({
+      quando: (o.status === 'ENVIADA' && o.enviadaEm ? o.enviadaEm : o.agendadaPara).getTime(),
+      inscricaoId: args.inscricaoId,
+    })),
+    {
+      minimoMs: ESPACO_MINIMO_MINUTOS * 60_000,
+      passoMs: ESPACO_MINIMO_MINUTOS * 60_000,
+      janela: parseJanela(args.ajustes.janelaInicio, args.ajustes.janelaFim),
+    },
+  )
+
   const porOrdem = new Map(seguintes.map((e, i) => [e.ordem, datas[i]]))
 
   let corrigidas = 0
-  for (const msg of pendentes) {
-    const nova = porOrdem.get(msg.etapaOrdem)
-    if (!nova) continue
+  for (const msg of [...pendentes].sort((a, b) => a.etapaOrdem - b.etapaOrdem)) {
+    const prevista = porOrdem.get(msg.etapaOrdem)
+    if (!prevista) continue
+    // Sem vaga (dado corrompido / janela vazia) fica a data prevista — nunca
+    // um horário inventado; o despachante ainda aplica janela e anti-eco.
+    const nova = grade.vaga(prevista, { inscricaoId: args.inscricaoId }) ?? prevista
+    grade.ocupar({ quando: nova.getTime(), inscricaoId: args.inscricaoId })
     await prisma.mvMensagem.update({ where: { id: msg.id }, data: { agendadaPara: nova } })
     corrigidas++
   }
