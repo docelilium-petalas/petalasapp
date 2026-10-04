@@ -11,6 +11,8 @@ import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
 import { assumirConversa } from '@/lib/atendimento/atendente'
 import { ecosDoCorpo, type EcoDaLoja } from '@/lib/maquina-vendas/eco'
+import { contextoDeCabecalhos, explicarAssinatura, lerAssinatura } from '@/lib/maquina-vendas/assinatura'
+import { sinaisDasMudancas } from '@/lib/maquina-vendas/sinais-meta'
 
 export const dynamic = 'force-dynamic'
 
@@ -135,6 +137,24 @@ export async function POST(request: Request) {
     await logar('ERRO', 'webhook_whatsapp', 'Falha ao tratar', e)
   }
 
+  // OS AVISOS QUE A META MANDA SOZINHA (porta de `sinais-meta.ts`). Conta
+  // restrita e número marcado PUXAM O FREIO na hora — o mesmo `envioPausado`
+  // que o disjuntor usa, e que só gente solta. Template reprovado, qualidade e
+  // limite só avisam: nenhum deles impede o resto da régua de entregar.
+  try {
+    for (const sinal of sinaisDasMudancas(mudancas)) {
+      if (sinal.desarmar) {
+        await prisma.mvAjustes.update({
+          where: { id: 'unico' },
+          data: { envioPausado: true, atualizadoPor: `meta · ${sinal.tipo}` },
+        })
+      }
+      await logar(sinal.nivel, sinal.tipo, sinal.titulo, { detalhe: sinal.detalhe, template: sinal.template, pausou: sinal.desarmar })
+    }
+  } catch (e) {
+    await logar('ERRO', 'sinal_meta_falhou', 'Falha ao tratar aviso da Meta', e)
+  }
+
   // Autorizado e nada casou: guarda só a FORMA — chaves, campos e tipos —,
   // sem conteúdo. `sent` e status de mensagem que não é da Máquina são normais.
   const forma = mudancas.map((c) => ({
@@ -231,21 +251,14 @@ async function conferirOrigem(request: Request, cru: string): Promise<true | Res
     // sido usada com ou sem o prefixo `whsec_`. As variantes derivam do MESMO
     // segredo — não afrouxam nada. Chutar uma só e errar deixaria a operação
     // muda sem ninguém entender por quê. Mesma decisão da CarBoss.
-    const cabecalho = request.headers.get('x-datafy-signature-256') ?? ''
-    const assinatura = cabecalho.includes('=') ? cabecalho.split('=').pop()!.trim() : cabecalho.trim()
-    const chaves = datafy.startsWith('whsec_') ? [datafy, datafy.slice('whsec_'.length)] : [datafy]
-    // A Datafy NÃO assina o corpo cru: assina `<x-datafy-timestamp>.<corpo>`,
-    // com o segredo completo (com `whsec_`), em hex. Descoberto no CRM OCR em
-    // 17/08/2026 e confirmado aqui em 13/09, quando TODO aviso de entrega vinha
-    // sendo recusado (401) — nenhuma leitura, resposta ou opt-out chegava.
-    // O corpo cru fica como segunda tentativa, caso a convenção mude.
-    const carimbo = request.headers.get('x-datafy-timestamp')?.trim()
-    const mensagens = carimbo ? [`${carimbo}.${cru}`, cru] : [cru]
-    for (const msg of mensagens) {
-      for (const chave of chaves) {
-        if (assinatura && (await hmacConfere(msg, assinatura, chave))) return true
-      }
-    }
+    //
+    // A Datafy assina `<x-datafy-timestamp>.<corpo>` com o segredo completo,
+    // em hex (medido em 13/09). A conferência agora é a de `assinatura.ts`
+    // (porta da CarBoss): quatro chaves, seis composições, hex/base64/base64url
+    // e três nomes de cabeçalho. A versão anterior fazia `split('=').pop()`,
+    // que zera assinatura em base64 — o defeito de 18/08 da origem.
+    const { valor } = lerAssinatura(request.headers)
+    if (explicarAssinatura(cru, valor, datafy, contextoDeCabecalhos(request.headers))) return true
   }
 
   if (appSecret) {
