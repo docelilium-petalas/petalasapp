@@ -62,6 +62,9 @@ export const ASSUNTO_DO_TEMPLATE: Record<string, string> = {
   dl_drop_1010_save_the_date_v1: 'drop-1010-save-the-date',
   dl_drop_1010_vespera_v1: 'drop-1010-vespera',
   dl_drop_1010_chegou_v1: 'drop-1010-chegou',
+  // Porta do briefing diário: vai para o número da EQUIPE, nunca para cliente,
+  // e não passa pelo despachante — o assunto existe só para a bateria cobrir.
+  dl_relatorio_pronto_v1: 'relatorio-equipe',
 }
 
 /** O template do catálogo com params e assunto, ou `null` se não existir. */

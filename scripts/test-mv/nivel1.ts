@@ -41,6 +41,11 @@ import { falasDaClienteDepois, statusDaParada } from '../../src/lib/maquina-vend
 import { GradeDeVagas } from '../../src/lib/maquina-vendas/grade'
 import { conferirRastreio, linkDeRastreio, assinaturaDoPedido } from '../../src/lib/maquina-vendas/rastreio'
 import { HUMANO_HORAS } from '../../src/lib/atendimento/conversa'
+import { analisarConversa, ehEncerramento, mascararCpf, ritmoDeLeitura, sugerirCopys, type Turno as TurnoAtencao } from '../../src/lib/maquina-vendas/atencao'
+import { conversaAindaViva, MOVIMENTO_HUMANO } from '../../src/lib/maquina-vendas/observador-colunas'
+import { emPartes, minutosDaHora } from '../../src/lib/maquina-vendas/briefing'
+import { papelDoTemplate } from '../../src/lib/maquina-vendas/papeis'
+import { templatesSemAssunto } from '../../src/lib/maquina-vendas/templates'
 
 const AMOSTRA: Record<string, string> = {
   primeiro_nome: 'Teste',
@@ -267,5 +272,61 @@ grupo('16 · Rastreio assinado')
 const link = linkDeRastreio(1042)
 checa(conferirRastreio(link.split('/').pop()!) === '1042', 'o link emitido abre')
 checa(conferirRastreio(`1043.${assinaturaDoPedido(1042)}`) === null, 'adulterado não abre (cai na home)')
+
+// ─────────────────────────────────────────────────────────────────────────────
+grupo('17 · Papéis e assuntos cobrem o catálogo')
+for (const t of CATALOGO) checa(papelDoTemplate(t.nome) !== null, `${t.nome} tem papel na régua`)
+igual(templatesSemAssunto(), [], 'todo template de etapa tem assunto')
+
+// ─────────────────────────────────────────────────────────────────────────────
+grupo('18 · Atenção — os casos reais que criaram as categorias')
+const t0 = sp('2026-10-04T10:00:00')
+const cli = (texto: string, min = 0): TurnoAtencao => ({ autor: 'cliente', texto, quando: new Date(t0.getTime() + min * 60_000) })
+const nos = (texto: string, min = 0): TurnoAtencao => ({ autor: 'nos', texto, quando: new Date(t0.getTime() + min * 60_000) })
+const tipos = (ts: TurnoAtencao[], agora = new Date(t0.getTime() + 10 * 60_000)) => analisarConversa(ts, agora).map((a) => a.tipo)
+checa(tipos([cli('quero o vestido isis, ainda tem?'), nos('tem sim!', 1)]).includes('QUER_COMPRAR'), 'quero o vestido → QUER_COMPRAR')
+checa(tipos([cli('Pode sim! Manda o link por favor'), nos('aqui', 1)]).includes('QUER_COMPRAR'), 'manda o link → QUER_COMPRAR')
+checa(tipos([cli('Ele tem quais tamanhos?'), nos('P, M e G', 1)]).includes('PERGUNTOU_TAMANHO'), 'quais tamanhos → PERGUNTOU_TAMANHO')
+checa(tipos([cli('A modelo está usando qual tamanho da saia?'), nos('M', 1)]).includes('PERGUNTOU_TAMANHO'), 'tamanho da modelo → PERGUNTOU_TAMANHO')
+checa(tipos([cli('me da um desconto? to achando meio caro'), nos('...', 1)]).includes('PEDIU_DESCONTO'), 'desconto/caro → PEDIU_DESCONTO')
+checa(tipos([cli('Tem taxa de entrega para Goiânia?'), nos('...', 1)]).includes('FRETE_E_ENTREGA'), 'taxa de entrega → FRETE_E_ENTREGA')
+checa(tipos([cli('voces tem loja fisica? onde fica pra eu ir ai'), nos('...', 1)]).includes('LOJA_FISICA'), 'loja física → LOJA_FISICA')
+checa(tipos([cli('gostaria de presentear minha esposa'), nos('...', 1)]).includes('PRESENTE'), 'presentear → PRESENTE')
+checa(tipos([cli('Vai ter Reposição da saia Clarisse???'), nos('...', 1)]).includes('PEDIU_REPOSICAO'), 'reposição → PEDIU_REPOSICAO')
+checa(tipos([cli('[a cliente mandou uma foto]'), nos('...', 1)]).includes('NAO_DEU_PARA_LER'), 'foto → NAO_DEU_PARA_LER')
+checa(tipos([cli('Vcs vendem atacado ?'), nos('...', 1)]).includes('ATACADO'), 'atacado → ATACADO')
+checa(tipos([cli('meu pedido veio com defeito, quero trocar'), nos('...', 1)]).includes('PEDIDO_COM_PROBLEMA'), 'defeito/troca → PEDIDO_COM_PROBLEMA')
+igual(tipos([cli('Bom dia'), nos('Oi!', 1)]), [], 'cumprimento sozinho não entra na fila')
+const silencio = analisarConversa([cli('onde fica o endereço de vocês?')], new Date(t0.getTime() + 30 * 3_600_000))
+checa(silencio.some((a) => a.tipo === 'SEM_RESPOSTA' && a.gravidade === 'grave'), '30h sem resposta → SEM_RESPOSTA grave')
+igual(tipos([cli('Mesmo assim muito obrigada pelo atendimento !!! 💖')], new Date(t0.getTime() + 30 * 3_600_000)), [], 'agradecimento final não é silêncio')
+igual(tipos([cli('qual o tamanho?')], new Date(t0.getTime() + 9 * 24 * 3_600_000)).includes('SEM_RESPOSTA'), false, 'silêncio de mais de 7 dias é reativação, não fila')
+checa(ehEncerramento('Certinho, muito obrigada ❤️'), 'certinho/obrigada encerra')
+checa(!ehEncerramento('Ok, mas qual o tamanho do Luna?'), '"ok, mas..." não encerra')
+igual(tipos([cli('quero parar de receber')]), [], 'quem pediu para sair não vira tarefa')
+igual(mascararCpf('meu cpf 123.456.789-09'), 'meu cpf 123.***.***-09', 'CPF sai mascarado')
+igual(ritmoDeLeitura([], t0).texto, 'Fila vazia. Nenhuma conversa esperando resposta.', 'fila vazia diz que está vazia')
+igual(sugerirCopys([{ tipo: 'PERGUNTOU_TAMANHO', quantas: 1 }]).length, 0, 'um caso só não vira sugestão de copy')
+igual(sugerirCopys([{ tipo: 'PERGUNTOU_TAMANHO', quantas: 3 }]).length, 1, 'três casos viram sugestão')
+
+// ─────────────────────────────────────────────────────────────────────────────
+grupo('19 · Observador de colunas')
+checa(!conversaAindaViva(null, t0), 'nunca falou → não está viva')
+checa(conversaAindaViva(new Date(t0.getTime() - 5 * 86_400_000), t0, 30), 'falou há 5 dias → viva')
+checa(!conversaAindaViva(new Date(t0.getTime() - 31 * 86_400_000), t0, 30), 'falou há 31 dias → não está viva')
+checa(conversaAindaViva(new Date(t0.getTime() + 3_600_000), t0, 30), 'data no futuro conta como viva')
+checa(MOVIMENTO_HUMANO.has('kanban_drag') && !MOVIMENTO_HUMANO.has('ai') && !MOVIMENTO_HUMANO.has('api'), 'só arrasto de pessoa dispensa a conversa viva')
+
+// ─────────────────────────────────────────────────────────────────────────────
+grupo('20 · Briefing — quebra em partes sem partir bloco')
+const blocos = ['a'.repeat(2000), 'b'.repeat(2000), 'c'.repeat(100)]
+const partes = emPartes(blocos, 3400)
+igual(partes.length, 2, 'dois blocos grandes não cabem juntos')
+checa(partes[0].startsWith('(1/2) ') && partes[1].startsWith('(2/2) '), 'rótulo (n/total) entra depois da quebra')
+checa(partes[1].includes('b'.repeat(2000)) && partes[1].includes('c'.repeat(100)), 'bloco não é partido ao meio')
+igual(emPartes(['curto']), ['curto'], 'uma parte só não ganha rótulo')
+igual(minutosDaHora('08:30', 0), 510, 'HH:mm vira minutos')
+igual(minutosDaHora('25:00', 480), 480, 'hora inválida cai no padrão')
+igual(minutosDaHora(undefined, 480), 480, 'sem env cai no padrão')
 
 fechar('Nível 1')
