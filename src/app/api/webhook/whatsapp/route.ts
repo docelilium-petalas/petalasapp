@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { chaveTelefone, paraE164 } from '@/lib/maquina-vendas/telefone'
 import { pediuParaSair } from '@/lib/maquina-vendas/opt-out'
-import { classificar } from '@/lib/maquina-vendas/canal'
+import { mudancasDoCorpo, statusesDoCorpo } from '@/lib/maquina-vendas/entrega-meta'
+import { aplicarStatuses } from '@/lib/maquina-vendas/confirmacao'
+import { carimbar } from '@/lib/maquina-vendas/pulso'
+import { CURSOR_PULSO_STATUS, CURSOR_PULSO_WEBHOOK } from '@/lib/maquina-vendas/config'
 import { registrarTurno, turnosDe } from '@/lib/atendimento/conversa'
 import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
@@ -95,36 +98,49 @@ export async function POST(request: Request) {
     await logar('ERRO', 'eco_falhou', 'Falha ao tratar eco do WhatsApp', e)
   }
 
+  // AS DUAS FORMAS DE ENVELOPE (porta de `entrega-meta.mudancasDoCorpo`): a
+  // Meta embrulha em `entry[].changes[]`, a Datafy pode mandar o miolo
+  // `{ field, value }` achatado. Ler só a primeira forma foi como a CarBoss
+  // ficou um dia inteiro sem confirmação e sem fala de lead, com 200 {ok:true}.
+  const mudancas = mudancasDoCorpo(corpo) as { field?: string; value?: ValorMeta }[]
+
   try {
-    for (const entry of corpo.entry ?? []) {
-      for (const mudanca of entry.changes ?? []) {
-        const valor = mudanca.value ?? {}
+    // STATUS: um lugar só decide o que cada falha significa (confirmacao.ts).
+    const lista = statusesDoCorpo(corpo)
+    if (lista.length) {
+      const r = await aplicarStatuses(lista)
+      statuses = r.entregues + r.lidas + r.falhas
+      await carimbar(CURSOR_PULSO_STATUS, { recebidos: r.recebidos, casados: r.casados })
+      // Falha de envio que não saiu da Máquina (teste manual, painel): sem
+      // linha para guardar, o MOTIVO vai para o log — senão some calado.
+      for (const s of lista) {
+        if (s.status !== 'failed') continue
+        const nosso = await prisma.mvMensagem.findFirst({ where: { idExterno: s.id }, select: { id: true } })
+        if (!nosso) await logar('ERRO', 'envio_falhou', `Falha de entrega fora da Máquina (${s.codigo ?? '?'})`, s)
+      }
+      if (r.detalhes.length) await logar('INFO', 'confirmacao_meta', `Meta: ${r.detalhes.length} mudança(s) de status`, r.detalhes.slice(0, 20))
+    }
 
-        for (const st of valor.statuses ?? []) {
-          if (await tratarStatus(st)) statuses++
-        }
-
-        const nomes = new Map((valor.contacts ?? []).map((c) => [c.wa_id ?? '', c.profile?.name ?? null]))
-        for (const msg of valor.messages ?? []) {
-          const r = await tratarMensagem(msg, nomes.get(msg.from ?? '') ?? null)
-          if (r.contou) respostas++
-          if (r.saiu) saidas++
-        }
+    for (const mudanca of mudancas) {
+      const valor = mudanca.value ?? {}
+      const nomes = new Map((valor.contacts ?? []).map((c) => [c.wa_id ?? '', c.profile?.name ?? null]))
+      for (const msg of valor.messages ?? []) {
+        const r = await tratarMensagem(msg, nomes.get(msg.from ?? '') ?? null)
+        if (r.contou) respostas++
+        if (r.saiu) saidas++
       }
     }
+    await carimbar(CURSOR_PULSO_WEBHOOK, { recebidos: mudancas.length })
   } catch (e) {
     await logar('ERRO', 'webhook_whatsapp', 'Falha ao tratar', e)
   }
 
-  // Autorizado e nada casou: o formato pode não ser o da Meta (a Datafy
-  // embrulha?). Guarda só a FORMA — chaves, campos e tipos —, sem conteúdo.
-  // `sent` e status de mensagem que não é da Máquina são normais e ficam fora.
-  const forma = (corpo.entry ?? []).flatMap((e) =>
-    (e.changes ?? []).map((c) => ({
-      campos: Object.keys((c.value ?? {}) as object),
-      statuses: (c.value?.statuses ?? []).map((s) => s.status),
-    })),
-  )
+  // Autorizado e nada casou: guarda só a FORMA — chaves, campos e tipos —,
+  // sem conteúdo. `sent` e status de mensagem que não é da Máquina são normais.
+  const forma = mudancas.map((c) => ({
+    campos: Object.keys((c.value ?? {}) as object),
+    statuses: (c.value?.statuses ?? []).map((s) => s.status),
+  }))
   const conhecido = forma.some((f) => f.campos.some((k) => ['statuses', 'messages', 'message_echoes', 'message_template_status_update', 'event'].includes(k)))
   if (statuses + respostas + saidas + assumidas === 0 && !conhecido) {
     await logar('INFO', 'webhook_sem_efeito', 'Webhook do WhatsApp sem efeito', {
@@ -278,65 +294,6 @@ function tempoConstante(a: string, b: string): boolean {
 }
 
 // ── Os três fatos ─────────────────────────────────────────────────────────
-
-/**
- * `sent` → `delivered` → `read`, ou `failed`.
- *
- * Só avança: a Meta manda fora de ordem, e um `sent` que chega depois do
- * `read` não pode apagar o `read`. Por isso cada campo é gravado apenas se
- * ainda estiver vazio.
- */
-async function tratarStatus(st: StatusMeta): Promise<boolean> {
-  if (!st.id) return false
-  const msg = await prisma.mvMensagem.findFirst({
-    where: { idExterno: st.id },
-    select: { id: true, entregueEm: true, lidaEm: true, inscricaoId: true },
-  })
-  if (!msg) {
-    // Envio que não saiu da Máquina (teste manual, disparo pelo painel). A
-    // linha não existe para guardar a falha, mas o MOTIVO é justamente o que
-    // se precisa ver quando "a Meta aceitou e não chegou" — 131042 (pagamento),
-    // 131049 (limite de marketing), 131026 (número). Sem isto ele sumia calado.
-    if (st.status === 'failed') {
-      await logar('ERRO', 'envio_falhou', `Falha de entrega fora da Máquina (${st.errors?.[0]?.code ?? '?'})`, st)
-    }
-    return false
-  }
-
-  const quando = st.timestamp ? new Date(Number(st.timestamp) * 1000) : new Date()
-
-  if (st.status === 'delivered' && !msg.entregueEm) {
-    await prisma.mvMensagem.update({ where: { id: msg.id }, data: { entregueEm: quando } })
-    return true
-  }
-  if (st.status === 'read') {
-    await prisma.mvMensagem.update({
-      where: { id: msg.id },
-      data: { lidaEm: msg.lidaEm ?? quando, entregueEm: msg.entregueEm ?? quando },
-    })
-    return true
-  }
-  if (st.status === 'failed') {
-    const erro = st.errors?.[0]
-    const { natureza } = classificar(erro?.code)
-    await prisma.mvMensagem.update({
-      where: { id: msg.id },
-      data: {
-        status: 'ERRO',
-        codigoErro: erro?.code ?? null,
-        falhaMotivo: (erro?.title || erro?.message || 'falha sem detalhe').slice(0, 200),
-        naturezaFalha: natureza,
-      },
-    })
-    // Número inválido ou conta bloqueada encerram a régua: insistir com quem
-    // a Meta já recusou só gasta reputação.
-    if (natureza === 'NUMERO_INVALIDO' || natureza === 'BLOQUEADA_META') {
-      await encerrarInscricao(msg.inscricaoId, natureza, erro?.title ?? natureza)
-    }
-    return true
-  }
-  return false
-}
 
 /** A pessoa falou. */
 async function tratarMensagem(msg: MensagemMeta, nomeWhatsApp: string | null): Promise<{ contou: boolean; saiu: boolean }> {
@@ -492,14 +449,19 @@ type MensagemMeta = {
   interactive?: { button_reply?: { id?: string; title?: string } }
 }
 
+type ValorMeta = {
+  statuses?: StatusMeta[]
+  messages?: MensagemMeta[]
+  contacts?: { wa_id?: string; profile?: { name?: string } }[]
+}
+
 type PayloadMeta = {
   entry?: {
     changes?: {
-      value?: {
-        statuses?: StatusMeta[]
-        messages?: MensagemMeta[]
-        contacts?: { wa_id?: string; profile?: { name?: string } }[]
-      }
+      field?: string
+      value?: ValorMeta
     }[]
   }[]
+  field?: string
+  value?: ValorMeta
 }
