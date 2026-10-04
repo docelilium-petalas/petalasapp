@@ -5,7 +5,7 @@ import { pediuParaSair } from '@/lib/maquina-vendas/opt-out'
 import { mudancasDoCorpo, statusesDoCorpo } from '@/lib/maquina-vendas/entrega-meta'
 import { aplicarStatuses } from '@/lib/maquina-vendas/confirmacao'
 import { carimbar } from '@/lib/maquina-vendas/pulso'
-import { CURSOR_PULSO_STATUS, CURSOR_PULSO_WEBHOOK } from '@/lib/maquina-vendas/config'
+import { CURSOR_PULSO_STATUS, CURSOR_PULSO_WEBHOOK, numeroDeAlerta } from '@/lib/maquina-vendas/config'
 import { registrarTurno, turnosDe } from '@/lib/atendimento/conversa'
 import { agendarAtendimento } from '@/lib/atendimento/encaminhar'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
@@ -13,6 +13,7 @@ import { assumirConversa } from '@/lib/atendimento/atendente'
 import { ecosDoCorpo, type EcoDaLoja } from '@/lib/maquina-vendas/eco'
 import { contextoDeCabecalhos, explicarAssinatura, lerAssinatura } from '@/lib/maquina-vendas/assinatura'
 import { sinaisDasMudancas } from '@/lib/maquina-vendas/sinais-meta'
+import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,7 +60,9 @@ export async function GET(request: Request) {
   const token = url.searchParams.get('hub.verify_token')
   const desafio = url.searchParams.get('hub.challenge')
 
-  const esperado = process.env.WHATSAPP_VERIFY_TOKEN
+  // `DATAFY_WEBHOOK_VERIFY_TOKEN` é o nome da origem (CarBoss); aceito como
+  // segundo nome para o porte não exigir renomear env já cadastrada.
+  const esperado = process.env.WHATSAPP_VERIFY_TOKEN || process.env.DATAFY_WEBHOOK_VERIFY_TOKEN
   if (!esperado) {
     return NextResponse.json({ erro: 'WHATSAPP_VERIFY_TOKEN não configurado.' }, { status: 503 })
   }
@@ -150,6 +153,10 @@ export async function POST(request: Request) {
         })
       }
       await logar(sinal.nivel, sinal.tipo, sinal.titulo, { detalhe: sinal.detalhe, template: sinal.template, pausou: sinal.desarmar })
+      // Porte do alerta da origem: ERRO também toca o celular de quem cuida.
+      // Sem `await` de propósito — o webhook não espera a Meta para devolver
+      // 200 — e pela porta única do canal, que aplica `MV_NUMEROS_TESTE`.
+      if (sinal.nivel === 'ERRO') void alertarNoWhatsApp(`${sinal.titulo}\n\n${sinal.detalhe ?? ''}`.trim())
     }
   } catch (e) {
     await logar('ERRO', 'sinal_meta_falhou', 'Falha ao tratar aviso da Meta', e)
@@ -399,6 +406,17 @@ async function encerrarInscricao(id: string, status: string, motivo: string): Pr
     }),
     prisma.mvInscricao.update({ where: { id }, data: { status, motivoParada: motivo.slice(0, 200) } }),
   ])
+}
+
+/** Melhor esforço: texto livre depende da janela de 24h, e a falha vira log. */
+async function alertarNoWhatsApp(texto: string): Promise<void> {
+  const numero = numeroDeAlerta()
+  if (!numero) return
+  try {
+    await enviarMensagemLivre(numero, { tipo: 'texto', texto: `🔴 Doce Lilium · aviso da Meta\n${texto}` })
+  } catch (e) {
+    await logar('AVISO', 'sinal_meta_alerta_falhou', 'Alerta do aviso da Meta não saiu no WhatsApp', e)
+  }
 }
 
 async function logar(nivel: string, tipo: string, titulo: string, dados: unknown) {
