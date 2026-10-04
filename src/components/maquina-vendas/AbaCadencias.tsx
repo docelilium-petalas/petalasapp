@@ -87,12 +87,12 @@ function EtapaDaCadencia({ etapa, template: t, carregandoTemplates }: {
             {t.porque && <p className="text-[11px] text-muted-foreground italic">{t.porque}</p>}
           </div>
         )}
-        {!etapa.templateNome && (
-          <div>
-            <span className="block text-[11px] font-medium text-muted-foreground">texto livre — só sai se a janela de 24 h estiver aberta</span>
-            <p className="text-xs text-muted-foreground whitespace-pre-line">{etapa.templateBase}</p>
-          </div>
-        )}
+        {/* Sempre por último e sempre rotulado: só sai com a janela de 24 h aberta, e ela abre
+            justamente quando a cliente responde — que é quando a cadência para. */}
+        <div>
+          <span className="block text-[11px] font-medium text-muted-foreground">texto livre — só sai se a janela de 24 h estiver aberta</span>
+          <p className="text-xs text-muted-foreground whitespace-pre-line">{etapa.templateBase}</p>
+        </div>
       </div>
     </div>
   )
