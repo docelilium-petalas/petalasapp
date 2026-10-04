@@ -216,6 +216,10 @@ export async function inscrever(args: {
   retrato: unknown
   /** Menor sai primeiro. 0 = já comprou alguma vez. Padrão 1. */
   prioridade?: number
+  /** Só o observador de colunas preenche: o card que originou a inscrição. */
+  dealId?: string | null
+  contactId?: string | null
+  perfil?: string
 }): Promise<void> {
   const existente = await prisma.mvInscricao.findUnique({
     where: {
@@ -260,6 +264,9 @@ export async function inscrever(args: {
         ancoraEm: args.ancora,
         contexto: args.retrato as never,
         prioridade: args.prioridade ?? 1,
+        ...(args.dealId ? { dealId: args.dealId } : {}),
+        ...(args.contactId ? { contactId: args.contactId } : {}),
+        ...(args.perfil ? { perfil: args.perfil } : {}),
         status: 'ATIVA',
       },
     })

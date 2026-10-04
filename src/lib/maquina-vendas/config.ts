@@ -209,6 +209,8 @@ export const CURSOR_BRIEFING_AVISO = 'mv:briefing_diario_aviso'
 export const CURSOR_BRIEFING_PORTA = 'mv:briefing_diario_porta'
 export const CURSOR_DISJUNTOR = 'mv:disjuntor_ultimo_codigo'
 export const CURSOR_CHATWOOT_NOTA = 'mv:chatwoot_nota'
+/** Até onde o observador de colunas do funil já leu `DealStageHistory`. */
+export const CURSOR_OBSERVADOR_COLUNAS = 'mv:observador_colunas'
 
 /** Sobreposição de varredura: o que entrou nos últimos 10 min é relido. */
 export const OVERLAP_MS = 10 * 60 * 1000

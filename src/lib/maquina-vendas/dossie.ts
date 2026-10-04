@@ -38,6 +38,7 @@ import { buscarCorposAprovados, textoEntregueDoTemplate, type CorpoAprovado } fr
 import { trajetoriaDaCliente } from './trajetoria'
 import { marcadorDaEtapa, marcosQueFaltam, papelDoTemplate, type MarcoDoPedido, type MotorDaMensagem } from './papeis'
 import type { Contexto } from './copy'
+import { primeiroNome } from './telefone'
 
 // ── Vocabulário da tela ─────────────────────────────────────────────────────
 
@@ -173,8 +174,9 @@ function montarTemplate(
   return { nome, status: catalogoDisponivel ? 'NAO_ENCONTRADO' : 'NAO_CONSULTADO', categoria: null, botoes: [] }
 }
 
-function lerContexto(json: unknown): Contexto {
-  return json && typeof json === 'object' && !Array.isArray(json) ? (json as Contexto) : ({} as Contexto)
+/** Só para mensagem antiga sem `variaveis`: o que dá para saber da inscrição. */
+function contextoMinimo(nomeSnapshot: string): Contexto {
+  return { primeiro_nome: primeiroNome(nomeSnapshot) ?? '' } as Contexto
 }
 
 export async function dossieDaCliente(inscricaoId: string, agora: Date = new Date()): Promise<Dossie> {
@@ -201,7 +203,7 @@ export async function dossieDaCliente(inscricaoId: string, agora: Date = new Dat
   ])
 
   const catalogoDisponivel = catalogo.size > 0 && [...catalogo.values()].some((c) => c.status !== 'CATALOGO')
-  const contexto = lerContexto(insc.contexto)
+  const contexto = contextoMinimo(insc.nomeSnapshot)
   const passos: PassoDoFluxo[] = []
 
   // ═══ 1. A régua da Máquina ════════════════════════════════════════════════
@@ -231,7 +233,13 @@ export async function dossieDaCliente(inscricaoId: string, agora: Date = new Dat
     const nomeDoTemplate = m.templateNome ?? doMapa?.nome ?? null
     if (saiu && nomeDoTemplate) templatesQueSairam.add(nomeDoTemplate)
     const aprovado = nomeDoTemplate ? catalogo.get(nomeDoTemplate) : undefined
-    const valores = doMapa ? parametrosDoTemplate(doMapa, contexto).valores : []
+    // Os valores congelados na semeadura ganham: são os que a Meta recebe.
+    // `inscricao.contexto` é o RETRATO (itens, total), não o `Contexto` da copy.
+    const valores = Array.isArray(m.variaveis)
+      ? (m.variaveis as unknown[]).map((v) => String(v ?? ''))
+      : doMapa
+        ? parametrosDoTemplate(doMapa, contexto).valores
+        : []
 
     let texto = ''
     let textoOrigem: OrigemDoTextoNoFluxo
