@@ -18,6 +18,7 @@
 import prisma from '@/lib/prisma'
 import { INSCRICAO_STATUS, MENSAGEM_STATUS } from './config'
 import { pediuParaSair } from './opt-out'
+import { GATILHOS_INTOCAVEIS } from './cadencias-seed'
 
 export type ResultadoParadas = { avaliadas: number; paradas: number; detalhes: string[] }
 
@@ -117,7 +118,12 @@ async function pararInscricao(id: string, status: string, motivo: string, respon
 /** Varre as inscrições ATIVAS e aplica as paradas. LIMIT sempre com ORDER BY. */
 export async function rodarParadas(limite = 500): Promise<ResultadoParadas> {
   const ativas = await prisma.mvInscricao.findMany({
-    where: { status: INSCRICAO_STATUS.ATIVA },
+    // ⚠️ A campanha 10.10 fica de fora da VARREDURA (decisão do Owner em
+    //    04/10/2026: "não mexer em nada da campanha agora"). As ondas dela têm
+    //    o próprio motor (`campanha-datada.ts`), e cancelar mensagem AGENDADA
+    //    do d1 aqui mudaria o estado que o d2 usa para semear. A trava no
+    //    momento do envio (despachante) continua valendo para todas.
+    where: { status: INSCRICAO_STATUS.ATIVA, cadencia: { gatilho: { notIn: [...GATILHOS_INTOCAVEIS] } } },
     select: {
       id: true,
       telefoneKey: true,
