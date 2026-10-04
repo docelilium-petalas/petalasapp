@@ -448,6 +448,21 @@ export const CATALOGO: TemplateMeta[] = [
   },
 ]
 
+/**
+ * O template tem botão de URL com variável (`{{1}}`)? `null` = fora do catálogo.
+ *
+ * Existe por um defeito MEDIDO em produção: o despachante mandava o parâmetro
+ * do botão em toda etapa do carrinho — inclusive na `dl_carrinho_duvida_v1`,
+ * que não tem botão. A Meta recusa com 132018 e a cliente perde o 2º toque
+ * (2 erros em 15/09/2026; achado no nível 3 do porte, 04/10/2026). Botão
+ * estático também não leva parâmetro: o endereço já vai inteiro no template.
+ */
+export function temBotaoDeUrlVariavel(nome: string): boolean | null {
+  const t = CATALOGO.find((x) => x.nome === nome)
+  if (!t) return null
+  return (t.botoes ?? []).some((b) => b.tipo === 'URL' && !b.estatica && b.url.includes('{{1}}'))
+}
+
 /** Conferência barata antes de qualquer submissão. Roda em teste, não em runtime. */
 export function validarCatalogo(): string[] {
   const erros: string[] = []

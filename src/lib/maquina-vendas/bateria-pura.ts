@@ -12,7 +12,7 @@
  * redirecionava), 131049 que não encerra, cupom único MINHADL.
  */
 
-import { CATALOGO, VARIAVEIS, validarCatalogo } from './catalogo-templates'
+import { CATALOGO, VARIAVEIS, validarCatalogo, temBotaoDeUrlVariavel } from './catalogo-templates'
 import { CADENCIAS, GATILHOS_INTOCAVEIS, ehGatilhoDeCampanha } from './cadencias-seed'
 import { MODELOS_CADENCIA, rotuloDelay, slugificar } from './modelos'
 import {
@@ -34,7 +34,7 @@ import { condicaoDoCarrinho, CUPOM_UNICO } from './condicao'
 import { acaoDaFalha, ACAO, mudancasDoCorpo, statusesDoCorpo, mensagensRecebidas } from './entrega-meta'
 import { separarHandoffs, HORAS_DE_VALIDADE } from './handoff'
 import { liberadoParaEnvio, numerosDeTeste, INSCRICAO_STATUS } from './config'
-import { classificar, sufixoDoBotao } from './canal'
+import { classificar, sufixoDoBotao, componentesDoEnvio } from './canal'
 import { pediuParaSair } from './opt-out'
 import { falasDaClienteDepois, statusDaParada } from './paradas'
 import { GradeDeVagas } from './grade'
@@ -272,6 +272,16 @@ export function rodarBateriaPura(): ResultadoDaBateria {
     igual(statusesDoCorpo(achatado).map((s) => s.id), ['wamid.A'], 'status lido no envelope achatado')
     const recebida = { field: 'messages', value: { messages: [{ id: 'wamid.B', from: '5562999999999', timestamp: '1759575600', type: 'text', text: { body: 'oi' } }] } }
     igual(mensagensRecebidas(recebida).length, 1, 'mensagem recebida no envelope achatado')
+    // Parâmetro de botão só onde o template tem botão variável — o 2º toque do
+    // carrinho levava o parâmetro e a Meta recusava com 132018 (produção, 15/09).
+    const temBotao = (nome: string) =>
+      componentesDoEnvio({ templateNome: nome, variaveis: ['Ana'], urlBotao: 'https://www.docelilium.com.br/checkout/v3/x' })
+        .some((c) => (c as { type?: string }).type === 'button')
+    checa(temBotao('dl_carrinho_lembrete_v1'), 'carrinho 1º toque: leva o parâmetro do botão')
+    checa(!temBotao('dl_carrinho_duvida_v1'), 'carrinho 2º toque (sem botão): NÃO leva parâmetro — era o 132018')
+    checa(temBotao('dl_carrinho_ultimo_v2'), 'carrinho 3º toque: leva o parâmetro do botão')
+    checa(!temBotao('dl_drop_1010_chegou_v1'), 'botão estático: sem parâmetro')
+    checa(CATALOGO.every((t) => temBotaoDeUrlVariavel(t.nome) !== null), 'todo template do catálogo responde sim/não sobre o botão')
 
     // ─────────────────────────────────────────────────────────────────────────────
     grupo('12 · Atendimento humano — 12h num relógio só')

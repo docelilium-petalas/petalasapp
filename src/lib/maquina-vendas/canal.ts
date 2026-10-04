@@ -28,6 +28,7 @@
 import prisma from '@/lib/prisma'
 import { decryptField } from '@/lib/encryption'
 import { liberadoParaEnvio, numerosDeTeste } from './config'
+import { temBotaoDeUrlVariavel } from './catalogo-templates'
 
 export const BASE_DATAFY = 'https://cloud.datafyapi.com.br/v1'
 
@@ -218,9 +219,16 @@ export function sufixoDoBotao(url: string): string {
  * despachante, que é o único que sabe do teto do dia e do intervalo. Um retry
  * escondido aqui furaria os dois.
  */
-export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnvio> {
-  const cred = await obterCredenciaisCanal()
-
+/**
+ * Os `components` do template. Pura — a bateria do nível 1 prova por aqui.
+ *
+ * O parâmetro do botão só vai quando o template TEM botão de URL variável.
+ * O contexto da inscrição carrega a URL do carrinho para a régua inteira, mas
+ * só o 1º e o 3º toque têm botão: mandar o parâmetro no 2º fazia a Meta
+ * recusar com 132018 (ver `temBotaoDeUrlVariavel`). Template fora do catálogo
+ * (`null`) mantém o comportamento antigo: quem chamou sabe o que pediu.
+ */
+export function componentesDoEnvio(envio: Pick<EnvioTemplate, 'templateNome' | 'variaveis' | 'urlBotao'>): unknown[] {
   const componentes: unknown[] = []
   if (envio.variaveis.length) {
     componentes.push({
@@ -228,7 +236,7 @@ export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnv
       parameters: envio.variaveis.map((v) => ({ type: 'text', text: v })),
     })
   }
-  if (envio.urlBotao) {
+  if (envio.urlBotao && temBotaoDeUrlVariavel(envio.templateNome) !== false) {
     componentes.push({
       type: 'button',
       sub_type: 'url',
@@ -236,6 +244,13 @@ export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnv
       parameters: [{ type: 'text', text: sufixoDoBotao(envio.urlBotao) }],
     })
   }
+  return componentes
+}
+
+export async function enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnvio> {
+  const cred = await obterCredenciaisCanal()
+
+  const componentes = componentesDoEnvio(envio)
 
   const corpo = {
     messaging_product: 'whatsapp',
