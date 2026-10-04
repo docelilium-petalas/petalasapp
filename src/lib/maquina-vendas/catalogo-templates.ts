@@ -67,7 +67,7 @@ export type TemplateMeta = {
   categoria: CategoriaMeta
   idioma: 'pt_BR'
   /** Trilha da jornada a que pertence. Só documental. */
-  trilha: 'carrinho' | 'pedido' | 'pagamento' | 'pos_venda' | 'reativacao' | 'campanha'
+  trilha: 'carrinho' | 'pedido' | 'pagamento' | 'pos_venda' | 'reativacao' | 'campanha' | 'operacao'
   /** Quando este template é o certo. Lido por humano, não por código. */
   quando: string
   corpo: string
@@ -112,6 +112,8 @@ export const VARIAVEIS: Record<string, (keyof Contexto)[]> = {
   dl_drop_1010_save_the_date_v1: ['primeiro_nome'],
   dl_drop_1010_vespera_v1: ['primeiro_nome'],
   dl_drop_1010_chegou_v1: ['primeiro_nome'],
+  // Operação interna — nunca vai para cliente.
+  dl_relatorio_pronto_v1: [],
 }
 
 /**
@@ -422,6 +424,27 @@ export const CATALOGO: TemplateMeta[] = [
       SAIR,
     ],
     exemplos: ['Marina'],
+  },
+
+  // ── OPERAÇÃO · A PORTA DO BRIEFING (UTILITY) ─────────────────────────────
+  // Nunca vai para cliente: só para o número do briefing (`MV_BRIEFING_NUMERO`).
+  // Template entrega FORA da janela de 24h; o toque no botão de RESPOSTA
+  // RÁPIDA é mensagem de entrada e ABRE a janela — o relatório inteiro sai no
+  // tique seguinte. Botão de URL não serviria: tocar nele não manda mensagem.
+  // Sem variável de propósito: parâmetro errado é 132000 no dia em que a porta
+  // mais precisava abrir.
+  {
+    nome: 'dl_relatorio_pronto_v1',
+    categoria: 'UTILITY',
+    idioma: 'pt_BR',
+    trilha: 'operacao',
+    quando: '08:00, só quando o relatório do dia foi recusado por janela fechada (131047). Uma vez por dia.',
+    corpo:
+      'Bom dia! O resumo de hoje da Máquina de Vendas está pronto: quem recebe mensagem e quem merece um contato da equipe.\n\n' +
+      'Toque no botão abaixo para receber agora.',
+    rodape: 'Doce Lilium · CRM',
+    botoes: [{ tipo: 'QUICK_REPLY', texto: 'Quero ver' }],
+    exemplos: [],
   },
 ]
 

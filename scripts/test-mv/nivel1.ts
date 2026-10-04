@@ -55,8 +55,9 @@ const AMOSTRA: Record<string, string> = {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-grupo('1 · Catálogo dos 16 templates')
-igual(CATALOGO.length, 16, 'são 16 templates no catálogo')
+grupo('1 · Catálogo dos 17 templates')
+igual(CATALOGO.length, 17, 'são 17 templates no catálogo (16 de cliente + a porta do briefing)')
+igual(CATALOGO.filter((t) => t.trilha === 'operacao').map((t) => t.nome), ['dl_relatorio_pronto_v1'], 'só a porta do briefing é operação interna')
 igual(validarCatalogo(), [], 'o catálogo passa no próprio validador')
 for (const t of CATALOGO) {
   const vars = VARIAVEIS[t.nome] ?? []

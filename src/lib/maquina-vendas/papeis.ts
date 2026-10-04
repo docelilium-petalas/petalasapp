@@ -143,6 +143,13 @@ export const PAPEL_POR_TEMPLATE: Record<string, PapelDoTemplate> = {
     papel: 'Drop 10.10 · chegou',
     porque: 'Onda 3: o drop está no ar. Só para quem recebeu a onda 2.',
   },
+  // ── Operação interna (nunca vai para cliente) ───────────────────────────
+  dl_relatorio_pronto_v1: {
+    motor: 'transacional',
+    marco: 'BR',
+    papel: 'Porta do briefing',
+    porque: 'Só para o número do briefing: abre a janela de 24h quando o relatório das 08:00 foi recusado.',
+  },
 }
 
 /** O papel deste template, ou `null` quando ele não está mapeado. */
