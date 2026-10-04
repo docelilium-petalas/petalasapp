@@ -233,8 +233,11 @@ export function rampaLigada(): boolean {
  * chave que o resto do módulo já usa (`telefoneKey`), para o 9º dígito e o DDI
  * não decidirem quem passa.
  */
-export function numerosDeTeste(): string[] | null {
-  const bruto = (process.env.MV_NUMEROS_TESTE ?? '').trim()
+export function numerosDeTeste(valor: string | undefined = process.env.MV_NUMEROS_TESTE): string[] | null {
+  // O parâmetro existe para a bateria testar a leitura SEM mexer na env do
+  // processo: na aba Prontidão ela roda dentro do servidor, e trocar a env ali
+  // abriria a lista branca para um tique que rodasse no mesmo instante.
+  const bruto = (valor ?? '').trim()
   if (!bruto) return null
   const lista = bruto
     .split(/[,;\s]+/)

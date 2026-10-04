@@ -1,8 +1,11 @@
 /**
  * Kit mínimo da bateria da Máquina de Vendas — sem framework, como o resto de
- * `scripts/`. Cada nível chama `grupo()` e `checa()`; `fechar()` sai com 1 se
- * algo falhou, para o `npm run test:mv` quebrar de verdade.
+ * `scripts/`. O nível 1 vem pronto de `bateria-pura.ts` e só é impresso aqui;
+ * os níveis 2 e 3 chamam `grupo()` e `checa()` direto, e `fechar()` sai com 1
+ * se algo falhou, para o `npm run test:mv` quebrar de verdade.
  */
+
+import type { ResultadoDaBateria } from '../../src/lib/maquina-vendas/bateria-pura'
 
 let passou = 0
 let falhou = 0
@@ -52,6 +55,19 @@ export function fechar(nome: string): never {
     process.exit(1)
   }
   process.exit(0)
+}
+
+/** Imprime um resultado já coletado (o nível 1). Devolve `true` se tudo passou. */
+export function imprimirBateria(nome: string, r: ResultadoDaBateria): boolean {
+  for (const g of r.grupos) {
+    const marca = g.falhou ? '✗' : '✓'
+    console.log(`  ${marca} ${g.titulo.padEnd(58)} ${String(g.passou).padStart(3)} ok${g.falhou ? ` · ${g.falhou} falha(s)` : ''}`)
+    for (const f of g.falhas) console.log(`      ✗ ${f.oQue}${f.detalhe ? `\n        ${f.detalhe}` : ''}`)
+  }
+  console.log('\n' + '─'.repeat(70))
+  console.log(`${nome}: ${r.passou} passaram · ${r.falhou} falharam`)
+  if (r.parouEm) console.log(`  ✗ parou em ${r.parouEm}`)
+  return r.falhou === 0
 }
 
 /** Data na parede de São Paulo (UTC-3, sem horário de verão desde 2019). */

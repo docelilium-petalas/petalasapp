@@ -71,6 +71,12 @@ import {
   type DiaProgramado,
   type ItemProgramado,
 } from '@/lib/maquina-vendas/programacao'
+import { rodarBateriaPura, type ResultadoDaBateria } from '@/lib/maquina-vendas/bateria-pura'
+import {
+  CURSOR_BRIEFING,
+  CURSOR_DISJUNTOR,
+  CURSOR_PULSO_WEBHOOK,
+} from '@/lib/maquina-vendas/config'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // QUEM PODE
@@ -1272,6 +1278,148 @@ export async function getProgramacao(de: string, ate: string): Promise<Programac
 export async function getProgramacaoDoDia(dia: string): Promise<ItemProgramado[]> {
   await exigirAuth()
   return programacaoDoDia(prisma, dia)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRONTIDÃO — só admin, só leitura. NUNCA dispara mensagem.
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type ChecagemDeProntidao = {
+  id: string
+  titulo: string
+  /** `true` pronto · `false` não pronto · `null` não deu para medir agora. */
+  ok: boolean | null
+  detalhe: string
+  /** Falha grave = nada sai, ou sai errado. As demais são aviso. */
+  grave: boolean
+}
+
+export type Prontidao = {
+  bateria: ResultadoDaBateria
+  checagens: ChecagemDeProntidao[]
+  medidoEm: string
+}
+
+async function medir(id: string, titulo: string, grave: boolean, fn: () => Promise<{ ok: boolean | null; detalhe: string }>): Promise<ChecagemDeProntidao> {
+  try {
+    return { id, titulo, grave, ...(await fn()) }
+  } catch (e) {
+    // Não conseguir medir NÃO é verde.
+    return { id, titulo, grave, ok: null, detalhe: `não deu para medir: ${e instanceof Error ? e.message : String(e)}` }
+  }
+}
+
+export async function getProntidao(): Promise<Prontidao> {
+  await exigirAdmin()
+  const agora = new Date()
+  const bateria = rodarBateriaPura()
+
+  const checagens = await Promise.all([
+    medir('migracao', 'Banco migrado (paridade CarBoss)', true, async () => {
+      try {
+        await prisma.mvMensagem.findFirst({ select: { textoEntregue: true } })
+        await prisma.mvInscricao.findFirst({ select: { perfil: true } })
+        return { ok: true, detalhe: 'Colunas textoEntregue e perfil existem.' }
+      } catch (e) {
+        return { ok: false, detalhe: `A migration 20261004000001_mv_paridade_carboss não rodou: ${e instanceof Error ? e.message.slice(0, 160) : e}` }
+      }
+    }),
+    medir('canal', 'Canal oficial com credencial', true, async () => {
+      const { canalConfigurado } = await import('@/lib/maquina-vendas/canal')
+      const ok = await canalConfigurado()
+      return { ok, detalhe: ok ? 'Datafy configurada.' : 'Sem credencial da Datafy: nada sai.' }
+    }),
+    medir('numero', 'Número +55 62 9963-0120 saudável na Meta', true, async () => {
+      const { statusDoNumero, canalSaudavel } = await import('@/lib/maquina-vendas/datafy')
+      const s = await statusDoNumero()
+      if (!s) return { ok: null, detalhe: 'A Meta não respondeu.' }
+      return { ok: canalSaudavel(s), detalhe: `status ${s.status} · qualidade ${s.qualidade} · envio ${s.podeEnviar}` }
+    }),
+    medir('templates', 'Templates do catálogo aprovados', true, async () => {
+      const { statusDosTemplates } = await import('@/lib/maquina-vendas/canal')
+      const st = await statusDosTemplates()
+      if (!st) return { ok: null, detalhe: 'A Meta não devolveu a lista de templates.' }
+      const deCliente = CATALOGO.filter((t) => t.trilha !== 'operacao')
+      const faltam = deCliente.filter((t) => st.get(t.nome) !== 'APPROVED').map((t) => `${t.nome} (${st.get(t.nome) ?? 'não existe'})`)
+      const porta = CATALOGO.filter((t) => t.trilha === 'operacao').map((t) => `${t.nome}: ${st.get(t.nome) ?? 'não submetido'}`)
+      return {
+        ok: faltam.length === 0,
+        detalhe: `${deCliente.length - faltam.length}/${deCliente.length} de cliente aprovados${faltam.length ? ` · faltam: ${faltam.join(', ')}` : ''} · ${porta.join(' · ')}`,
+      }
+    }),
+    medir('disjuntor', 'Disjuntor do canal', true, async () => {
+      // Quando desarma, o vigia pausa o envio e assina `atualizadoPor = "disjuntor · CÓDIGO"`.
+      const linha = await prisma.mvAjustes.findUnique({ where: { id: 'unico' }, select: { envioPausado: true, atualizadoPor: true } })
+      const c = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_DISJUNTOR } })
+      const armado = !!linha?.envioPausado && (linha.atualizadoPor ?? '').startsWith('disjuntor')
+      return {
+        ok: !armado,
+        detalhe: armado
+          ? `O disjuntor puxou o freio (${linha?.atualizadoPor}). Ver o motivo no log antes de liberar.`
+          : c ? `fechado · último código visto: ${c.valor}` : 'fechado · nunca desarmou',
+      }
+    }),
+    medir('tique', 'Tique do relógio rodando', true, async () => {
+      const ultimo = await prisma.logEvento.findFirst({
+        where: { origem: 'maquina-vendas', tipo: { in: ['tique', 'tique_parcial', 'tique_falhou'] } },
+        orderBy: { createdAt: 'desc' },
+        select: { tipo: true, createdAt: true, titulo: true },
+      })
+      if (!ultimo) return { ok: false, detalhe: 'Nenhum tique registrado ainda.' }
+      const min = Math.round((agora.getTime() - ultimo.createdAt.getTime()) / 60_000)
+      if (ultimo.tipo !== 'tique') return { ok: false, detalhe: `Último tique (${min} min atrás) terminou como ${ultimo.tipo}: ${ultimo.titulo}` }
+      return { ok: min <= 15, detalhe: `último tique completo há ${min} min${min > 15 ? ' — o n8n parou de chamar?' : ''}` }
+    }),
+    medir('segredos', 'Segredos de ambiente presentes', true, async () => {
+      const faltam = ['CRON_SECRET', 'JWT_SECRET', 'APP_URL'].filter((k) => !process.env[k])
+      return { ok: faltam.length === 0, detalhe: faltam.length ? `faltam: ${faltam.join(', ')}` : 'CRON_SECRET, JWT_SECRET e APP_URL definidos (valores não exibidos).' }
+    }),
+    medir('lista', 'Lista de teste (MV_NUMEROS_TESTE)', false, async () => {
+      const l = numerosDeTeste()
+      if (l === null) return { ok: true, detalhe: 'Produção: sem lista, todas as clientes podem receber.' }
+      if (l.length === 0) return { ok: false, detalhe: 'A env existe mas nenhum número presta: NINGUÉM recebe (falha fechada).' }
+      return { ok: true, detalhe: `Modo teste: só ${l.map(mascarar).join(', ')} recebem. O resto é bloqueado e registrado.` }
+    }),
+    medir('pausa', 'Envio liberado', false, async () => {
+      const a = await obterAjustes()
+      return { ok: !a.envioPausado, detalhe: a.envioPausado ? 'Pausado na aba Ritmo e limites: a fila cresce e nada sai.' : resumoDoRitmo(a) }
+    }),
+    medir('alerta', 'Número de alerta do vigia', false, async () => {
+      const n = numeroDeAlerta()
+      return { ok: !!n, detalhe: n ? `alerta vai para ${mascarar(n)}` : 'MV_ALERTA_NUMERO ausente: o vigia freia mas só registra no log.' }
+    }),
+    medir('chatwoot', 'Chatwoot ligado', false, async () => {
+      const { faltasDoChatwoot } = await import('@/lib/maquina-vendas/chatwoot-api')
+      const f = faltasDoChatwoot()
+      return { ok: f.length === 0, detalhe: f.length ? `faltam: ${f.join(', ')} — sem nota no Chatwoot e sem etiqueta de equipe` : 'URL, conta, caixa e token presentes.' }
+    }),
+    medir('briefing', 'Briefing do dia', false, async () => {
+      const { numeroDoBriefing } = await import('@/lib/maquina-vendas/briefing')
+      const n = numeroDoBriefing()
+      const ultimo = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_BRIEFING } })
+      return { ok: !!n, detalhe: n ? `vai para ${mascarar(n)}${ultimo ? ` · último: ${ultimo.valor}` : ' · nunca enviado'}` : 'MV_BRIEFING_NUMERO ausente: o briefing não sai.' }
+    }),
+    medir('campanha', 'Drop 10.10 presente e intocado', true, async () => {
+      const cads = await prisma.mvCadencia.findMany({
+        where: { gatilho: { in: [...GATILHOS_INTOCAVEIS] } },
+        select: { gatilho: true, ativo: true, _count: { select: { inscricoes: true } } },
+        orderBy: { gatilho: 'asc' },
+      })
+      return {
+        ok: cads.length === GATILHOS_INTOCAVEIS.size,
+        detalhe: cads.map((c) => `${c.gatilho}: ${c._count.inscricoes} inscrita(s)${c.ativo ? '' : ' (desligada)'}`).join(' · ') || 'nenhuma cadência do drop encontrada',
+      }
+    }),
+    medir('pulso', 'Webhook da Meta chegando', false, async () => {
+      const ultimo = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_PULSO_WEBHOOK } })
+      const quando = ultimo ? new Date(ultimo.valor) : null
+      const horas = quando && !Number.isNaN(quando.getTime()) ? (agora.getTime() - quando.getTime()) / 3_600_000 : null
+      if (horas === null) return { ok: null, detalhe: 'Nenhum webhook registrado ainda.' }
+      return { ok: horas < 24, detalhe: `último webhook há ${horas < 1 ? `${Math.round(horas * 60)} min` : `${Math.round(horas)} h`}` }
+    }),
+  ])
+
+  return { bateria, checagens, medidoEm: agora.toISOString() }
 }
 
 export type ResumoDeHoje = {
