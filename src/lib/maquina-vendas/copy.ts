@@ -22,6 +22,8 @@
  * ══════════════════════════════════════════════════════════════════════════
  */
 
+import { PALAVRAS_PROIBIDAS, SAUDACOES_RETORICAS, SIGLAS_PERMITIDAS, ANUNCIOS_DE_ULTIMA } from './vocabulario'
+
 /** FNV-1a de 32 bits: hash pequeno, sem dependência, boa dispersão. */
 function hash(texto: string): number {
   let h = 2166136261
@@ -127,4 +129,145 @@ export function validarTemplate(template: string): string[] {
   }
 
   return erros
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PORTADO DA CARBOSS (04/10/2026) — vocativo, expansão e o validador da copy
+// FINAL. `validarTemplate` acima confere o esqueleto; `validarCopy` confere o
+// texto que a cliente lê, contra o vocabulário da loja.
+// ════════════════════════════════════════════════════════════════════════════
+
+export type ResultadoValidacao = { ok: boolean; erros: string[] }
+
+const normalizarTexto = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+/** Tokens que não servem como vocativo — medidos na CarBoss + os da loja. */
+const TOKENS_NAO_SAUDAVEIS = new Set([
+  'dr', 'dra', 'sr', 'sra', 'dona', 'seu', 'de', 'da', 'do', 'das', 'dos', 'e',
+  'desconhecido', 'sistema', 'contato', 'cliente', 'nome', 'teste', 'test', 'loja',
+  'boutique', 'moda', 'store', 'whatsapp', 'zap', 'lead', 'ltda', 'me', 'mei', 'eireli',
+])
+
+function pareceNomeDeGente(token: string): boolean {
+  const so = normalizarTexto(token)
+  return /^[a-z]{2,}$/.test(so) && /[aeiou]/.test(so)
+}
+
+/**
+ * Primeiro nome utilizável, em Title Case. **Vazio quando não há nome de gente**
+ * — devolver '' em vez de chutar é o que impede "Oi Loja, ..." de sair.
+ */
+export function primeiroNomeDeGente(nomeCompleto: string | null | undefined): string {
+  const bruto = String(nomeCompleto ?? '').trim()
+  if (!bruto) return ''
+  const tokens = bruto
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^\p{L}]+/u, '').replace(/[^\p{L}\p{M}]+$/u, ''))
+    .filter((t) => t.length > 0)
+  const util = tokens.find((t) => pareceNomeDeGente(t) && !TOKENS_NAO_SAUDAVEIS.has(normalizarTexto(t)))
+  if (!util) return ''
+  return util.charAt(0).toUpperCase() + util.slice(1).toLowerCase()
+}
+
+/** Tira o vocativo do esqueleto quando não há nome de gente para chamar. */
+export function removerVocativo(template: string): string {
+  return template
+    .replace(/Oi,? \{\{primeiro_nome\}\}([,!])/g, 'Oi$1')
+    .replace(/Olá,? \{\{primeiro_nome\}\}([,!])/g, 'Olá$1')
+    .replace(/\{\{primeiro_nome\}\}, (\p{Ll})/gu, (_m, letra: string) => letra.toUpperCase())
+}
+
+/**
+ * Última cerca contra vocativo errado — roda no ENVIO, sobre o texto pronto.
+ * Só mexe quando o snapshot NÃO é nome de gente E a palavra do vocativo está
+ * dentro dele (prova de que foi o gerador que a pôs ali).
+ */
+export function sanearVocativoResolvido(texto: string, nomeSnapshot: string): string {
+  if (primeiroNomeDeGente(nomeSnapshot)) return texto
+  const doNome = new Set(String(nomeSnapshot ?? '').split(/\s+/).map(normalizarTexto).filter(Boolean))
+  if (doNome.size === 0) return texto
+  const comOi = texto.match(/^(Oi|Olá),? ([\p{L}]+)([,!]) /u)
+  if (comOi && doNome.has(normalizarTexto(comOi[2]))) return `${comOi[1]}${comOi[3]} ${texto.slice(comOi[0].length)}`
+  const semOi = texto.match(/^([\p{L}]+), (\p{Ll})/u)
+  if (semOi && doNome.has(normalizarTexto(semOi[1]))) return semOi[2].toUpperCase() + texto.slice(semOi[0].length)
+  return texto
+}
+
+/** TODAS as saídas possíveis de um esqueleto — o seed valida todas, não uma. */
+export function expandirVariantes(texto: string): string[] {
+  const bloco = /\[\[([^\]]+)\]\]/.exec(texto)
+  if (!bloco) return [texto]
+  const opcoes = bloco[1].split('|').map((o) => o.trim()).filter((o) => o.length > 0)
+  if (opcoes.length === 0) throw new Error('bloco de variação vazio')
+  return opcoes.flatMap((o) => expandirVariantes(texto.slice(0, bloco.index) + o + texto.slice(bloco.index + bloco[0].length)))
+}
+
+/** Escolha de variante da origem; aqui delega à mesma função de `montarCopy`. */
+export function resolverVariantes(texto: string, semente: string): string {
+  return resolverVariacoes(texto, semente)
+}
+
+/**
+ * Tetos da loja. A CarBoss usa 5 linhas e 2 emojis; a Doce Lilium escreve com
+ * laço e coração (🎀 💖 🤍) e quebra linha para respirar — medido contra os 16
+ * aprovados: o maior tem 7 linhas, e o `dl_drop_1010_chegou_v1` leva 5 emojis
+ * (🎀🎀🎀 é a assinatura do drop). O teto descreve o que a Meta já aprovou.
+ */
+const MAX_LINHAS = 7
+const MAX_EMOJIS = 5
+
+function ehSoSaudacao(linha: string): boolean {
+  const norm = normalizarTexto(linha)
+  return SAUDACOES_RETORICAS.some((s) => norm.includes(normalizarTexto(s)))
+}
+
+/** No máximo UM pedido. Na loja a mensagem transacional pode não ter pedido. */
+function errosDePedido(linhas: string[], exigirPedido: boolean): string[] {
+  const pedidos = linhas
+    .map((l, i) => (l.includes('?') ? i : -1))
+    .filter((i) => i >= 0)
+    .filter((i) => i !== 0 || linhas.length === 1 || !ehSoSaudacao(linhas[0]))
+  if (pedidos.length === 0) return exigirPedido ? ['nenhum pedido — a mensagem de marketing fecha com uma pergunta'] : []
+  if (pedidos.length > 1) return [`${pedidos.length} pedidos (no máximo 1) — nas linhas ${pedidos.map((i) => i + 1).join(', ')}`]
+  return []
+}
+
+/** Checklist do texto FINAL contra o vocabulário e o formato da loja. */
+export function validarCopy(texto: string, opts: { ehUltima: boolean; exigirPedido?: boolean }): ResultadoValidacao {
+  const erros: string[] = []
+  const norm = normalizarTexto(texto)
+
+  for (const { termo, motivo } of PALAVRAS_PROIBIDAS) {
+    const t = normalizarTexto(termo)
+    // Palavra inteira: "lead" não pode reprovar "leadership" nem "funil" "funileiro".
+    if (new RegExp(`(^|[^a-z])${t.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')}([^a-z]|$)`).test(norm)) {
+      erros.push(`palavra proibida "${termo}" (${motivo})`)
+    }
+  }
+
+  const linhas = texto.split('\n').filter((l) => l.trim().length > 0)
+  if (linhas.length > MAX_LINHAS) erros.push(`${linhas.length} linhas (máx. ${MAX_LINHAS})`)
+
+  const emojis = texto.match(/\p{Extended_Pictographic}/gu) ?? []
+  if (emojis.length > MAX_EMOJIS) erros.push(`${emojis.length} emojis (máx. ${MAX_EMOJIS} por mensagem)`)
+
+  erros.push(...errosDePedido(linhas, opts.exigirPedido ?? false))
+
+  if (texto.includes('!!')) erros.push('usa "!!"')
+  for (const caps of texto.match(/\p{Lu}{3,}/gu) ?? []) {
+    if (!SIGLAS_PERMITIDAS.has(caps)) erros.push(`CAPS em palavra comum: "${caps}"`)
+  }
+  if (/^\s*([-•]|\d+\.)\s/m.test(texto)) erros.push('usa bullet — parece disparo em massa')
+  if (/\*\*/.test(texto)) erros.push('usa negrito markdown (no WhatsApp é *um asterisco*)')
+  if (/\{\{\w+\}\}/.test(texto)) erros.push('sobrou placeholder no texto')
+  if (/\[\[|\]\]/.test(texto)) erros.push('sobrou bloco de variação no texto')
+  if (opts.ehUltima && !ANUNCIOS_DE_ULTIMA.some((a) => norm.includes(normalizarTexto(a)))) {
+    erros.push('última mensagem não se anuncia como última')
+  }
+  return { ok: erros.length === 0, erros }
+}
+
+/** Dinheiro como a loja escreve: R$ 189,90. */
+export function formatarDinheiro(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/ /g, ' ')
 }
