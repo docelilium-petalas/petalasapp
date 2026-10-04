@@ -154,7 +154,7 @@ export const CATALOGO: TemplateMeta[] = [
       'O primeiro toque não vende: só devolve o link.',
     corpo:
       'Oi, {{1}}! Vi que você deixou {{2}} no carrinho aqui na Doce Lilium 🌸\n\n' +
-      'Guardei tudo pra você. É só tocar no botão abaixo que ele volta do jeitinho que estava.',
+      'Guardei tudo pra você. É só tocar no botão abaixo que ele volta do jeitinho que estava! 🥰',
     rodape: 'Doce Lilium',
     botoes: [
       { tipo: 'URL', texto: 'Voltar ao carrinho', url: '{{1}}', exemplo: 'https://docelilium.com.br/checkout/ab/abc123' },
@@ -171,7 +171,7 @@ export const CATALOGO: TemplateMeta[] = [
       '24h depois do primeiro toque SAIR, não do abandono. A hipótese muda: ' +
       'não foi distração, foi dúvida. Pergunta em vez de insistir.',
     corpo:
-      'Oi, {{1}}! Passando de novo aqui sobre {{2}} 💗\n\n' +
+      'Oi, {{1}}! Passando de novo por causa do {{2}} 💗\n\n' +
       'Ficou alguma dúvida de tamanho, cor ou prazo de entrega? Me conta aqui que eu te ajudo a escolher.',
     rodape: 'Doce Lilium',
     botoes: [{ tipo: 'QUICK_REPLY', texto: 'Tenho uma dúvida' }, SAIR],
@@ -231,7 +231,7 @@ export const CATALOGO: TemplateMeta[] = [
     quando: 'PIX gerado e não pago. Submetido como utility; a Meta reclassificou — segue as regras de marketing.',
     corpo:
       'Oi, {{1}}! O PIX do seu pedido {{2}} ainda está aguardando pagamento.\n\n' +
-      'Ele expira em {{3}}, e depois disso as peças voltam pro estoque. Se precisar de um novo código, é só me chamar.',
+      'Ele expira em {{3}}, e depois disso as peças voltam pro estoque. Se precisar de um novo código, é só me chamar!🥰',
     rodape: 'Doce Lilium',
     exemplos: ['Marina', '#1042', '30 minutos'],
   },
@@ -254,8 +254,8 @@ export const CATALOGO: TemplateMeta[] = [
     trilha: 'pedido',
     quando: 'Disparado por `order/fulfilled` ou `fulfillment_order/status_updated`.',
     corpo:
-      'Oi, {{1}}! Seu pedido {{2}} saiu pra viagem 📦\n\n' +
-      'O código de rastreio é {{3}}. Dá pra acompanhar cada passo até chegar na sua porta.',
+      'Oi, {{1}}! Seu pedido {{2}} saiu pra viagem! 📦✅\n\n' +
+      'O código de rastreio é {{3}}. Dá pra acompanhar cada passo até chegar na sua porta!',
     rodape: 'Doce Lilium',
     botoes: [
       {
@@ -275,8 +275,8 @@ export const CATALOGO: TemplateMeta[] = [
     trilha: 'pedido',
     quando: 'Entrega confirmada pela transportadora.',
     corpo:
-      'Oi, {{1}}! Seu pedido {{2}} foi entregue 🤍\n\n' +
-      'Espero que você ame tanto quanto a gente amou preparar. Qualquer coisa com o tamanho ou a peça, me chama aqui mesmo.',
+      'Oi, {{1}}! Seu pedido {{2}} foi entregue 💖\n\n' +
+      'Espero que você ame tanto quanto a gente amou preparar. Qualquer coisa com o tamanho ou a peça, me chama aqui mesmo!',
     rodape: 'Doce Lilium',
     exemplos: ['Marina', '#1042'],
   },
@@ -297,7 +297,7 @@ export const CATALOGO: TemplateMeta[] = [
       'mas a Meta reclassifica pedido de avaliação como MARKETING com frequência. ' +
       'Se vier reclassificado, ACEITE — não resubmeta como utility.',
     corpo:
-      'Oi, {{1}}! Já deu tempo de estrear {{2}}? 💗\n\n' +
+      'Oi, {{1}}! Já deu tempo de estrear {{2}}? 💖\n\n' +
       'Queria muito saber o que você achou — do caimento, do tecido, de tudo. Sua opinião ajuda a próxima cliente a escolher.',
     rodape: 'Doce Lilium',
     botoes: [{ tipo: 'QUICK_REPLY', texto: 'Deixar minha opinião' }],
@@ -310,7 +310,7 @@ export const CATALOGO: TemplateMeta[] = [
     trilha: 'pos_venda',
     quando: 'A cliente pediu troca ou devolução. Resposta a solicitação dela — utility sem ambiguidade.',
     corpo:
-      'Oi, {{1}}! Recebi seu pedido de troca do {{2}} e já deixei tudo encaminhado.\n\n' +
+      'Oi, {{1}}! Recebi seu pedido de troca do {{2}} e já deixei tudo encaminhado!😉\n\n' +
       'Você tem {{3}} pra postar a peça, e assim que ela chegar aqui eu envio a nova. Te mando o código de postagem em seguida.',
     rodape: 'Doce Lilium',
     exemplos: ['Marina', '#1042', '7 dias'],
@@ -341,7 +341,7 @@ export const CATALOGO: TemplateMeta[] = [
     quando: 'Lançamento de coleção, para a base com opt-in. O de maior alcance e o de maior risco de bloqueio.',
     corpo:
       'Oi, {{1}}! A coleção {{2}} acabou de entrar no ar ✨\n\n' +
-      'São peças em tiragem pequena, e as favoritas costumam sair rápido. Te deixo o link pra ver antes de todo mundo.',
+      'São peças exclusivas e nosso estoque é reduzido! As favoritas costumam sair rápido. Te deixo o link pra ver antes de todo mundo.',
     rodape: 'Doce Lilium',
     botoes: [
       { tipo: 'URL', texto: 'Ver antes de todo mundo', url: '{{1}}', exemplo: 'https://docelilium.com.br/colecoes/primavera' },
@@ -356,8 +356,8 @@ export const CATALOGO: TemplateMeta[] = [
     trilha: 'reativacao',
     quando: 'Peça que ela viu ou salvou voltou ao estoque. O marketing de melhor conversão, porque a intenção é dela.',
     corpo:
-      'Oi, {{1}}! Boa notícia: {{2}} voltou pro estoque 🤍\n\n' +
-      'Como você tinha demonstrado interesse, quis te avisar antes de anunciar pra base toda.',
+      'Oi, {{1}}! Boa notícia: {{2}} voltou pro estoque! 💖\n\n' +
+      'Como você tinha demonstrado interesse, quis te avisar antes de anunciar pra as outras clientes!',
     rodape: 'Doce Lilium',
     botoes: [
       { tipo: 'URL', texto: 'Ver a peça', url: '{{1}}', exemplo: 'https://docelilium.com.br/produtos/vestido-alicia' },
