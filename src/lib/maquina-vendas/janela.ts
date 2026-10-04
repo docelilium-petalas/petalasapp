@@ -165,6 +165,13 @@ export const formatarHoraSP = (i: Date) => {
   return `${dois(p.hora)}:${dois(p.minuto)}`
 }
 
+/** O tique do cron roda de 5 em 5 minutos (EasyPanel). Servidor e tela usam este número. */
+export const CRON_MINUTOS = 5
+/** Uma mensagem por tique: espalhar é o que protege o número. */
+export const MENSAGENS_POR_TIQUE = 1
+/** Teto diário máximo aceito — de propósito: um número já foi bloqueado por volume. */
+export const TETO_DIARIO_MAXIMO = 200
+
 /**
  * QUANTAS MENSAGENS CABEM NO DIA — o limite que o RELÓGIO impõe.
  *

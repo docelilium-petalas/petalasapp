@@ -51,11 +51,19 @@ import { listarConversas, type FiltroDeConversas } from '@/lib/maquina-vendas/co
 import { dossieDaCliente } from '@/lib/maquina-vendas/dossie'
 import { CopyIncompleta, expandirVariantes, montarCopy, validarCopy, validarTemplate } from '@/lib/maquina-vendas/copy'
 import { resincronizarCopy } from '@/lib/maquina-vendas/resincronizar'
-import { capacidadeDoDia, distribuirNaJanela, inicioDoDiaSP, parseJanela } from '@/lib/maquina-vendas/janela'
+import {
+  CRON_MINUTOS,
+  MENSAGENS_POR_TIQUE,
+  TETO_DIARIO_MAXIMO,
+  capacidadeDoDia,
+  distribuirNaJanela,
+  inicioDoDiaSP,
+  parseJanela,
+} from '@/lib/maquina-vendas/janela'
 import { observarCarrinhosAbandonados } from '@/lib/maquina-vendas/observador'
 import { observarColunas } from '@/lib/maquina-vendas/observador-colunas'
 import { rodarParadas } from '@/lib/maquina-vendas/paradas'
-import { CATALOGO, VARIAVEIS } from '@/lib/maquina-vendas/catalogo-templates'
+import { CATALOGO, problemaParaColuna } from '@/lib/maquina-vendas/catalogo-templates'
 import { ehGatilhoDeCampanha, GATILHOS_INTOCAVEIS } from '@/lib/maquina-vendas/cadencias-seed'
 import { montarFilaDeAtencao, type FilaDeAtencao } from '@/lib/maquina-vendas/atencao'
 import { medirDesempenhoPorToque, type DesempenhoPorToque } from '@/lib/maquina-vendas/desempenho-toque'
@@ -112,6 +120,15 @@ async function souAdmin(): Promise<boolean> {
   }
 }
 
+/**
+ * A tela usa isto só para ESCONDER o que a pessoa não pode fazer (editar ritmo,
+ * cadência, abrir a Prontidão). Quem barra de verdade é o servidor: toda ação
+ * de escrita chama `exigirAdmin` por conta própria.
+ */
+export async function getSouAdmin(): Promise<boolean> {
+  return souAdmin()
+}
+
 /** `true` quando o erro é "a tabela não existe" — Postgres 42P01. */
 function tabelaAusente(e: unknown): boolean {
   const msg = e instanceof Error ? e.message : String(e)
@@ -121,8 +138,6 @@ function tabelaAusente(e: unknown): boolean {
 const mascarar = mascararTelefone
 const POR_PAGINA = 30
 /** O n8n chama o tique de 5 em 5 min, e o despachante manda 1 por tique. */
-const CRON_MINUTOS = 5
-const MENSAGENS_POR_TIQUE = 1
 /** Mais que isso numa cadência é perseguição — a CarBoss usa 5, a régua DL mais longa tem 3. */
 const TETO_POR_CADENCIA = 5
 
@@ -644,18 +659,8 @@ export type CadenciaInput = {
   etapas: EtapaInput[]
 }
 
-/** O que o funil sabe da cliente na hora de inscrever (`observador-colunas`). */
-const VARIAVEIS_DO_FUNIL = new Set(['primeiro_nome'])
-
-function problemaDoTemplate(nome: string): string | null {
-  const t = CATALOGO.find((c) => c.nome === nome)
-  if (!t) return `"${nome}" não está no catálogo de templates.`
-  if (nome.startsWith('dl_drop_')) return `"${nome}" é da campanha do drop e não pode ser usado em outra régua.`
-  if (!VARIAVEIS[nome] || VARIAVEIS[nome].length === 0) return `"${nome}" é de uso interno da equipe.`
-  const falta = VARIAVEIS[nome].filter((v) => !VARIAVEIS_DO_FUNIL.has(v))
-  if (falta.length) return `"${nome}" precisa de ${falta.join(', ')}, que um card do funil não tem.`
-  return null
-}
+/** Mesma regra da tela: `problemaParaColuna` mora no catálogo, que é puro. */
+const problemaDoTemplate = problemaParaColuna
 
 /**
  * A prévia de cada etapa, com os erros que a impediriam de ser salva. A tela
@@ -1149,7 +1154,8 @@ function validarRitmo(a: { tetoDiario: number; intervaloMinMinutos: number; inte
   const teto = Math.trunc(Number(a.tetoDiario))
   const min = Math.trunc(Number(a.intervaloMinMinutos))
   const max = Math.trunc(Number(a.intervaloMaxMinutos))
-  if (!Number.isFinite(teto) || teto < 1 || teto > 1000) throw new Error('Teto diário fora do razoável (1 a 1000).')
+  if (!Number.isFinite(teto) || teto < 1 || teto > TETO_DIARIO_MAXIMO)
+    throw new Error(`Teto diário fora do aceito (1 a ${TETO_DIARIO_MAXIMO}). O limite é de propósito: número já foi bloqueado por volume.`)
   if (!Number.isFinite(min) || min < 1) throw new Error('O intervalo mínimo tem que ser ao menos 1 minuto.')
   if (!Number.isFinite(max) || max > 240) throw new Error('O intervalo máximo passou de 4 horas.')
   if (min > max) throw new Error('O intervalo mínimo ficou maior que o máximo.')

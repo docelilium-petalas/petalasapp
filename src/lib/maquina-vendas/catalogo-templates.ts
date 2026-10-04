@@ -509,3 +509,34 @@ export function validarCatalogo(): string[] {
   }
   return erros
 }
+
+// ── O que cabe numa cadência de COLUNA DO FUNIL ─────────────────────────────
+/**
+ * Um card do funil só sabe o nome da cliente. Template que pede peça, pedido,
+ * prazo ou coleção quebraria na hora do envio — então nem entra na lista.
+ * Servidor (validarEtapasCadencia) e tela (modal da cadência) usam ESTA função:
+ * a tela não pode oferecer o que o servidor vai recusar.
+ */
+export const VARIAVEIS_DO_FUNIL: ReadonlySet<string> = new Set(['primeiro_nome'])
+
+export function problemaParaColuna(nome: string): string | null {
+  const t = CATALOGO.find((c) => c.nome === nome)
+  if (!t) return `"${nome}" não está no catálogo de templates.`
+  if (nome.startsWith('dl_drop_')) return `"${nome}" é da campanha do drop e não pode ser usado em outra régua.`
+  if (!VARIAVEIS[nome] || VARIAVEIS[nome].length === 0) return `"${nome}" é de uso interno da equipe.`
+  const falta = VARIAVEIS[nome].filter((v) => !VARIAVEIS_DO_FUNIL.has(v))
+  if (falta.length) return `"${nome}" precisa de ${falta.join(', ')}, que um card do funil não tem.`
+  return null
+}
+
+/** Os templates que uma cadência de coluna pode usar, e por que os outros não. */
+export function templatesParaColuna(): { cabem: TemplateMeta[]; naoCabem: Array<{ nome: string; motivo: string }> } {
+  const cabem: TemplateMeta[] = []
+  const naoCabem: Array<{ nome: string; motivo: string }> = []
+  for (const t of CATALOGO) {
+    const p = problemaParaColuna(t.nome)
+    if (p) naoCabem.push({ nome: t.nome, motivo: p })
+    else cabem.push(t)
+  }
+  return { cabem, naoCabem }
+}
