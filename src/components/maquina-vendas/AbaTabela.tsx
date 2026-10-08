@@ -28,11 +28,17 @@ type Linha = Tabela['linhas'][number]
 
 export function AbaTabela({
   indicador,
+  periodo,
   limparIndicador,
+  verTudo,
   aoMudar,
 }: {
   indicador: string
+  /** O período do painel — a tabela segue o mesmo filtro que os cartões. `null` = tudo. */
+  periodo: { de: string; ate: string } | null
   limparIndicador: () => void
+  /** Troca o período do painel para "tudo". */
+  verTudo: () => void
   /** O painel de cima recarrega depois de pausar/retomar/cancelar. */
   aoMudar: () => void
 }) {
@@ -48,20 +54,28 @@ export function AbaTabela({
   const [aberta, setAberta] = useState<string | null>(null)
   const [agindo, setAgindo] = useState<string | null>(null)
 
-  // Trocar de recorte volta para a página 1 (ajuste durante a renderização, sem efeito).
-  const [indicadorVisto, setIndicadorVisto] = useState(indicador)
-  if (indicadorVisto !== indicador) {
-    setIndicadorVisto(indicador)
+  // Trocar de recorte ou de período volta para a página 1 (ajuste durante a renderização, sem efeito).
+  const periodoChave = periodo ? `${periodo.de}|${periodo.ate}` : 'tudo'
+  const [recorteVisto, setRecorteVisto] = useState(`${indicador}#${periodoChave}`)
+  if (recorteVisto !== `${indicador}#${periodoChave}`) {
+    setRecorteVisto(`${indicador}#${periodoChave}`)
     setPagina(1)
   }
 
-  const chave = JSON.stringify([buscaAplicada, filtroMsg, filtroInsc, indicador, pagina])
+  const chave = JSON.stringify([buscaAplicada, filtroMsg, filtroInsc, indicador, periodoChave, pagina])
   const carregando = chaveCarregada !== chave
 
   const carregar = useCallback(async () => {
+    const minhaChave = JSON.stringify([buscaAplicada, filtroMsg, filtroInsc, indicador, periodoChave, pagina])
     try {
       const t = await getMvTabela(
-        { busca: buscaAplicada, statusMensagem: filtroMsg, statusInscricao: filtroInsc, indicador: indicador || undefined },
+        {
+          busca: buscaAplicada,
+          statusMensagem: filtroMsg,
+          statusInscricao: filtroInsc,
+          indicador: indicador || undefined,
+          periodo: periodoChave === 'tudo' ? null : { de: periodoChave.split('|')[0], ate: periodoChave.split('|')[1] },
+        },
         pagina,
       )
       setDados(t)
@@ -69,9 +83,9 @@ export function AbaTabela({
     } catch (e) {
       setErro(erroDe(e))
     } finally {
-      setChaveCarregada(JSON.stringify([buscaAplicada, filtroMsg, filtroInsc, indicador, pagina]))
+      setChaveCarregada(minhaChave)
     }
-  }, [buscaAplicada, filtroMsg, filtroInsc, indicador, pagina])
+  }, [buscaAplicada, filtroMsg, filtroInsc, indicador, periodoChave, pagina])
 
   useEffect(() => {
     // Busca reagindo aos filtros: o setState acontece depois do await, nao no corpo do
@@ -162,7 +176,8 @@ export function AbaTabela({
         <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 flex items-start justify-between gap-3">
           <div className="text-xs min-w-0">
             <p className="text-foreground">
-              Recorte: <strong>{dados.recorte.rotulo}</strong> · {dados.total}{' '}
+              Recorte: <strong>{dados.recorte.rotulo}</strong>
+              {dados.recorte.retrato ? ' · agora' : ` · ${dados.periodo.rotulo}`} · {dados.total}{' '}
               {dados.recorte.unidade === 'pessoa' ? 'mensagem(ns) das clientes deste recorte' : 'mensagem(ns)'}
             </p>
             <p className="text-muted-foreground mt-0.5">{dados.recorte.ajuda}</p>
@@ -171,6 +186,14 @@ export function AbaTabela({
             <X className="w-3.5 h-3.5" /> Tirar recorte
           </button>
         </div>
+      )}
+      {dados && !dados.recorte && dados.periodo.de && (
+        <p className="text-xs text-muted-foreground">
+          Mostrando as mensagens que saíram ou estavam marcadas para <strong className="text-foreground">{dados.periodo.rotulo}</strong>.{' '}
+          <button className="underline text-foreground cursor-pointer min-h-10" onClick={verTudo}>
+            Ver todo o período
+          </button>
+        </p>
       )}
       {filtroMsg === FILTRO_MSG_REGUA && (dados?.ocultas ?? 0) > 0 && (
         <p className="text-xs text-muted-foreground">

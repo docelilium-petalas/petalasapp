@@ -56,7 +56,7 @@ export interface Proporcao {
   rotuloBase: string
 }
 
-export function CartaoIndicador({ rotulo, valor, tom = 'neutro', ativo = false, ajuda, proporcao, onClick }: {
+export function CartaoIndicador({ rotulo, valor, tom = 'neutro', ativo = false, ajuda, proporcao, onClick, selo }: {
   rotulo: string
   valor: number | string
   tom?: TomIndicador
@@ -64,6 +64,8 @@ export function CartaoIndicador({ rotulo, valor, tom = 'neutro', ativo = false, 
   ajuda?: string
   proporcao?: Proporcao | null
   onClick?: () => void
+  /** Marca curta no canto (ex.: "agora" num cartão que não segue o período). */
+  selo?: string
 }) {
   const numero = typeof valor === 'number' ? valor : Number(String(valor).split('/')[0])
   const aceso = Number.isFinite(numero) ? numero > 0 : true
@@ -79,7 +81,10 @@ export function CartaoIndicador({ rotulo, valor, tom = 'neutro', ativo = false, 
 
   const conteudo = (
     <>
-      <p className="ocr-label truncate" title={rotulo}>{rotulo}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="ocr-label truncate" title={rotulo}>{rotulo}</p>
+        {selo && <span className="shrink-0 text-[10px] leading-none px-1.5 py-1 rounded-md bg-muted text-muted-foreground">{selo}</span>}
+      </div>
       <p className={`mt-1.5 text-xl font-semibold tabular leading-none ${aceso ? COR_DO_TOM[tomAtivo] : 'text-muted-foreground'}`}>{valor}</p>
       {pct !== null && <p className="mt-1.5 text-[11px] leading-none text-muted-foreground tabular">{pct}% de {p!.rotuloBase}</p>}
       {pct !== null && (

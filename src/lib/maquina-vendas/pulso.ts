@@ -10,6 +10,13 @@
  *   sem carimbo de chamada → a Datafy não chama (painel: assinatura/URL)
  *   chama, `casados: 0`    → status chega e o wamid não é nosso (código)
  *   `casados > 0`          → a volta está fechada
+ *
+ * Silêncio só é defeito quando havia o que ouvir (08/10/2026). A Datafy só
+ * chama quando há status ou mensagem de cliente; sem nada sair, horas sem
+ * chamada são o esperado — e o painel gritava "mudo" em vermelho no meio de
+ * uma pausa planejada entre ondas de campanha. Agora: saiu mensagem depois da
+ * última chamada e nada voltou em 15 min → mudo (crítico); não saiu nada →
+ * "canal quieto", que só vira atenção depois de uma semana sem chamada.
  */
 
 import prisma from '@/lib/prisma'
@@ -18,6 +25,8 @@ import { SILENCIO_SUSPEITO_MS } from './prova'
 
 const MUDO_MS = 6 * 60 * 60 * 1000
 const JANELA_SEM_PROVA_MS = 7 * 24 * 60 * 60 * 1000
+/** Sem nada sair, o silêncio só vira atenção depois disto. */
+const QUIETO_DEMAIS_MS = 7 * 24 * 60 * 60 * 1000
 
 export interface PulsoDoCanal {
   nivel: 'ok' | 'atencao' | 'critico'
@@ -78,13 +87,19 @@ async function medirSemProva(agora: Date): Promise<number> {
 }
 
 export async function lerPulsoDoCanal(agora: Date = new Date()): Promise<PulsoDoCanal> {
-  const [chamada, status, semProva, jaConfirmou] = await Promise.all([
+  const [chamada, status, semProva, jaConfirmou, ultima] = await Promise.all([
     lerCarimbo(CURSOR_PULSO_WEBHOOK),
     lerCarimbo(CURSOR_PULSO_STATUS),
     medirSemProva(agora),
     prisma.mvMensagem.count({ where: { entregueEm: { not: null } } }),
+    // Só o que saiu de verdade pela Cloud API (tem wamid) espera status de volta.
+    prisma.mvMensagem.findFirst({
+      where: { idExterno: { not: null }, enviadaEm: { not: null } },
+      orderBy: { enviadaEm: 'desc' },
+      select: { enviadaEm: true },
+    }),
   ])
-  return avaliarPulso({ chamada, status, semProva, jaConfirmou, agora })
+  return avaliarPulso({ chamada, status, semProva, jaConfirmou, agora, ultimoEnvio: ultima?.enviadaEm ?? null })
 }
 
 /** Puro: a leitura a partir dos carimbos e contagens. */
@@ -94,8 +109,10 @@ export function avaliarPulso(e: {
   semProva: number
   jaConfirmou: number
   agora: Date
+  /** Último envio com wamid. `undefined` = não medido (mantém a regra antiga, só por tempo). */
+  ultimoEnvio?: Date | null
 }): PulsoDoCanal {
-  const { chamada, status, semProva, jaConfirmou, agora } = e
+  const { chamada, status, semProva, jaConfirmou, agora, ultimoEnvio } = e
   const base = {
     ultimaChamada: chamada?.em.toISOString() ?? null,
     ultimaConfirmacao: status?.em.toISOString() ?? null,
@@ -116,14 +133,45 @@ export function avaliarPulso(e: {
     }
   }
 
-  if (agora.getTime() - chamada.em.getTime() > MUDO_MS) {
+  const silencio = agora.getTime() - chamada.em.getTime()
+  if (silencio > MUDO_MS && ultimoEnvio !== undefined) {
+    const saiuDepois = !!ultimoEnvio && ultimoEnvio.getTime() > chamada.em.getTime()
+    if (!saiuDepois) {
+      const demais = silencio > QUIETO_DEMAIS_MS
+      return {
+        ...base,
+        nivel: demais ? 'atencao' : 'ok',
+        titulo: 'Canal quieto — nada saiu desde a última chamada',
+        detalhe:
+          `A última chamada da Datafy foi ${quando(chamada.em, agora)}` +
+          (ultimoEnvio ? ` e o último envio ${quando(ultimoEnvio, agora)}` : '') +
+          '. Sem mensagem saindo não há status para voltar, então o silêncio é o esperado. ' +
+          'O próximo envio prova o cano: se em 15 min nada voltar, esta faixa fica vermelha.' +
+          (demais ? ' Faz mais de uma semana sem nenhuma chamada — nem resposta de cliente.' : ''),
+      }
+    }
+    if (agora.getTime() - ultimoEnvio!.getTime() <= SILENCIO_SUSPEITO_MS) {
+      return {
+        ...base,
+        nivel: 'atencao',
+        titulo: 'Aguardando a primeira confirmação do envio',
+        detalhe:
+          `Saiu mensagem ${quando(ultimoEnvio!, agora)}, depois de um silêncio desde ${quando(chamada.em, agora)}. ` +
+          'A Meta costuma devolver o status em segundos; se nada chegar em 15 min, o canal está mudo.',
+      }
+    }
+  }
+
+  if (silencio > MUDO_MS) {
     return {
       ...base,
       nivel: 'critico',
       titulo: 'O canal está mudo',
       detalhe:
-        `A última chamada da Datafy foi ${quando(chamada.em, agora)}. Nada chega há mais de ` +
-        `${Math.floor(MUDO_MS / 3_600_000)}h — nem confirmação de entrega, nem resposta de cliente.`,
+        `A última chamada da Datafy foi ${quando(chamada.em, agora)}` +
+        (ultimoEnvio ? `, e depois dela saiu mensagem ${quando(ultimoEnvio, agora)} sem nenhum status de volta` : '') +
+        `. Nada chega há mais de ${Math.floor(MUDO_MS / 3_600_000)}h — nem confirmação de entrega, nem resposta de cliente. ` +
+        'Conferir no painel da Datafy a assinatura do webhook para /api/webhook/whatsapp.',
     }
   }
 

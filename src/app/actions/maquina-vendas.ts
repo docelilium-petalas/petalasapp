@@ -40,7 +40,7 @@ import {
 } from '@/lib/maquina-vendas/config'
 import { formatarExibicao } from '@/lib/maquina-vendas/telefone'
 import { FILTRO_MSG_REGUA } from '@/lib/maquina-vendas/filtros'
-import { indicadorPorId, listarIndicadores, whereDaTabela } from '@/lib/maquina-vendas/indicadores'
+import { indicadorPorId, listarIndicadores, periodoDosDias, whereDaTabela, type PeriodoIndicadores } from '@/lib/maquina-vendas/indicadores'
 import { provaDeEntrega } from '@/lib/maquina-vendas/prova'
 import { buscarCorposAprovados, renderizarCorpo, textoDaLinha, type CorpoAprovado } from '@/lib/maquina-vendas/corpo-template'
 import { papelDoTemplate } from '@/lib/maquina-vendas/papeis'
@@ -83,7 +83,6 @@ import { rodarBateriaPura, type ResultadoDaBateria } from '@/lib/maquina-vendas/
 import {
   CURSOR_BRIEFING,
   CURSOR_DISJUNTOR,
-  CURSOR_PULSO_WEBHOOK,
 } from '@/lib/maquina-vendas/config'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -384,6 +383,33 @@ export type MvFiltros = {
   busca?: string
   /** Recorte de um cartão de indicador — o clique no número abre ESTA tabela. */
   indicador?: string
+  /**
+   * O período do painel (dias SP, inclusivos). `undefined` = hoje, `null` =
+   * tudo. Sem cartão escolhido, a tabela mostra as mensagens que SAÍRAM ou
+   * estavam MARCADAS para o período; com cartão, o recorte do cartão no período.
+   */
+  periodo?: { de: string; ate: string } | null
+}
+
+/** "o que aconteceu ou ia acontecer nestes dias" — o recorte da tabela sem cartão. */
+function mensagensDoPeriodo(P: PeriodoIndicadores): Record<string, unknown> | null {
+  if (!P) return null
+  const entre = { gte: P.inicio, lt: P.fim }
+  return { OR: [{ enviadaEm: entre }, { enviadaEm: null, agendadaPara: entre }] }
+}
+
+/** Período em palavras, para a tela não ter que reconstruir. */
+function descreverPeriodo(dias: { de: string; ate: string } | null, hoje: string): { de: string | null; ate: string | null; rotulo: string; ehHoje: boolean; umDia: boolean } {
+  if (!dias) return { de: null, ate: null, rotulo: 'todo o período', ehHoje: false, umDia: false }
+  const br = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`
+  const umDia = dias.de === dias.ate
+  return {
+    de: dias.de,
+    ate: dias.ate,
+    rotulo: umDia ? (dias.de === hoje ? `hoje (${br(dias.de)})` : br(dias.de)) : `${br(dias.de)} a ${br(dias.ate)}`,
+    ehHoje: umDia && dias.de === hoje,
+    umDia,
+  }
 }
 
 export async function getMvTabela(filtros: MvFiltros = {}, pagina = 1) {
@@ -407,8 +433,12 @@ export async function getMvTabela(filtros: MvFiltros = {}, pagina = 1) {
   }
   if (Object.keys(inscricaoWhere).length > 0) where.inscricao = inscricaoWhere
 
-  const ind = filtros.indicador ? indicadorPorId(filtros.indicador, agora) : null
-  const whereFinal: Record<string, unknown> = ind ? { AND: [where, whereDaTabela(ind)] } : where
+  const P = periodoDosDias(filtros.periodo, agora, inicioDoDia)
+  const ind = filtros.indicador ? indicadorPorId(filtros.indicador, agora, P) : null
+  // Com cartão, o cartão já carrega o período (do jeito dele). Sem cartão, a
+  // tabela segue o período do painel — um filtro só para a tela inteira.
+  const recortes = [ind ? whereDaTabela(ind) : mensagensDoPeriodo(P)].filter((r): r is Record<string, unknown> => !!r)
+  const whereFinal: Record<string, unknown> = recortes.length ? { AND: [where, ...recortes] } : where
 
   const total = await prisma.mvMensagem.count({ where: whereFinal })
 
@@ -417,7 +447,7 @@ export async function getMvTabela(filtros: MvFiltros = {}, pagina = 1) {
   if (naRegua) {
     const semStatus: Record<string, unknown> = { ...where }
     delete semStatus.status
-    const whereSemStatus = ind ? { AND: [semStatus, whereDaTabela(ind)] } : semStatus
+    const whereSemStatus = recortes.length ? { AND: [semStatus, ...recortes] } : semStatus
     ocultas = (await prisma.mvMensagem.count({ where: whereSemStatus })) - total
   }
 
@@ -448,7 +478,8 @@ export async function getMvTabela(filtros: MvFiltros = {}, pagina = 1) {
     ocultas,
     pagina: p,
     totalPaginas,
-    recorte: ind ? { id: ind.id, rotulo: ind.rotulo, unidade: ind.unidade, ajuda: ind.ajuda } : null,
+    recorte: ind ? { id: ind.id, rotulo: ind.rotulo, unidade: ind.unidade, ajuda: ind.ajuda, retrato: !!ind.retrato } : null,
+    periodo: descreverPeriodo(filtros.periodo === undefined ? { de: diaSP(agora), ate: diaSP(agora) } : filtros.periodo, diaSP(agora)),
     linhas: linhas.map((l) => ({
       id: l.id,
       inscricaoId: l.inscricaoId,
@@ -971,12 +1002,18 @@ export type AvisoMv = {
   detalhe: string
 }
 
-export async function getMvDashboard() {
+/**
+ * `periodo`: dias SP inclusivos ('YYYY-MM-DD'). Omitido = hoje; `null` = tudo.
+ * Os avisos e o espaçamento são SEMPRE do agora — o período só recorta os cartões.
+ */
+export async function getMvDashboard(periodo?: { de: string; ate: string } | null) {
   await exigirAuth()
   const ajustes = await obterAjustes()
   const agora = new Date()
+  const hoje = diaSP(agora)
+  const dias = periodo === undefined ? { de: hoje, ate: hoje } : periodo
 
-  const lista = listarIndicadores(agora)
+  const lista = listarIndicadores(agora, periodoDosDias(dias, agora, inicioDoDia))
   const contagens = await Promise.all(
     lista.map((ind) => (ind.mensagem ? prisma.mvMensagem.count({ where: ind.mensagem }) : prisma.mvInscricao.count({ where: ind.inscricao }))),
   )
@@ -988,6 +1025,7 @@ export async function getMvDashboard() {
     grupo: ind.grupo,
     tom: ind.tom,
     base: ind.base ?? null,
+    retrato: !!ind.retrato,
     valor: contagens[i],
   }))
   const valorDe = (id: string) => indicadores.find((i) => i.id === id)?.valor ?? 0
@@ -999,6 +1037,8 @@ export async function getMvDashboard() {
   const esperaMinutos = liberaEm > agora.getTime() ? Math.ceil((liberaEm - agora.getTime()) / 60_000) : 0
 
   return {
+    periodo: descreverPeriodo(dias, hoje),
+    hoje,
     indicadores,
     ativas: valorDe('ativas'),
     agendadasHoje: valorDe('agendadasHoje'),
@@ -1383,8 +1423,10 @@ export async function getProntidao(): Promise<Prontidao> {
       return { ok: min <= 15, detalhe: `último tique completo há ${min} min${min > 15 ? ' — o n8n parou de chamar?' : ''}` }
     }),
     medir('segredos', 'Segredos de ambiente presentes', true, async () => {
-      const faltam = ['CRON_SECRET', 'JWT_SECRET', 'APP_URL'].filter((k) => !process.env[k])
-      return { ok: faltam.length === 0, detalhe: faltam.length ? `faltam: ${faltam.join(', ')}` : 'CRON_SECRET, JWT_SECRET e APP_URL definidos (valores não exibidos).' }
+      // APP_URL não é segredo e tem padrão em `rastreio.ts` — reprovar a prontidão por ela era alarme falso.
+      const faltam = ['CRON_SECRET', 'JWT_SECRET'].filter((k) => !process.env[k])
+      const base = process.env.APP_URL ? 'APP_URL definida' : 'APP_URL no padrão https://petalas.docelilium.com.br'
+      return { ok: faltam.length === 0, detalhe: faltam.length ? `faltam: ${faltam.join(', ')}` : `CRON_SECRET e JWT_SECRET definidos (valores não exibidos) · ${base}.` }
     }),
     medir('lista', 'Lista de teste (MV_NUMEROS_TESTE)', false, async () => {
       const l = numerosDeTeste()
@@ -1423,11 +1465,10 @@ export async function getProntidao(): Promise<Prontidao> {
       }
     }),
     medir('pulso', 'Webhook da Meta chegando', false, async () => {
-      const ultimo = await prisma.mvCursor.findUnique({ where: { chave: CURSOR_PULSO_WEBHOOK } })
-      const quando = ultimo ? new Date(ultimo.valor) : null
-      const horas = quando && !Number.isNaN(quando.getTime()) ? (agora.getTime() - quando.getTime()) / 3_600_000 : null
-      if (horas === null) return { ok: null, detalhe: 'Nenhum webhook registrado ainda.' }
-      return { ok: horas < 24, detalhe: `último webhook há ${horas < 1 ? `${Math.round(horas * 60)} min` : `${Math.round(horas)} h`}` }
+      // O cursor guarda JSON ({"em": ...}), não uma data — ler com `new Date(valor)` dava sempre
+      // "nenhum webhook registrado". A leitura é a mesma da faixa do painel, para as duas não discordarem.
+      const p = await lerPulsoDoCanal(agora)
+      return { ok: p.nivel !== 'critico', detalhe: `${p.titulo} — ${p.detalhe}` }
     }),
   ])
 

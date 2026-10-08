@@ -13,7 +13,9 @@
  *  1. a FAIXA DO CANAL — se a confirmação de entrega não chega, "sem
  *     confirmação" em todas as linhas é notícia sobre nós, não sobre a cliente;
  *  2. os AVISOS — desligado e mudo é indistinguível de quebrado;
- *  3. os INDICADORES em grupos (o que vai sair, chegou, voltou, travou). Cada
+ *  3. o PERÍODO — um filtro só para cartões e tabela (padrão: hoje). Avisos
+ *     e faixa do canal ficam fora dele de propósito: são sempre do agora;
+ *  4. os INDICADORES em grupos (o que vai sair, chegou, voltou, travou). Cada
  *     cartão é um recorte da tabela de Mensagens: o número e o filtro saem do
  *     mesmo objeto (`lib/maquina-vendas/indicadores.ts`).
  *
@@ -22,7 +24,7 @@
  * no caminho.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
@@ -41,6 +43,7 @@ import { AbaAtencao } from '@/components/maquina-vendas/AbaAtencao'
 import { AbaProntidao } from '@/components/maquina-vendas/AbaProntidao'
 import { CartaoIndicador, EsqueletoDeCartoes, TituloDoBloco, colunasPara } from '@/components/maquina-vendas/cartoes'
 import { erroDe } from '@/components/maquina-vendas/comum'
+import { FiltroDePeriodo, hojeSP, periodoDaUrl, periodoParaUrl, type PeriodoDias } from '@/components/maquina-vendas/FiltroDePeriodo'
 
 type Dashboard = Awaited<ReturnType<typeof getMvDashboard>>
 type Aba = 'tabela' | 'programacao' | 'conversas' | 'cadencias' | 'ritmo' | 'atencao' | 'prontidao'
@@ -81,15 +84,37 @@ export default function MaquinaDeVendasPage() {
   const [atualizando, setAtualizando] = useState(false)
   /** Recorte vindo do cartão clicado. Vazio = tabela inteira. */
   const [indicador, setIndicador] = useState('')
+  /**
+   * Período do painel. `undefined` só até ler a URL no primeiro efeito — o
+   * "hoje" de São Paulo é do navegador, e calculá-lo na renderização do
+   * servidor daria divergência de hidratação perto da meia-noite.
+   */
+  const [periodo, setPeriodo] = useState<PeriodoDias | undefined>(undefined)
+  const [hoje, setHoje] = useState('')
+  const [carregandoPeriodo, setCarregandoPeriodo] = useState(false)
+  /** Troca rápida de período: só a última resposta pinta a tela. */
+  const pedido = useRef(0)
 
   const carregarPainel = useCallback(async () => {
+    if (periodo === undefined) return
+    const meu = ++pedido.current
+    setCarregandoPeriodo(true)
     try {
-      setDashboard(await getMvDashboard())
+      const d = await getMvDashboard(periodo)
+      if (meu !== pedido.current) return
+      setDashboard(d)
       setErroCarga(null)
     } catch (e) {
-      setErroCarga(erroDe(e))
+      if (meu === pedido.current) setErroCarga(erroDe(e))
+    } finally {
+      if (meu === pedido.current) setCarregandoPeriodo(false)
     }
-  }, [])
+  }, [periodo])
+
+  const mudarPeriodo = (p: PeriodoDias) => {
+    setPeriodo(p)
+    periodoParaUrl(p, hoje || hojeSP())
+  }
 
   useEffect(() => {
     /**
@@ -101,8 +126,16 @@ export default function MaquinaDeVendasPage() {
     const pedida = new URLSearchParams(window.location.search).get('aba')
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (pedida && IDS_DE_ABA.includes(pedida)) setAba(pedida as Aba)
-    void carregarPainel()
+    const h = hojeSP()
+    setHoje(h)
+    setPeriodo(periodoDaUrl(h))
     getSouAdmin().then(setAdmin).catch(() => setAdmin(false))
+  }, [])
+
+  useEffect(() => {
+    // Recarrega a cada troca de período; o setState acontece depois do await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregarPainel()
   }, [carregarPainel])
 
   const atualizar = async () => {
@@ -179,7 +212,11 @@ export default function MaquinaDeVendasPage() {
             </div>
           )}
 
-          <div className="space-y-4">
+          {periodo !== undefined && hoje && (
+            <FiltroDePeriodo periodo={periodo} hoje={hoje} onChange={mudarPeriodo} carregando={carregandoPeriodo} />
+          )}
+
+          <div className={`space-y-4 transition-opacity ${carregandoPeriodo && dashboard ? 'opacity-60' : ''}`}>
             {!dashboard && !erroCarga && GRUPOS_DE_INDICADORES.map((g) => (
               <section key={g.id} className="space-y-2">
                 <TituloDoBloco titulo={g.titulo} legenda={g.legenda} />
@@ -199,10 +236,11 @@ export default function MaquinaDeVendasPage() {
                         <CartaoIndicador
                           key={c.id}
                           rotulo={c.rotulo}
-                          valor={c.id === 'enviadasHoje' ? `${c.valor}/${dashboard.tetoDiario}` : c.valor}
+                          valor={c.id === 'enviadasHoje' && dashboard.periodo.umDia ? `${c.valor}/${dashboard.tetoDiario}` : c.valor}
                           tom={c.tom}
                           ativo={indicador === c.id}
                           ajuda={c.ajuda}
+                          selo={c.retrato && !dashboard.periodo.ehHoje ? 'agora' : undefined}
                           proporcao={base ? { parte: c.valor, total: base.valor, rotuloBase: base.rotulo.toLowerCase() } : null}
                           onClick={() => {
                             setIndicador(indicador === c.id ? '' : c.id)
@@ -229,7 +267,10 @@ export default function MaquinaDeVendasPage() {
             ))}
           </div>
 
-          {abaAtual === 'tabela' && <AbaTabela indicador={indicador} limparIndicador={() => setIndicador('')} aoMudar={carregarPainel} />}
+          {abaAtual === 'tabela' && periodo !== undefined && (
+            <AbaTabela indicador={indicador} periodo={periodo} limparIndicador={() => setIndicador('')}
+              verTudo={() => mudarPeriodo(null)} aoMudar={carregarPainel} />
+          )}
           {abaAtual === 'programacao' && <AbaProgramacao />}
           {abaAtual === 'conversas' && <AbaConversas />}
           {abaAtual === 'cadencias' && <AbaCadencias podeEditar={admin} aoMudar={carregarPainel} />}
