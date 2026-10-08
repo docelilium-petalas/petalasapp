@@ -167,6 +167,12 @@ export type ResultadoCatalogo = {
    * quanto oferecer o que não dá para comprar.
    */
   esgotadas: ProdutoCatalogo[]
+  /**
+   * Batem com a busca, têm o tamanho pedido na grade, mas esse tamanho está
+   * zerado (e outro tem). Até 08/10/2026 a peça simplesmente sumia do
+   * resultado e a IA dizia "não temos" de uma peça que a loja tem.
+   */
+  semTamanho: ProdutoCatalogo[]
 }
 
 /** Palavras que não distinguem peça nenhuma e só sujam a pontuação. */
@@ -201,6 +207,25 @@ function semPlural(p: string): string {
  * volta em `esgotadas`, separada, só como contexto.
  */
 export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo): ResultadoCatalogo {
+  const limite = f.limite ?? 4
+  const lista = pontuar(produtos, f)
+  return {
+    pecas: lista.filter((x) => x.classe === 'tem').map((x) => x.p).slice(0, limite),
+    esgotadas: lista.filter((x) => x.classe === 'esgotada').map((x) => x.p).slice(0, limite),
+    semTamanho: lista.filter((x) => x.classe === 'sem_tamanho').map((x) => x.p).slice(0, limite),
+  }
+}
+
+type Classe = 'tem' | 'esgotada' | 'sem_tamanho'
+type Pontuado = { p: ProdutoCatalogo; pontos: number; pontosNome: number; classe: Classe }
+
+/**
+ * Pontua e classifica. O tamanho NÃO filtra mais por estoque: filtra pela
+ * GRADE (a peça tem esse tamanho, com ou sem estoque) e o estoque vira classe.
+ * Peça que nem tem o tamanho na grade continua fora — saia 38/40 não é
+ * "sem tamanho" para quem usa M, é outra peça.
+ */
+function pontuar(produtos: ProdutoCatalogo[], f: FiltroCatalogo): Pontuado[] {
   const palavras = dobrar(f.busca ?? '')
     .split(/[^a-z0-9]+/)
     .filter((p) => p.length > 1 && !VAZIAS.has(p))
@@ -208,7 +233,7 @@ export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo):
   const categoria = f.categoria ? semPlural(dobrar(f.categoria).trim()) : null
   const tamanho = f.tamanho ? dobrar(f.tamanho).trim() : null
 
-  const pontuados = produtos
+  return produtos
     // Compara nos dois sentidos, já sem plural: "acessorios" tem de achar
     // "Acessório", e "vestido de festa" tem de achar "Vestidos".
     .filter(
@@ -220,26 +245,96 @@ export function filtrarCatalogo(produtos: ProdutoCatalogo[], f: FiltroCatalogo):
         }),
     )
     .filter((p) => !f.precoMax || (p.preco ?? Infinity) <= f.precoMax)
-    .filter((p) => !tamanho || p.tamanhos.some((t) => dobrar(t.nome) === tamanho && t.disponivel))
-    .map((p) => {
+    .filter((p) => !tamanho || p.tamanhos.some((t) => dobrar(t.nome) === tamanho))
+    .map((p): Pontuado => {
       const nome = dobrar(p.nome)
       const resto = dobrar([p.categorias.join(' '), p.tags.join(' '), p.resumo].join(' '))
       let pontos = 0
+      let pontosNome = 0
       for (const w of palavras) {
-        if (nome.includes(w)) pontos += 3
-        else if (resto.includes(w)) pontos += 1
+        if (nome.includes(w)) {
+          pontos += 3
+          pontosNome += 3
+        } else if (resto.includes(w)) pontos += 1
       }
-      return { p, pontos }
+      const classe: Classe = !p.disponivel
+        ? 'esgotada'
+        : tamanho && !p.tamanhos.some((t) => dobrar(t.nome) === tamanho && t.disponivel)
+          ? 'sem_tamanho'
+          : 'tem'
+      return { p, pontos, pontosNome, classe }
     })
     .filter((x) => palavras.length === 0 || x.pontos > 0)
     .sort((a, b) => b.pontos - a.pontos)
-    .map((x) => x.p)
+}
 
+/**
+ * A DECISÃO DO ESTOQUE — o que a cliente pediu dá para vender?
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * Reunião de 08/10/2026 (Luan, Gabriel, Marília). Na conversa revisada a
+ * cliente pediu "vestido marrom"; o único era o Mônica Marrom, zerado. A dica
+ * da busca mandava "oferecer avisar quando voltar" e "ver algo parecido" — em
+ * Vestidos, categoria inteira esgotada. A IA cumpriu as duas ordens ao pé da
+ * letra por três turnos. Decisão da dona: sem estoque, a IA não insiste —
+ * passa a cliente para a Marília atender pessoalmente.
+ *
+ * Por isso a decisão mora aqui, com dado da Nuvemshop, e não no prompt.
+ *
+ *   tem          → há peça com estoque que atende ao pedido: segue vendendo
+ *   esgotou E1   → ela NOMEOU uma peça e essa peça zerou (mesmo com outras
+ *                  disponíveis: oferecer outra por cima é a repetição que a
+ *                  reunião reprovou)
+ *   esgotou E2   → nada disponível bateu, mas alguma esgotada bateu
+ *   sem_tamanho  → a peça existe, o tamanho dela está zerado (E3)
+ *   nao_existe   → a loja não tem nada parecido
+ *
+ * "Nomeou" = a esgotada ganha das disponíveis em pontos de NOME. "vestido"
+ * sozinho dá 3 pontos de nome a todo vestido e por isso não decide nada; o
+ * que decide é a palavra a mais — "Mônica", "marrom", "Luna".
+ * ══════════════════════════════════════════════════════════════════════════
+ */
+export type SituacaoDoPedido =
+  | { tipo: 'tem'; pecas: ProdutoCatalogo[] }
+  | { tipo: 'esgotou'; queria: string[]; caso: 'E1' | 'E2' }
+  | { tipo: 'sem_tamanho'; queria: string[]; tamanho: string }
+  | { tipo: 'nao_existe' }
+
+export function situacaoDoPedido(produtos: ProdutoCatalogo[], f: FiltroCatalogo): SituacaoDoPedido {
   const limite = f.limite ?? 4
-  return {
-    pecas: pontuados.filter((p) => p.disponivel).slice(0, limite),
-    esgotadas: pontuados.filter((p) => !p.disponivel).slice(0, limite),
+  const lista = pontuar(produtos, f)
+  if (!lista.length) return { tipo: 'nao_existe' }
+
+  const disponiveis = lista.filter((x) => x.classe === 'tem')
+  const faltam = lista.filter((x) => x.classe !== 'tem')
+  const tamanho = (f.tamanho ?? '').trim()
+  const nomes = (xs: Pontuado[]) => xs.map((x) => x.p.nome).slice(0, limite)
+
+  // Nada disponível bateu: a peça existe sem o tamanho dela (E3) ou esgotou (E2).
+  // `queria` leva só as de maior pontuação: "vestido marrom" é o Mônica Marrom,
+  // não todo vestido zerado — é o resumo que a Marília lê.
+  const doTopo = (xs: Pontuado[]) => {
+    const max = Math.max(...xs.map((x) => x.pontos))
+    return xs.filter((x) => x.pontos === max)
   }
+  if (!disponiveis.length) {
+    const semTamanho = faltam.filter((x) => x.classe === 'sem_tamanho')
+    if (semTamanho.length) return { tipo: 'sem_tamanho', queria: nomes(doTopo(semTamanho)), tamanho }
+    return { tipo: 'esgotou', queria: nomes(doTopo(faltam)), caso: 'E2' }
+  }
+
+  // E1 / E3 com outras disponíveis: a peça que ela NOMEOU é a que falta.
+  const melhorDisponivel = Math.max(0, ...disponiveis.map((x) => x.pontosNome))
+  const nomeadas = faltam.filter((x) => x.pontosNome >= 3 && x.pontosNome > melhorDisponivel)
+  if (nomeadas.length) {
+    const topo = Math.max(...nomeadas.map((x) => x.pontosNome))
+    const alvo = nomeadas.filter((x) => x.pontosNome === topo)
+    const esgotadas = alvo.filter((x) => x.classe === 'esgotada')
+    if (esgotadas.length) return { tipo: 'esgotou', queria: nomes(esgotadas), caso: 'E1' }
+    return { tipo: 'sem_tamanho', queria: nomes(alvo), tamanho }
+  }
+
+  return { tipo: 'tem', pecas: disponiveis.map((x) => x.p).slice(0, limite) }
 }
 
 export function formatarPreco(v: number | null): string {

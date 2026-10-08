@@ -15,6 +15,7 @@ import { contextoDeCabecalhos, explicarAssinatura, lerAssinatura } from '@/lib/m
 import { sinaisDasMudancas } from '@/lib/maquina-vendas/sinais-meta'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { numeroDoBriefing } from '@/lib/maquina-vendas/briefing'
+import { registrarEntrada } from '@/lib/maquina-vendas/janela-24h'
 
 export const dynamic = 'force-dynamic'
 
@@ -338,6 +339,10 @@ async function tratarMensagem(msg: MensagemMeta, nomeWhatsApp: string | null): P
   const texto = msg.text?.body ?? msg.button?.text ?? msg.interactive?.button_reply?.title ?? null
   const rotuloBotao = msg.button?.text ?? msg.interactive?.button_reply?.title ?? null
   const quando = msg.timestamp ? new Date(Number(msg.timestamp) * 1000) : new Date()
+
+  // Qualquer mensagem de entrada (texto, botão, reação) abre a janela de 24h
+  // deste número. Quem manda para a EQUIPE lê isto antes (`janela-24h.ts`).
+  await registrarEntrada(e164!, quando).catch((e) => console.error('[webhook] registrar entrada falhou:', e))
 
   // "Quero ver" do relatório da equipe NÃO é cliente falando: só abre a janela
   // de 24h (a Meta já contou ao receber) para o próximo tique mandar o

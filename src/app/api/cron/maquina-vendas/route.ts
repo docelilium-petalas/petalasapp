@@ -12,6 +12,7 @@ import { rodarVigia } from '@/lib/maquina-vendas/vigia'
 import { anotarTextosNoChatwoot } from '@/lib/maquina-vendas/chatwoot-nota'
 import { expirarHandoffs } from '@/lib/maquina-vendas/handoff'
 import { rodarBriefingDiario } from '@/lib/maquina-vendas/briefing'
+import { entregarAvisosPendentes } from '@/lib/atendimento/aviso-equipe'
 import prisma from '@/lib/prisma'
 
 export const runtime = 'nodejs'
@@ -131,6 +132,7 @@ export async function GET(request: Request) {
     const notas = await entorno('nota no Chatwoot', () => anotarTextosNoChatwoot(new Date()))
     const handoff = await entorno('expirar handoff', () => expirarHandoffs(new Date()))
     const briefing = await entorno('briefing', () => rodarBriefingDiario(new Date()))
+    const avisosEquipe = await entorno('avisos de passagem', () => entregarAvisosPendentes(new Date()))
 
     const resultado = {
       ok: falhas.length === 0,
@@ -149,6 +151,7 @@ export async function GET(request: Request) {
       notas,
       handoff,
       briefing,
+      avisosEquipe,
     }
 
     if (falhas.length) {

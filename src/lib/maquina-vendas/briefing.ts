@@ -54,6 +54,7 @@ import {
   obterAjustes,
 } from './config'
 import { CODIGO_JANELA_FECHADA } from './datafy'
+import { janelaAberta } from './janela-24h'
 import { canalConfigurado, enviarMensagemLivre, enviarTemplate, ErroCanal } from './canal'
 import { paraParedeSP } from './janela'
 import { diaSP, horaSP, inicioDoDia, fimDoDia, mascararTelefone } from './programacao'
@@ -507,7 +508,21 @@ export async function enviarBriefing(agora: Date = new Date()): Promise<Resultad
   const briefing = await montarBriefing(agora)
   const partes = formatarBriefing(briefing)
 
-  // A parte 1 é o teste da janela: se não passa, nada é marcado e o tique tenta de novo.
+  // A janela é sabida ANTES: o 131047 não volta no envio, chega pelo webhook
+  // minutos depois (medido em 08/10/2026 — o relatório "saiu", foi carimbado e
+  // nunca chegou). Sem mensagem do número nas últimas 24h = bater na porta.
+  // Erro de leitura não fecha a porta: cai no caminho antigo.
+  if (!(await janelaAberta(numero, agora).catch(() => true))) {
+    return {
+      enviou: false,
+      janelaFechada: true,
+      erro: 'janela de 24h fechada: o número do briefing não escreveu para a loja nas últimas 24h',
+      dia: briefing.dia,
+      porta: await baterNaPorta(briefing, agora, numero),
+    }
+  }
+
+  // A parte 1 ainda pega o que o canal recusa na hora (token, número inválido).
   try {
     await enviarMensagemLivre(`+${numero}`, { tipo: 'texto', texto: partes[0]! })
   } catch (e) {

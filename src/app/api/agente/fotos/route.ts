@@ -5,6 +5,7 @@ import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { registrarTurno, turnosDe, pendentesEHistorico } from '@/lib/atendimento/conversa'
 import { funilSemFalhar } from '@/lib/atendimento/funil'
 import { linkDeFotoParaWhatsApp } from '@/lib/atendimento/foto-whatsapp'
+import { DICA_PASSOU_POR_ESTOQUE, passarParaMarilia } from '@/lib/atendimento/passar-para-marilia'
 
 /** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
 const JANELA_REPETIDA_MS = 24 * 3_600_000
@@ -98,8 +99,24 @@ export async function POST(request: Request) {
     })
   }
 
+  // Sem estoque é com a Marília (reunião de 08/10/2026). Só quando NADA saiu:
+  // se outra foto já chegou para ela, a conversa segue com o que tem e a
+  // esgotada simplesmente não é citada.
+  if (esgotadas.length && !enviadas.length) {
+    const passagem = await passarParaMarilia(telefone, 'peça sem estoque', `Pediu foto de: ${esgotadas.join(', ')} — sem estoque.`)
+    return NextResponse.json({
+      enviadas: 0,
+      pecas: [],
+      nao_enviadas_esgotadas: esgotadas,
+      passou_para_marilia: true,
+      ja_estava_com_a_equipe: passagem.jaEstava,
+      falhas,
+      dica: DICA_PASSOU_POR_ESTOQUE,
+    })
+  }
+
   const avisoEsgotadas = esgotadas.length
-    ? ` NÃO saiu a foto de: ${esgotadas.join(', ')} — essa(s) peça(s) esgotou/esgotaram. Diga isso a ela e ofereça avisar quando voltar; não mande o link dessas.`
+    ? ` NÃO saiu a foto de: ${esgotadas.join(', ')} — sem estoque. Não cite essa(s) peça(s), não mande o link e não prometa aviso de reposição.`
     : ''
 
   return NextResponse.json({

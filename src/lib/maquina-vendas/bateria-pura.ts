@@ -45,6 +45,9 @@ import { conversaAindaViva, MOVIMENTO_HUMANO } from './observador-colunas'
 import { emPartes, minutosDaHora } from './briefing'
 import { papelDoTemplate } from './papeis'
 import { templatesSemAssunto } from './templates'
+import { normalizarProduto, situacaoDoPedido, filtrarCatalogo, type FiltroCatalogo } from '../nuvemshop/catalogo'
+import { janelaPelaUltimaEntrada } from './janela-24h'
+import { textoDoAvisoDePassagem, telefoneLegivel } from '../atendimento/aviso-equipe'
 
 export interface FalhaDaBateria {
   oQue: string
@@ -404,6 +407,59 @@ export function rodarBateriaPura(): ResultadoDaBateria {
     igual(minutosDaHora('08:30', 0), 510, 'HH:mm vira minutos')
     igual(minutosDaHora('25:00', 480), 480, 'hora inválida cai no padrão')
     igual(minutosDaHora(undefined, 480), 480, 'sem env cai no padrão')
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    grupo('21 · Sem estoque vai para a Marília (reunião 08/10)')
+    const prod = (id: number, nome: string, cats: string[], grade: Array<[string, number, boolean?]>) =>
+      normalizarProduto({
+        id,
+        name: { pt: nome },
+        published: true,
+        categories: cats.map((c) => ({ name: { pt: c } })),
+        attributes: [{ pt: 'Tamanho' }],
+        variants: grade.map(([t, stock, controla], i) => ({ id: id * 10 + i, price: '199.90', stock, stock_management: controla ?? true, values: [{ pt: t }] })),
+      })
+    const LOJA = [
+      prod(1, 'Vestido Mônica Marrom', ['Vestidos'], [['P', 0], ['M', 0]]),
+      prod(2, 'Vestido Luna', ['Vestidos'], [['M', 2]]),
+      prod(3, 'Saia Aurora', ['Saias'], [['G', 1], ['M', 0]]),
+      prod(4, 'Lenço Ave Maria', ['Acessório'], [['Único', 0, false]]),
+      prod(5, 'Vestido Jenna Verde', ['Vestidos'], [['P', 0]]),
+      prod(6, 'Saia Laise', ['Saias'], [['38', 1], ['40', 0]]),
+    ]
+    const sit = (f: FiltroCatalogo) => situacaoDoPedido(LOJA, f)
+    const tipoDe = (f: FiltroCatalogo) => {
+      const s = sit(f)
+      return s.tipo === 'esgotou' ? `esgotou:${s.caso}` : s.tipo
+    }
+    igual(tipoDe({ busca: 'vestido monica' }), 'esgotou:E1', '#1 E1: pediu a Mônica (zerada) com o Luna disponível')
+    const e1 = sit({ busca: 'vestido monica' })
+    igual(e1.tipo === 'esgotou' ? e1.queria : [], ['Vestido Mônica Marrom'], '#1 E1: queria = a Mônica, e só ela')
+    igual(tipoDe({ busca: 'verde' }), 'esgotou:E2', '#2 E2: só a esgotada bate')
+    const e2 = sit({ busca: 'vestido verde' })
+    igual(e2.tipo === 'esgotou' ? `${e2.caso}:${e2.queria.join()}` : e2.tipo, 'E1:Vestido Jenna Verde', '#2 "vestido verde" com o Luna disponível: a verde é a pedida')
+    const e3 = sit({ busca: 'saia aurora', tamanho: 'M' })
+    igual(e3.tipo === 'sem_tamanho' ? `${e3.queria.join()}@${e3.tamanho}` : e3.tipo, 'Saia Aurora@M', '#3 E3: a Aurora existe, o M está zerado')
+    igual(filtrarCatalogo(LOJA, { busca: 'saia', tamanho: 'M' }).semTamanho.map((p) => p.nome), ['Saia Aurora'], '#3 a peça sem o tamanho não some mais do resultado')
+    igual(filtrarCatalogo(LOJA, { busca: 'saia', tamanho: 'M' }).pecas.length, 0, '#3 saia 38/40 não vira "sem tamanho" para quem usa M')
+    const tem = sit({ busca: 'vestido' })
+    igual(tem.tipo === 'tem' ? tem.pecas.map((p) => p.nome) : tem.tipo, ['Vestido Luna'], '#4 busca genérica com disponível: vende, sem esgotada na lista')
+    igual(tipoDe({ busca: 'vestido luna', tamanho: 'M' }), 'tem', '#4 peça e tamanho com estoque: vende')
+    igual(tipoDe({ busca: 'lenço' }), 'tem', '#5 stock_management:false com stock 0 conta como disponível')
+    igual(tipoDe({ busca: 'blazer' }), 'nao_existe', '#6 nada parecido: não existe')
+    igual(tipoDe({ categoria: 'acessorios' }), 'tem', '#7 "acessorios" acha "Acessório"')
+    igual(JSON.stringify(sit({ busca: 'Vestido Mônica' })), JSON.stringify(sit({ busca: 'vestidos monica' })), '#7 acento e plural não mudam a decisão')
+    igual(tipoDe({ categoria: 'Vestidos', tamanho: 'P' }), 'esgotou:E2', 'categoria inteira zerada no tamanho dela: E2')
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    grupo('22 · Aviso para a equipe e janela de 24h')
+    checa(!janelaPelaUltimaEntrada(null, t0), 'nunca escreveu → janela fechada')
+    checa(janelaPelaUltimaEntrada(new Date(t0.getTime() - 2 * 3_600_000), t0), 'escreveu há 2h → aberta')
+    checa(!janelaPelaUltimaEntrada(new Date(t0.getTime() - (23 * 60 + 50) * 60_000), t0), '23h50 → fechada (folga de 15 min contra o relógio da Meta)')
+    checa(!janelaPelaUltimaEntrada(new Date(t0.getTime() - 25 * 3_600_000), t0), 'escreveu ontem → fechada')
+    igual(telefoneLegivel('5562981191215'), '+55 62 98119-1215', 'telefone legível com 9º dígito')
+    const aviso = textoDoAvisoDePassagem({ telefone: '5562981191215', motivo: 'peça sem estoque', resumo: 'Procurou: vestido marrom. Sem estoque: Vestido Mônica Marrom.' })
+    checa(aviso.includes('+55 62 98119-1215') && aviso.includes('peça sem estoque') && aviso.includes('Mônica Marrom'), 'aviso traz telefone, motivo e o que ela queria')
   } catch (e) {
     k.parou(e)
   }
