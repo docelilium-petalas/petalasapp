@@ -14,6 +14,7 @@ import { ecosDoCorpo, type EcoDaLoja } from '@/lib/maquina-vendas/eco'
 import { contextoDeCabecalhos, explicarAssinatura, lerAssinatura } from '@/lib/maquina-vendas/assinatura'
 import { sinaisDasMudancas } from '@/lib/maquina-vendas/sinais-meta'
 import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
+import { numeroDoBriefing } from '@/lib/maquina-vendas/briefing'
 
 export const dynamic = 'force-dynamic'
 
@@ -337,6 +338,15 @@ async function tratarMensagem(msg: MensagemMeta, nomeWhatsApp: string | null): P
   const texto = msg.text?.body ?? msg.button?.text ?? msg.interactive?.button_reply?.title ?? null
   const rotuloBotao = msg.button?.text ?? msg.interactive?.button_reply?.title ?? null
   const quando = msg.timestamp ? new Date(Number(msg.timestamp) * 1000) : new Date()
+
+  // "Quero ver" do relatório da equipe NÃO é cliente falando: só abre a janela
+  // de 24h (a Meta já contou ao receber) para o próximo tique mandar o
+  // relatório. Sem isto a IA respondia à equipe e o número virava negócio no funil.
+  const briefing = numeroDoBriefing()
+  if (rotuloBotao?.trim().toLowerCase() === 'quero ver' && briefing && briefing.slice(-8) === e164!.replace(/\D/g, '').slice(-8)) {
+    await logar('INFO', 'briefing_porta_aberta', 'Equipe tocou em "Quero ver" — o relatório sai no próximo tique', { de: chave })
+    return { contou: false, saiu: false }
+  }
 
   // Reação e figurinha não são fala: não viram turno nem acordam a IA.
   if (msg.type === 'reaction' || msg.type === 'sticker' || msg.type === 'unsupported' || msg.type === 'system') {
