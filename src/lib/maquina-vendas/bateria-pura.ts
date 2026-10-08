@@ -48,7 +48,7 @@ import { templatesSemAssunto } from './templates'
 import { normalizarProduto, situacaoDoPedido, filtrarCatalogo, type FiltroCatalogo } from '../nuvemshop/catalogo'
 import { janelaPelaUltimaEntrada } from './janela-24h'
 import { textoDoAvisoDePassagem, telefoneLegivel } from '../atendimento/aviso-equipe'
-import { baloesPermitidos, FRASE_ESTOQUE, FRASE_PASSAGEM } from '../atendimento/trava-pos-passagem'
+import { baloesPermitidos, FRASE_ESTOQUE, FRASE_PASSAGEM, FRASE_TAMANHO } from '../atendimento/trava-pos-passagem'
 
 export interface FalhaDaBateria {
   oQue: string
@@ -472,7 +472,7 @@ export function rodarBateriaPura(): ResultadoDaBateria {
     const ha = (min: number) => new Date(t0.getTime() - min * 60_000)
     igual(baloesPermitidos(doModelo7298, { humano: false, desde: null, motivo: null }, t0).trava, 'livre', 'sem passagem: o texto do modelo sai inteiro')
     igual(baloesPermitidos(doModelo7298, { humano: true, desde: ha(0.5), motivo: 'peça sem estoque' }, t0).baloes, [FRASE_ESTOQUE], 'o caso 7298: só a frase fixa, sem o link do Luna')
-    igual(baloesPermitidos(['x'], { humano: true, desde: ha(1), motivo: 'tamanho sem estoque' }, t0).baloes, [FRASE_ESTOQUE], 'tamanho sem estoque também vira a frase fixa')
+    igual(baloesPermitidos(['x'], { humano: true, desde: ha(1), motivo: 'tamanho sem estoque' }, t0).baloes, [FRASE_TAMANHO], 'tamanho sem estoque: a frase fala do tamanho, não da peça')
     igual(baloesPermitidos(doModelo7298, { humano: true, desde: ha(1), motivo: 'troca' }, t0).baloes, [doModelo7298[1]], 'outro motivo: sai o texto, mas nenhum balão com link/preço')
     igual(baloesPermitidos(['Segue: https://x.com'], { humano: true, desde: ha(1), motivo: null }, t0).baloes, [FRASE_PASSAGEM], 'log da passagem perdido: ainda trava, com a frase genérica')
     igual(baloesPermitidos(doModelo7298, { humano: true, desde: ha(90), motivo: 'peça sem estoque' }, t0).baloes, [], 'Marília já atendia de antes: a IA não fala nada')

@@ -24,6 +24,7 @@ import { HUMANO_HORAS } from './conversa'
 import { chaveTelefone } from '@/lib/maquina-vendas/telefone'
 
 export const FRASE_ESTOQUE = 'Essa peça está sem estoque 💛 Já chamei a Marília, ela vai te atender pessoalmente por aqui.'
+export const FRASE_TAMANHO = 'Esse tamanho está sem estoque 💛 Já chamei a Marília, ela vai te atender pessoalmente por aqui.'
 export const FRASE_PASSAGEM = 'Já chamei a Marília 💛 Ela vai te atender pessoalmente por aqui.'
 
 /** Uma rodada do agente leva segundos; 10 min cobre fila do n8n e retentativa. */
@@ -48,6 +49,7 @@ export function baloesPermitidos(
   if (!estado.humano) return { baloes, trava: 'livre' }
   const recente = !!estado.desde && agora.getTime() - estado.desde.getTime() < JANELA_PASSAGEM_MS
   if (!recente) return { baloes: [], trava: 'humano' }
+  if (/tamanho/i.test(estado.motivo ?? '') && /estoque/i.test(estado.motivo ?? '')) return { baloes: [FRASE_TAMANHO], trava: 'estoque' }
   if (/estoque/i.test(estado.motivo ?? '')) return { baloes: [FRASE_ESTOQUE], trava: 'estoque' }
   // Só o balão que fala da passagem: o resto ("vou mandar o link", oferta,
   // preço) é promessa que agora é da Marília cumprir ou não.
