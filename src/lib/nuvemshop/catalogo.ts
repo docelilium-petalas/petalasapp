@@ -337,6 +337,22 @@ export function situacaoDoPedido(produtos: ProdutoCatalogo[], f: FiltroCatalogo)
   return { tipo: 'tem', pecas: disponiveis.map((x) => x.p).slice(0, limite) }
 }
 
+/**
+ * O tamanho que a CLIENTE escreveu ("no M", "tamanho 38", "uso G"), ou null.
+ *
+ * Medido no E2E de 08/10/2026: o prompt manda a primeira busca ir só com a
+ * palavra, então "Tem a saia Aurora no M?" virou busca "Aurora" sem tamanho,
+ * voltou "tem" (há G) e a IA ofereceu o G em vez de passar para a Marília.
+ * O tamanho sai da fala dela, não do modelo. Exige a palavra de ligação: um
+ * "M" solto no meio da frase não é tamanho.
+ */
+export function tamanhoNaFala(texto: string): string | null {
+  const re = /(?:^|[\s,.;!?(])(?:tamanho|tam\.?|no|na|num|numero|número|n[º°o]\.?|uso|visto|veste|vestir)\s+(?:o\s+|a\s+|do\s+|da\s+)?(PP|P|M|G|GG|XG|EG|EXG|G[1-3]|3[4-9]|4[0-8])(?=$|[\s,.;!?)])/gi
+  let ultimo: string | null = null
+  for (const m of texto.matchAll(re)) ultimo = m[1].toUpperCase()
+  return ultimo
+}
+
 export function formatarPreco(v: number | null): string {
   return v === null ? 'preço na loja' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

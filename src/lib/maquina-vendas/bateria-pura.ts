@@ -45,7 +45,7 @@ import { conversaAindaViva, MOVIMENTO_HUMANO } from './observador-colunas'
 import { emPartes, minutosDaHora } from './briefing'
 import { papelDoTemplate } from './papeis'
 import { templatesSemAssunto } from './templates'
-import { normalizarProduto, situacaoDoPedido, filtrarCatalogo, type FiltroCatalogo } from '../nuvemshop/catalogo'
+import { normalizarProduto, situacaoDoPedido, filtrarCatalogo, tamanhoNaFala, type FiltroCatalogo } from '../nuvemshop/catalogo'
 import { janelaPelaUltimaEntrada } from './janela-24h'
 import { textoDoAvisoDePassagem, telefoneLegivel } from '../atendimento/aviso-equipe'
 import { baloesPermitidos, FRASE_ESTOQUE, FRASE_PASSAGEM, FRASE_TAMANHO } from '../atendimento/trava-pos-passagem'
@@ -451,6 +451,14 @@ export function rodarBateriaPura(): ResultadoDaBateria {
     igual(tipoDe({ categoria: 'acessorios' }), 'tem', '#7 "acessorios" acha "Acessório"')
     igual(JSON.stringify(sit({ busca: 'Vestido Mônica' })), JSON.stringify(sit({ busca: 'vestidos monica' })), '#7 acento e plural não mudam a decisão')
     igual(tipoDe({ categoria: 'Vestidos', tamanho: 'P' }), 'esgotou:E2', 'categoria inteira zerada no tamanho dela: E2')
+    // O tamanho sai da fala dela quando o modelo não manda (E2E 08/10, execuções 7329/7331).
+    igual(tamanhoNaFala('Tem a saia Aurora no M?'), 'M', 'tamanho: "no M?"')
+    igual(tamanhoNaFala('Oi! Queria a blusa Amanda no tamanho M'), 'M', 'tamanho: "no tamanho M"')
+    igual(tamanhoNaFala('eu uso 38, tem?'), '38', 'tamanho: "uso 38"')
+    igual(tamanhoNaFala('tem gg?\nna gg'), 'GG', 'tamanho: "na gg" minúsculo')
+    igual(tamanhoNaFala('Tem a saia Clarisse?'), null, 'sem tamanho na fala: null')
+    igual(tamanhoNaFala('paga no pix? M de Marilia'), null, '"no pix" e "M" solto não são tamanho')
+    igual(tipoDe({ busca: 'aurora', tamanho: tamanhoNaFala('Tem a saia Aurora no M?') }), 'sem_tamanho', 'busca só "aurora" + M da fala: E3, não oferece o G')
 
     // ─────────────────────────────────────────────────────────────────────────────
     grupo('22 · Aviso para a equipe e janela de 24h')

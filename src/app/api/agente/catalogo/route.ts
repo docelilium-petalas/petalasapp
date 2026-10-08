@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { portaAberta, telefoneDaRequisicao } from '@/lib/atendimento/porta'
-import { catalogoDaLoja, formatarPreco, situacaoDoPedido } from '@/lib/nuvemshop/catalogo'
+import { catalogoDaLoja, formatarPreco, situacaoDoPedido, tamanhoNaFala } from '@/lib/nuvemshop/catalogo'
+import { pendentesEHistorico, turnosDe } from '@/lib/atendimento/conversa'
 import { DICA_PASSOU_POR_ESTOQUE, passarParaMarilia } from '@/lib/atendimento/passar-para-marilia'
 
 export const dynamic = 'force-dynamic'
@@ -40,10 +41,20 @@ export async function GET(request: Request) {
     })
   }
 
+  // O modelo pode buscar sem o tamanho que ela escreveu (E2E 08/10): a fala
+  // dela ainda sem resposta completa o filtro.
+  let tamanho = (q.get('tamanho') ?? '').trim() || null
+  let tamanhoDaFala = false
+  if (!tamanho && telefone) {
+    const { pendentes } = pendentesEHistorico(await turnosDe(telefone).catch(() => []))
+    tamanho = tamanhoNaFala(pendentes.map((t) => t.texto).join('\n'))
+    tamanhoDaFala = !!tamanho
+  }
+
   const filtro = {
     busca: q.get('busca'),
     categoria: q.get('categoria'),
-    tamanho: q.get('tamanho'),
+    tamanho,
     precoMax: Number.isFinite(precoMax) && precoMax > 0 ? precoMax : null,
     limite: 4,
   }
@@ -65,6 +76,7 @@ export async function GET(request: Request) {
     }))
     return NextResponse.json({
       situacao: 'tem',
+      ...(tamanhoDaFala ? { tamanho_pedido: tamanho } : {}),
       pecas,
       categorias,
       dica:
