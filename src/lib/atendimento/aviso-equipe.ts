@@ -84,6 +84,19 @@ async function logar(nivel: 'INFO' | 'AVISO', tipo: string, titulo: string, dado
     .catch((e) => console.error('[aviso-equipe] log falhou:', e))
 }
 
+/**
+ * O eco deste envio não pode virar "a atendente assumiu". O webhook reconhece
+ * o próprio eco pelo `wamid` no turno da conversa ou na `MvMensagem` — e o aviso
+ * não está em nenhum dos dois (nem pode: viraria histórico da conversa). Então
+ * grava a marca de "eco já visto" que o `tratarEco` consulta antes de tudo.
+ */
+async function marcarEcoComoNosso(wamid: string | null | undefined): Promise<void> {
+  if (!wamid) return
+  await prisma.eventIngestLog
+    .create({ data: { source: `whatsapp:eco:${wamid}`, payload: '', status: 'aviso_equipe' } })
+    .catch((e) => console.error('[aviso-equipe] marca de eco falhou:', e))
+}
+
 export type ResultadoDoAviso = 'enviado' | 'pendente' | 'sem_numero'
 
 export async function avisarEquipe(texto: string, agora: Date = new Date()): Promise<ResultadoDoAviso> {
@@ -92,7 +105,8 @@ export async function avisarEquipe(texto: string, agora: Date = new Date()): Pro
 
   if (await janelaAberta(numero, agora).catch(() => false)) {
     try {
-      await enviarMensagemLivre(`+${numero}`, { tipo: 'texto', texto })
+      const { idExterno } = await enviarMensagemLivre(`+${numero}`, { tipo: 'texto', texto })
+      await marcarEcoComoNosso(idExterno)
       return 'enviado'
     } catch (e) {
       await logar('AVISO', 'aviso_equipe_falhou', 'Aviso de passagem não saiu — fica pendente', { erro: e instanceof Error ? e.message : String(e) })
@@ -114,7 +128,8 @@ export async function entregarAvisosPendentes(agora: Date = new Date()): Promise
   const corpo = pendentes
     .map((p) => `${new Date(p.em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}\n${p.texto}`)
     .join('\n\n— — —\n\n')
-  await enviarMensagemLivre(`+${numero}`, { tipo: 'texto', texto: (cabeca + corpo).slice(0, 4000) })
+  const { idExterno } = await enviarMensagemLivre(`+${numero}`, { tipo: 'texto', texto: (cabeca + corpo).slice(0, 4000) })
+  await marcarEcoComoNosso(idExterno)
   await gravarPendentes([])
   await logar('INFO', 'aviso_equipe_entregue', `Avisos de passagem entregues (${pendentes.length})`, { quantos: pendentes.length })
   return { pendentes: 0, entregues: pendentes.length }
