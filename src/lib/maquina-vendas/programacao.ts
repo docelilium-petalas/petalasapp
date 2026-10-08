@@ -85,6 +85,11 @@ export type ItemProgramado = {
   etapaOrdem: number
   /** Só vem no detalhe do dia — a vista de mês não carrega texto. */
   texto?: string
+  /** Também só no detalhe do dia: a prova de entrega e o template. */
+  templateNome?: string | null
+  entregue?: boolean
+  lida?: boolean
+  codigoErro?: string | null
 }
 
 export type FatiaDeCadencia = {
@@ -296,6 +301,10 @@ export async function programacaoDoDia(
       ...SELECT_LINHA,
       mensagemFinal: true,
       textoEntregue: true,
+      templateNome: true,
+      entregueEm: true,
+      lidaEm: true,
+      codigoErro: true,
     },
   })
 
@@ -315,6 +324,10 @@ export async function programacaoDoDia(
        * nunca viu, que é pior que campo vazio: tem cara de certo.
        */
       texto: l.textoEntregue ?? l.mensagemFinal,
+      templateNome: l.templateNome,
+      entregue: !!l.entregueEm,
+      lida: !!l.lidaEm,
+      codigoErro: l.codigoErro == null ? null : String(l.codigoErro),
     }))
     .sort((a, b) => a.quando.localeCompare(b.quando))
 }

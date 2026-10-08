@@ -44,6 +44,7 @@ import { AbaProntidao } from '@/components/maquina-vendas/AbaProntidao'
 import { CartaoIndicador, EsqueletoDeCartoes, TituloDoBloco, colunasPara } from '@/components/maquina-vendas/cartoes'
 import { erroDe } from '@/components/maquina-vendas/comum'
 import { FiltroDePeriodo, hojeSP, periodoDaUrl, periodoParaUrl, type PeriodoDias } from '@/components/maquina-vendas/FiltroDePeriodo'
+import { ModalDoDia } from '@/components/maquina-vendas/ModalDoDia'
 
 type Dashboard = Awaited<ReturnType<typeof getMvDashboard>>
 type Aba = 'tabela' | 'programacao' | 'conversas' | 'cadencias' | 'ritmo' | 'atencao' | 'prontidao'
@@ -94,6 +95,9 @@ export default function MaquinaDeVendasPage() {
   const [carregandoPeriodo, setCarregandoPeriodo] = useState(false)
   /** Troca rápida de período: só a última resposta pinta a tela. */
   const pedido = useRef(0)
+  /** Dia aberto no modal a partir do aviso de campanha prevista. */
+  const [diaDoModal, setDiaDoModal] = useState<string | null>(null)
+  const fecharModal = useCallback(() => setDiaDoModal(null), [])
 
   const carregarPainel = useCallback(async () => {
     if (periodo === undefined) return
@@ -216,6 +220,28 @@ export default function MaquinaDeVendasPage() {
             <FiltroDePeriodo periodo={periodo} hoje={hoje} onChange={mudarPeriodo} carregando={carregandoPeriodo} />
           )}
 
+          {/* A campanha só entra na fila às 09:00 do dia: até lá os cartões ficam zerados. Esta faixa diz o que vem. */}
+          {dashboard && dashboard.previstas.total > 0 && (
+            <div className="flex flex-wrap items-start gap-2 px-3 py-2 rounded-xl border border-primary/30 bg-primary/5 text-[13px] text-foreground">
+              <CalendarDays className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+              <span className="flex-1 min-w-60">
+                <strong>{dashboard.previstas.total} mensagem(ns) da campanha previstas {dashboard.periodo.de ? `em ${dashboard.periodo.rotulo}` : 'nos próximos dias'}.</strong>{' '}
+                Ainda não estão nos cartões: cada onda entra na fila às 09:00 do próprio dia e só então vira agendada.
+                {dashboard.previstas.cabem < dashboard.previstas.total && ` ${dashboard.previstas.total - dashboard.previstas.cabem} passam da capacidade do dia e escorregam.`}
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                {dashboard.previstas.ondas.map((o) => (
+                  <button key={o.id} onClick={() => setDiaDoModal(o.dia)}
+                    className="inline-flex items-center gap-1 px-2.5 min-h-8 rounded-lg border border-border bg-card text-xs font-medium hover:bg-accent cursor-pointer"
+                    title={o.impedimento ?? 'Abrir o dia: texto, contatos e configuração'}>
+                    {o.dia.slice(8)}/{o.dia.slice(5, 7)} · {o.nome} · ~{o.total}
+                    {o.impedimento && <AlertTriangle className="w-3 h-3 text-warning" />}
+                  </button>
+                ))}
+              </span>
+            </div>
+          )}
+
           <div className={`space-y-4 transition-opacity ${carregandoPeriodo && dashboard ? 'opacity-60' : ''}`}>
             {!dashboard && !erroCarga && GRUPOS_DE_INDICADORES.map((g) => (
               <section key={g.id} className="space-y-2">
@@ -277,6 +303,7 @@ export default function MaquinaDeVendasPage() {
           {abaAtual === 'ritmo' && <AbaRitmo vencidas={dashboard?.vencidas ?? 0} podeEditar={admin} />}
           {abaAtual === 'atencao' && <AbaAtencao />}
           {abaAtual === 'prontidao' && admin && <AbaProntidao />}
+          {diaDoModal && <ModalDoDia key={diaDoModal} dia={diaDoModal} vistaInicial="tudo" onClose={fecharModal} />}
         </div>
       </div>
     </AppLayout>

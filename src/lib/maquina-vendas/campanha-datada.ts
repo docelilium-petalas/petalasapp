@@ -54,7 +54,7 @@ const PRIORIDADE_EM_MASSA = 2
 
 export const ORIGEM_CAMPANHA = 'campanha_1010'
 
-type Onda = {
+export type Onda = {
   /** Chave curta, usada no cursor e na `refExterna`. */
   id: string
   gatilho: string
@@ -70,7 +70,8 @@ type Onda = {
   seguirOnda: string | null
 }
 
-const ONDAS: Onda[] = [
+/** Exportada para a projeção (`projecao-campanha.ts`) ler as mesmas datas e regras — nunca uma cópia. */
+export const ONDAS: Onda[] = [
   {
     id: 'd1',
     gatilho: 'campanha_1010_save_the_date',
@@ -97,7 +98,7 @@ const ONDAS: Onda[] = [
   },
 ]
 
-const cursorDaOnda = (id: string) => `mv:campanha_1010:${id}`
+export const cursorDaOnda = (id: string) => `mv:campanha_1010:${id}`
 
 export type ResultadoOnda = {
   onda: string

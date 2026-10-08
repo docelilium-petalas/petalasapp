@@ -80,6 +80,7 @@ import {
   type ItemProgramado,
 } from '@/lib/maquina-vendas/programacao'
 import { rodarBateriaPura, type ResultadoDaBateria } from '@/lib/maquina-vendas/bateria-pura'
+import { projetarCampanhas, type ItemPrevisto, type OndaNaProjecao, type Projecao } from '@/lib/maquina-vendas/projecao-campanha'
 import {
   CURSOR_BRIEFING,
   CURSOR_DISJUNTOR,
@@ -1058,7 +1059,29 @@ export async function getMvDashboard(periodo?: { de: string; ate: string } | nul
       console.error('[maquina-vendas] pulso do canal ilegível:', e instanceof Error ? e.message : e)
       return null
     }),
+    previstas: await previstasDoPainel(dias, hoje, ajustes),
   }
+}
+
+export type PrevistasDoPainel = {
+  total: number
+  cabem: number
+  ondas: { id: string; nome: string; dia: string; abreEm: string; total: number; impedimento: string | null }[]
+}
+
+/**
+ * Os cartões contam só o que existe em `MvMensagem`. Um dia futuro de campanha
+ * fica zerado até as 09:00 dele — esta é a linha que diz o que vem.
+ */
+async function previstasDoPainel(dias: { de: string; ate: string } | null, hoje: string, a: RitmoParaProjecao): Promise<PrevistasDoPainel> {
+  const de = dias ? (dias.de > hoje ? dias.de : hoje) : hoje
+  const ate = dias ? dias.ate : null
+  if (ate && ate < hoje) return { total: 0, cabem: 0, ondas: [] }
+  const p = await projetar(de, ate, a)
+  const ondas = p.ondas
+    .filter((o) => !o.semeadaEm && o.dia >= de && (!ate || o.dia <= ate) && o.total > 0)
+    .map((o) => ({ id: o.id, nome: o.nome, dia: o.dia, abreEm: o.abreEm, total: p.itens.filter((i) => i.ondaId === o.id).length, impedimento: o.impedimento }))
+  return { total: p.itens.length, cabem: p.itens.filter((i) => i.cabe).length, ondas }
 }
 
 async function montarAvisos(ajustes: Ajustes, vencidas: number, ativas: number): Promise<AvisoMv[]> {
@@ -1291,6 +1314,46 @@ export async function getDesempenhoPorToque(dias = 60, cadenciaId?: string): Pro
 // ═══════════════════════════════════════════════════════════════════════════
 
 export type { DiaProgramado, ItemProgramado, FatiaDeCadencia } from '@/lib/maquina-vendas/programacao'
+export type { ItemPrevisto, OndaNaProjecao } from '@/lib/maquina-vendas/projecao-campanha'
+
+type RitmoParaProjecao = { tetoDiario: number; intervaloMinMinutos: number; intervaloMaxMinutos: number; janelaInicio: string; janelaFim: string }
+
+/**
+ * A campanha datada só entra na fila às 09:00 do próprio dia; antes disso o
+ * que existe é a PROJEÇÃO (`projecao-campanha.ts`, só leitura). Se a projeção
+ * falhar, a tela segue com o que é real — nunca derruba o painel.
+ */
+async function projetar(de: string | null, ate: string | null, a: RitmoParaProjecao): Promise<Projecao> {
+  const j = parseJanela(a.janelaInicio, a.janelaFim)
+  try {
+    return await projetarCampanhas(prisma, {
+      de,
+      ate,
+      passoMinutos: Math.max(CRON_MINUTOS, (a.intervaloMinMinutos + a.intervaloMaxMinutos) / 2),
+      tetoEfetivo: capacidade(a).efetivo,
+      janelaInicioMin: j.inicioMin,
+      janelaFimMin: j.fimMin,
+    })
+  } catch (e) {
+    console.error('[maquina-vendas] projeção da campanha falhou:', e instanceof Error ? e.message : e)
+    return { ondas: [], itens: [] }
+  }
+}
+
+export type PrevistasDoDia = { quantidade: number; cabem: number; primeira: string; ondas: string[]; impedimento: string | null }
+
+function previstasPorDia(p: Projecao): Record<string, PrevistasDoDia> {
+  const r: Record<string, PrevistasDoDia> = {}
+  for (const it of p.itens) {
+    const d = (r[it.dia] ??= { quantidade: 0, cabem: 0, primeira: it.hora, ondas: [], impedimento: null })
+    d.quantidade++
+    if (it.cabe) d.cabem++
+    if (it.hora < d.primeira) d.primeira = it.hora
+    if (!d.ondas.includes(it.cadenciaNome)) d.ondas.push(it.cadenciaNome)
+  }
+  for (const o of p.ondas) if (r[o.dia] && o.impedimento) r[o.dia].impedimento = o.impedimento
+  return r
+}
 
 export type ProgramacaoDaTela = {
   dias: DiaProgramado[]
@@ -1303,6 +1366,8 @@ export type ProgramacaoDaTela = {
   envioPausado: boolean
   /** AGENDADAS de dias que já passaram — saem antes de tudo quando o envio voltar. */
   atrasadas: number
+  /** Campanha ainda não semeada, por dia: o que VAI entrar na fila às 09:00. */
+  previstas: Record<string, PrevistasDoDia>
 }
 
 export async function getProgramacao(de: string, ate: string): Promise<ProgramacaoDaTela> {
@@ -1310,9 +1375,10 @@ export async function getProgramacao(de: string, ate: string): Promise<Programac
   const ajustes = await getMvAjustes()
   const janela = parseJanela(ajustes.janelaInicio, ajustes.janelaFim)
   const hoje = diaSP(new Date())
-  const [dias, atrasadas] = await Promise.all([
+  const [dias, atrasadas, projecao] = await Promise.all([
     programacaoDoIntervalo(prisma, de, ate, { tetoEfetivo: ajustes.capacidade.efetivo, janela }),
     prisma.mvMensagem.count({ where: { status: MENSAGEM_STATUS.AGENDADA, agendadaPara: { lt: inicioDoDia(hoje) } } }),
+    projetar(de, ate, ajustes),
   ])
   return {
     dias,
@@ -1324,12 +1390,107 @@ export async function getProgramacao(de: string, ate: string): Promise<Programac
     janelaFim: ajustes.janelaFim,
     envioPausado: ajustes.envioPausado,
     atrasadas,
+    previstas: previstasPorDia(projecao),
   }
 }
 
 export async function getProgramacaoDoDia(dia: string): Promise<ItemProgramado[]> {
   await exigirAuth()
   return programacaoDoDia(prisma, dia)
+}
+
+export type CadenciaDoDia = {
+  id: string
+  nome: string
+  gatilho: string
+  ativo: boolean
+  etapas: number
+  templates: { nome: string; status: string | null }[]
+}
+
+export type DetalheDoDia = {
+  dia: string
+  hoje: string
+  /** O que existe em `MvMensagem` neste dia (saiu, agendada, erro). */
+  itens: ItemProgramado[]
+  /** O que a campanha VAI pôr na fila neste dia (ainda não existe no banco). */
+  previstas: ItemPrevisto[]
+  ondas: OndaNaProjecao[]
+  cadencias: CadenciaDoDia[]
+  config: {
+    tetoDiario: number
+    tetoEfetivo: number
+    capacidadeDoRelogio: number
+    intervaloMin: number
+    intervaloMax: number
+    janelaInicio: string
+    janelaFim: string
+    envioPausado: boolean
+    campanhaArmada: boolean
+    /** `null` = a Meta não devolveu a lista agora. */
+    templatesMedidos: boolean
+  }
+}
+
+/** Tudo de um dia, para o modal da Programação. Só leitura. */
+export async function getDetalheDoDia(dia: string): Promise<DetalheDoDia> {
+  await exigirAuth()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dia)) throw new Error('Dia inválido.')
+  const ajustes = await getMvAjustes()
+  const [itens, projecao] = await Promise.all([programacaoDoDia(prisma, dia), projetar(dia, dia, ajustes)])
+  const ondas = projecao.ondas.filter((o) => o.dia === dia)
+
+  const ids = [...new Set([...itens.map((i) => i.cadenciaId), ...ondas.map((o) => o.cadenciaId).filter((x): x is string => !!x)])]
+  const cads = ids.length
+    ? await prisma.mvCadencia.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, nome: true, gatilho: true, ativo: true, etapas: { select: { templateNome: true } } },
+      })
+    : []
+
+  let st: Map<string, string> | null = null
+  try {
+    const { statusDosTemplates } = await import('@/lib/maquina-vendas/canal')
+    st = await statusDosTemplates()
+  } catch (e) {
+    console.error('[maquina-vendas] status dos templates ilegível:', e instanceof Error ? e.message : e)
+  }
+
+  const cadencias: CadenciaDoDia[] = cads.map((c) => {
+    const nomes = new Set<string>()
+    for (const e of c.etapas) if (e.templateNome) nomes.add(e.templateNome)
+    for (const i of itens) if (i.cadenciaId === c.id && i.templateNome) nomes.add(i.templateNome)
+    for (const o of ondas) if (o.cadenciaId === c.id) nomes.add(o.template)
+    return {
+      id: c.id,
+      nome: c.nome,
+      gatilho: c.gatilho,
+      ativo: c.ativo,
+      etapas: c.etapas.length,
+      templates: [...nomes].map((nome) => ({ nome, status: st?.get(nome) ?? null })),
+    }
+  })
+
+  return {
+    dia,
+    hoje: diaSP(new Date()),
+    itens,
+    previstas: projecao.itens.filter((i) => i.dia === dia),
+    ondas,
+    cadencias,
+    config: {
+      tetoDiario: ajustes.tetoDiario,
+      tetoEfetivo: ajustes.capacidade.efetivo,
+      capacidadeDoRelogio: ajustes.capacidade.mensagens,
+      intervaloMin: ajustes.intervaloMinMinutos,
+      intervaloMax: ajustes.intervaloMaxMinutos,
+      janelaInicio: ajustes.janelaInicio,
+      janelaFim: ajustes.janelaFim,
+      envioPausado: ajustes.envioPausado,
+      campanhaArmada: process.env.MV_CAMPANHA_1010 === '1',
+      templatesMedidos: !!st,
+    },
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -8,14 +8,19 @@
  * janela). Dia que não cabe é marcado: a sobra escorrega para o dia seguinte, e
  * quem programa uma coleção precisa ver isso ANTES, não no WhatsApp.
  *
+ * Desde 08/10/2026 o mês mostra também as PREVISTAS: a onda da campanha datada
+ * que só entra na fila às 09:00 do próprio dia (sem isso a véspera e o
+ * lançamento apareciam vazios). O filtro Saíram / Programadas recorta o mês e o
+ * modal; clicar num dia abre o modal com tudo daquele dia.
+ *
  * Abaixo de 640px o calendário vira lista de dias com movimento.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
-import { ChevronLeft, ChevronRight, CalendarDays, AlertTriangle, X } from 'lucide-react'
-import { getProgramacao, getProgramacaoDoDia, type ItemProgramado, type ProgramacaoDaTela } from '@/app/actions/maquina-vendas'
-import { BOTAO, BOTAO_ICONE, CABECALHO_PAINEL, Carregando, Chip, ErroDeCarga, PAINEL, ROTULO_STATUS_MSG, TOM_STATUS_MSG, Vazio, erroDe } from './comum'
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { getProgramacao, type ProgramacaoDaTela } from '@/app/actions/maquina-vendas'
+import { BOTAO_ICONE, CABECALHO_PAINEL, Carregando, Chip, ErroDeCarga, PAINEL, Vazio, erroDe } from './comum'
+import { FiltroDeVista, ModalDoDia, type VistaDaProgramacao } from './ModalDoDia'
 
 const DIAS_DA_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -27,6 +32,9 @@ function diasDoMes(ano: number, mes: number) {
   return new Date(Date.UTC(ano, mes + 1, 0)).getUTCDate()
 }
 
+/** O que a célula mostra, já recortado pela vista. */
+type Resumo = { enviadas: number; erros: number; agendadas: number; previstas: number; previstasForaDoDia: number; primeiraPrevista: string | null; cabe: boolean; horas: string[] }
+
 export function AbaProgramacao() {
   const hojeSP = useMemo(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date()), [])
   const [ano, setAno] = useState(() => Number(hojeSP.slice(0, 4)))
@@ -35,8 +43,7 @@ export function AbaProgramacao() {
   const [erro, setErro] = useState<string | null>(null)
   const [mesCarregado, setMesCarregado] = useState<string | null>(null)
   const [diaAberto, setDiaAberto] = useState<string | null>(null)
-  const [itens, setItens] = useState<ItemProgramado[] | null>(null)
-  const [erroDia, setErroDia] = useState<string | null>(null)
+  const [vista, setVista] = useState<VistaDaProgramacao>('tudo')
 
   const carregando = mesCarregado !== `${ano}-${mes}`
 
@@ -60,16 +67,7 @@ export function AbaProgramacao() {
     void carregar()
   }, [carregar])
 
-  const abrirDia = async (dia: string) => {
-    setDiaAberto(dia)
-    setItens(null)
-    setErroDia(null)
-    try {
-      setItens(await getProgramacaoDoDia(dia))
-    } catch (e) {
-      setErroDia(erroDe(e))
-    }
-  }
+  const fecharDia = useCallback(() => setDiaAberto(null), [])
 
   const mudarMes = (delta: number) => {
     const d = new Date(Date.UTC(ano, mes + delta, 1))
@@ -78,11 +76,61 @@ export function AbaProgramacao() {
     setDiaAberto(null)
   }
 
-  const porDia = useMemo(() => new Map((dados?.dias ?? []).map((d) => [d.dia, d])), [dados])
+  const resumos = useMemo(() => {
+    const m = new Map<string, Resumo>()
+    if (!dados) return m
+    const mostraSaidas = vista !== 'programadas'
+    const mostraFila = vista !== 'sairam'
+    const pegar = (dia: string) => {
+      let r = m.get(dia)
+      if (!r) {
+        r = { enviadas: 0, erros: 0, agendadas: 0, previstas: 0, previstasForaDoDia: 0, primeiraPrevista: null, cabe: true, horas: [] }
+        m.set(dia, r)
+      }
+      return r
+    }
+    for (const d of dados.dias) {
+      const r = pegar(d.dia)
+      if (mostraSaidas) {
+        r.enviadas = d.enviadas
+        r.erros = d.erros
+      }
+      if (mostraFila) {
+        r.agendadas = d.agendadas
+        r.cabe = d.cabe
+      }
+      r.horas = d.amostra.filter((a) => (a.status === 'AGENDADA' ? mostraFila : mostraSaidas)).map((a) => a.hora)
+    }
+    if (mostraFila) {
+      for (const [dia, p] of Object.entries(dados.previstas)) {
+        const r = pegar(dia)
+        r.previstas = p.quantidade
+        r.previstasForaDoDia = p.quantidade - p.cabem
+        r.primeiraPrevista = p.primeira
+        // O total do dia (fila + prevista) contra a capacidade — é o que o relógio vai enfrentar.
+        if (r.agendadas + r.previstas > dados.tetoEfetivo) r.cabe = false
+      }
+    }
+    return m
+  }, [dados, vista])
+
+  const totaisDoMes = useMemo(() => {
+    let enviadas = 0, erros = 0, agendadas = 0, previstas = 0
+    for (const r of resumos.values()) {
+      enviadas += r.enviadas
+      erros += r.erros
+      agendadas += r.agendadas
+      previstas += r.previstas
+    }
+    return { enviadas, erros, agendadas, previstas }
+  }, [resumos])
+
+  const temMovimento = (r: Resumo | undefined) => !!r && r.enviadas + r.erros + r.agendadas + r.previstas > 0
+
   const primeiroDiaSemana = new Date(Date.UTC(ano, mes, 1)).getUTCDay()
   const total = diasDoMes(ano, mes)
   const celulas: Array<string | null> = [...Array(primeiroDiaSemana).fill(null), ...Array.from({ length: total }, (_, i) => ymd(ano, mes, i + 1))]
-  const comMovimento = (dados?.dias ?? []).filter((d) => d.agendadas + d.enviadas + d.erros > 0)
+  const comMovimento = [...resumos.entries()].filter(([, r]) => temMovimento(r)).sort(([a], [b]) => a.localeCompare(b))
 
   return (
     <div className="space-y-3">
@@ -106,8 +154,19 @@ export function AbaProgramacao() {
               <span className="text-sm font-medium text-foreground capitalize min-w-36 text-center">{MESES[mes]} {ano}</span>
               <button className={BOTAO_ICONE} onClick={() => mudarMes(1)} aria-label="Próximo mês"><ChevronRight className="w-4 h-4" /></button>
             </div>
-            <span className="text-[11px] text-muted-foreground">toque num dia para ver quem recebe</span>
+            <FiltroDeVista vista={vista} onChange={setVista} />
           </div>
+
+          {dados && (
+            <div className="px-4 sm:px-5 py-2 border-b border-border-subtle flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span>No mês:</span>
+              {vista !== 'programadas' && <Chip tom="positivo">{totaisDoMes.enviadas} saíram</Chip>}
+              {vista !== 'programadas' && totaisDoMes.erros > 0 && <Chip tom="negativo">{totaisDoMes.erros} com erro</Chip>}
+              {vista !== 'sairam' && <Chip tom="info">{totaisDoMes.agendadas} agendadas</Chip>}
+              {vista !== 'sairam' && <Chip tom="marca">{totaisDoMes.previstas} previstas (campanha)</Chip>}
+              <span className="ml-auto">clique num dia para ver tudo dele</span>
+            </div>
+          )}
 
           {carregando && !dados ? (
             <Carregando />
@@ -120,26 +179,30 @@ export function AbaProgramacao() {
                 ))}
                 {celulas.map((dia, i) => {
                   if (!dia) return <div key={`v${i}`} className="bg-card min-h-24" />
-                  const d = porDia.get(dia)
+                  const r = resumos.get(dia)
                   const ehHoje = dia === dados?.hoje
                   const passado = !!dados && dia < dados.hoje
                   return (
-                    <button key={dia} onClick={() => abrirDia(dia)}
+                    <button key={dia} onClick={() => setDiaAberto(dia)} onDoubleClick={() => setDiaAberto(dia)}
                       className={`bg-card min-h-24 p-2 text-left flex flex-col gap-1 hover:bg-muted/40 transition-colors cursor-pointer ${diaAberto === dia ? 'ring-2 ring-inset ring-primary' : ''}`}
-                      aria-label={`${dia}: ${d?.agendadas ?? 0} agendadas, ${d?.enviadas ?? 0} enviadas`}>
+                      aria-label={`${dia}: ${r?.enviadas ?? 0} saíram, ${r?.agendadas ?? 0} agendadas, ${r?.previstas ?? 0} previstas`}>
                       <span className={`text-xs tabular ${ehHoje ? 'font-semibold text-primary' : passado ? 'text-muted-foreground' : 'text-foreground'}`}>
                         {Number(dia.slice(8))}{ehHoje ? ' · hoje' : ''}
                       </span>
-                      {d && d.enviadas > 0 && <span className="text-[11px] text-success tabular">{d.enviadas} saíram</span>}
-                      {d && d.agendadas > 0 && (
-                        <span className={`text-[11px] tabular ${d.cabe ? 'text-info' : 'text-warning font-medium'}`}>
-                          {d.agendadas} agendada(s){d.cabe ? '' : ' · não cabe'}
+                      {r && r.enviadas > 0 && <span className="text-[11px] text-success tabular">{r.enviadas} saíram</span>}
+                      {r && r.agendadas > 0 && (
+                        <span className={`text-[11px] tabular ${r.cabe ? 'text-info' : 'text-warning font-medium'}`}>
+                          {r.agendadas} agendada(s){r.cabe ? '' : ' · não cabe'}
                         </span>
                       )}
-                      {d && d.erros > 0 && <span className="text-[11px] text-destructive tabular">{d.erros} com erro</span>}
-                      {d && d.amostra.length > 0 && (
-                        <span className="text-[10px] text-muted-foreground truncate">{d.amostra.map((a) => a.hora).join(' · ')}</span>
+                      {r && r.previstas > 0 && (
+                        <span className={`text-[11px] tabular ${r.cabe ? 'text-primary' : 'text-warning font-medium'}`} title="Campanha: entra na fila às 09:00 do dia">
+                          ~{r.previstas} previstas · {r.primeiraPrevista}
+                          {r.previstasForaDoDia > 0 ? ` · ${r.previstasForaDoDia} passam do dia` : ''}
+                        </span>
                       )}
+                      {r && r.erros > 0 && <span className="text-[11px] text-destructive tabular">{r.erros} com erro</span>}
+                      {r && r.horas.length > 0 && <span className="text-[10px] text-muted-foreground truncate">{r.horas.join(' · ')}</span>}
                     </button>
                   )
                 })}
@@ -148,18 +211,19 @@ export function AbaProgramacao() {
               {/* <640px: lista de dias com movimento */}
               <div className="sm:hidden">
                 {comMovimento.length === 0 ? (
-                  <Vazio Icone={CalendarDays} titulo="Nada programado neste mês" />
+                  <Vazio Icone={CalendarDays} titulo={vista === 'sairam' ? 'Nada saiu neste mês' : 'Nada programado neste mês'} />
                 ) : (
-                  comMovimento.map((d) => (
-                    <button key={d.dia} onClick={() => abrirDia(d.dia)}
+                  comMovimento.map(([dia, r]) => (
+                    <button key={dia} onClick={() => setDiaAberto(dia)}
                       className="w-full min-h-10 px-4 py-3 border-b border-border-subtle last:border-b-0 text-left flex items-center justify-between gap-2 hover:bg-muted/40 cursor-pointer">
                       <span className="text-sm text-foreground tabular">
-                        {d.dia.slice(8)}/{d.dia.slice(5, 7)}{d.dia === dados?.hoje ? ' · hoje' : ''}
+                        {dia.slice(8)}/{dia.slice(5, 7)}{dia === dados?.hoje ? ' · hoje' : ''}
                       </span>
                       <span className="flex flex-wrap justify-end gap-1">
-                        {d.enviadas > 0 && <Chip tom="positivo">{d.enviadas} saíram</Chip>}
-                        {d.agendadas > 0 && <Chip tom={d.cabe ? 'info' : 'alerta'}>{d.agendadas} agendada(s){d.cabe ? '' : ' · não cabe'}</Chip>}
-                        {d.erros > 0 && <Chip tom="negativo">{d.erros} erro(s)</Chip>}
+                        {r.enviadas > 0 && <Chip tom="positivo">{r.enviadas} saíram</Chip>}
+                        {r.agendadas > 0 && <Chip tom={r.cabe ? 'info' : 'alerta'}>{r.agendadas} agendada(s){r.cabe ? '' : ' · não cabe'}</Chip>}
+                        {r.previstas > 0 && <Chip tom="marca">~{r.previstas} previstas</Chip>}
+                        {r.erros > 0 && <Chip tom="negativo">{r.erros} erro(s)</Chip>}
                       </span>
                     </button>
                   ))
@@ -170,55 +234,7 @@ export function AbaProgramacao() {
         </div>
       )}
 
-      {/* Detalhe do dia */}
-      {diaAberto && (
-        <div className={`${PAINEL} overflow-hidden`}>
-          <div className={CABECALHO_PAINEL}>
-            <span className="ocr-label">{diaAberto.slice(8)}/{diaAberto.slice(5, 7)} — quem recebe</span>
-            <button className={BOTAO_ICONE} onClick={() => setDiaAberto(null)} aria-label="Fechar o dia"><X className="w-4 h-4" /></button>
-          </div>
-          {(() => {
-            const d = porDia.get(diaAberto)
-            return d && d.porCadencia.length > 0 ? (
-              <div className="px-4 sm:px-5 py-3 border-b border-border-subtle flex flex-wrap gap-1.5">
-                {d.porCadencia.map((f) => <Chip key={f.cadenciaId}>{f.nome}: {f.total}</Chip>)}
-                {!d.cabe && (
-                  <Chip tom="alerta"><AlertTriangle className="w-3 h-3" /> passa da capacidade do dia — a sobra vai para o dia seguinte</Chip>
-                )}
-              </div>
-            ) : null
-          })()}
-          {erroDia ? (
-            <div className="p-4"><ErroDeCarga erro={erroDia} tentarDeNovo={() => abrirDia(diaAberto)} /></div>
-          ) : itens === null ? (
-            <Carregando />
-          ) : itens.length === 0 ? (
-            <Vazio Icone={CalendarDays} titulo="Nenhuma mensagem neste dia" />
-          ) : (
-            itens.map((it) => (
-              <div key={it.id} className="px-4 sm:px-5 py-3 border-b border-border-subtle last:border-b-0">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <Link href={`/maquina-vendas/contato/${it.inscricaoId}`} className="text-sm font-medium text-foreground hover:underline">
-                      {it.nome}
-                    </Link>
-                    <span className="text-[11px] text-muted-foreground ml-2">{it.telefone}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1">
-                    <span className="text-xs tabular text-foreground">{it.hora}</span>
-                    <Chip>{it.cadenciaNome} · toque {it.etapaOrdem}</Chip>
-                    <Chip tom={TOM_STATUS_MSG[it.status]}>{ROTULO_STATUS_MSG[it.status] ?? it.status}</Chip>
-                  </div>
-                </div>
-                {it.texto && <p className="text-xs text-muted-foreground mt-1.5 whitespace-pre-line line-clamp-4">{it.texto}</p>}
-              </div>
-            ))
-          )}
-          <div className="px-4 sm:px-5 py-3 border-t border-border">
-            <button className={BOTAO} onClick={() => setDiaAberto(null)}>Fechar</button>
-          </div>
-        </div>
-      )}
+      {diaAberto && <ModalDoDia key={diaAberto} dia={diaAberto} vistaInicial={vista} onClose={fecharDia} />}
     </div>
   )
 }
