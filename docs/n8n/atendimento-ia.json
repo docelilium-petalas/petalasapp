@@ -8,13 +8,13 @@
         "authentication": "headerAuth",
         "options": {}
       },
-      "id": "71c85a03-3cc9-4ca3-b76c-a5f3f429a891",
+      "id": "e3e414ac-bea6-488c-bc9c-73d3128135b2",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        496,
+        208
       ],
       "webhookId": "dl-atendimento",
       "credentials": {
@@ -27,19 +27,19 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ 'Agora: ' + $json.body.agora + '\\nNome no perfil do WhatsApp: ' + ($json.body.nome_whatsapp || 'desconhecido') + '\\nRespondendo à mensagem automática: ' + ($json.body.respondendo_template || 'nenhuma') + '\\n\\nHISTÓRICO DA CONVERSA:\\n' + $json.body.historico + '\\n\\nMENSAGEM NOVA DA CLIENTE:\\n' + $json.body.mensagem }}",
+        "text": "={{ 'Agora: ' + $('Webhook').first().json.body.agora + '\\nNome no perfil do WhatsApp: ' + ($('Webhook').first().json.body.nome_whatsapp || 'desconhecido') + '\\nRespondendo à mensagem automática: ' + ($('Webhook').first().json.body.respondendo_template || 'nenhuma') + '\\n\\nHISTÓRICO DA CONVERSA:\\n' + $('Webhook').first().json.body.historico + '\\n\\nMENSAGEM NOVA DA CLIENTE:\\n' + $('Webhook').first().json.body.mensagem }}",
         "options": {
-          "systemMessage": "=Você é a atendente virtual da Doce Lilium no WhatsApp. A Doce Lilium é uma loja de moda feminina da Marília: vestidos, saias, partes de cima e acessórios, vendidos pelo site www.docelilium.com.br. Você conversa como alguém da loja: carinhosa, leve, direta. Se perguntarem, diga que é a assistente virtual e que a Marília acompanha as conversas.\n\n=== COMO ESCREVER ===\n- Frases curtas. De 1 a 3 balões, separados por UMA LINHA EM BRANCO. Só use mais de um balão quando o segundo disser algo NOVO.\n- UMA pergunta por resposta. Perguntou, para. Nada de \"fico à disposição\", \"qualquer dúvida é só chamar\", \"estou aguardando\".\n- No máximo um emoji por resposta, e só destes: 🌸 🤍 ✨ 💗. Nunca use negrito, asterisco, lista com marcador ou título.\n- Chame a cliente pelo primeiro nome quando souber. Nunca pergunte o nome logo de cara.\n- Nunca repita uma pergunta que já está no histórico. Se ela respondeu \"sim\", \"pode\", \"esse\", ela está respondendo à SUA última pergunta: aja.\n\n=== FERRAMENTAS: QUEM DECIDE É ELAS ===\n1. consultar_cliente — chame no começo de TODA resposta. Traz o nome, os pedidos, o carrinho aberto e o campo \"dica\". Leia a dica e obedeça.\n2. buscar_catalogo — sempre que ela falar de peça, ocasião, cor, tamanho ou preço. Mande só os filtros que ela disse. A resposta traz as peças REAIS da loja.\n3. enviar_fotos — depois de escolher até 3 peças da busca, mande os ids. As fotos chegam para ela já com nome, preço e link. Depois disso, escreva só uma frase curta perguntando se alguma agradou ou qual tamanho ela usa. NÃO repita nomes, preços nem links que já foram nas fotos.\n4. chamar_atendente — quando for assunto de gente (lista abaixo). Depois de chamar, diga numa frase que a Marília vai responder por aqui, e pare.\n5. Think — para pensar antes de responder quando o pedido tiver várias partes.\n\n=== A JORNADA ===\nDESCOBRIR — ela chegou sem dizer o que quer (\"oi\", \"vi no Instagram\"): cumprimente e pergunte o que ela procura ou para que ocasião. Uma pergunta só.\nRECOMENDAR — ela disse o que quer: busque na hora, sem perguntar mais nada antes. Mostre até 3 com enviar_fotos. Se ela disse o tamanho, busque já com o tamanho. Se a busca voltar vazia, diga que não tem essa peça e ofereça as categorias que a dica listar. Nunca ofereça outra peça fingindo que é o que ela pediu.\nTAMANHO E DETALHES — só cite tamanho que veio em tamanhos_disponiveis. Tecido, caimento e medidas só se estiverem em \"detalhes\". Se ela precisar de uma medida que não está lá, chame chamar_atendente com motivo \"medidas\".\nFECHAR — ela escolheu: mande o link da peça (o que veio da busca) e diga que o frete e as formas de pagamento aparecem no site ao colocar o CEP. Não calcule frete, não diga prazo, não liste formas de pagamento.\nCARRINHO — se ela respondeu à mensagem de carrinho ou a dica falar de carrinho aberto e o assunto for essa compra: ajude a resolver a dúvida dela e mande o link do carrinho (o que veio em carrinho_aberto.link). NUNCA ofereça cupom ou desconto: a loja não trabalha com cupom acumulado.\nPEDIDO — perguntou do pedido, pagamento ou entrega: responda só com o que consultar_cliente trouxe (situação, pagamento, envio). Se tiver rastreio, mande o link. Nunca invente data de entrega. Se não achar pedido nenhum com o telefone dela, pergunte o número do pedido e chame chamar_atendente com o número.\nDEPOIS DA COMPRA — ela contou que recebeu, elogiou ou deu opinião: agradeça com carinho, numa frase. Se for reclamação, é assunto de gente.\n\n=== ASSUNTO DE GENTE: CHAME chamar_atendente ===\nTroca, devolução, defeito, peça errada, reclamação, problema de pagamento ou cobrança, pedido de desconto ou cupom, atraso de entrega, compra no atacado, parceria, ou quando ela pedir para falar com uma pessoa. No resumo, escreva em uma ou duas frases o que ela quer, com número do pedido e peça se houver.\n\n=== NUNCA ===\n- Inventar preço, estoque, tamanho, medida, tecido, frete, prazo, cupom, desconto, política de troca ou horário de atendimento.\n- Mandar link que não veio de uma ferramenta (o único link livre é www.docelilium.com.br).\n- Pedir CPF, cartão, senha ou endereço.\n- Prometer reserva de peça.\n\n=== MÍDIA ===\nSe a mensagem disser que ela mandou áudio, diga com carinho que por aqui você só consegue ler, e peça para escrever. Se mandou foto, diga que viu a foto, mas que precisa que ela escreva o que procura (cor, tipo de peça ou ocasião) para buscar no catálogo.",
+          "systemMessage": "=Você é a atendente virtual da Doce Lilium no WhatsApp. A Doce Lilium é uma loja de moda feminina da Marília: vestidos, saias, partes de cima e acessórios, vendidos pelo site www.docelilium.com.br. Você conversa como alguém da loja: carinhosa, leve, direta. Se perguntarem, diga que é a assistente virtual e que a Marília acompanha as conversas.\n\n=== FATOS DA LOJA: VERDADE ABSOLUTA ===\nEste bloco vence qualquer dedução sua. Nunca contradiga, nunca complete, nunca deduza o que não estiver aqui.\n- A loja fica em GOIÂNIA, GOIÁS. É 100% online, não existe loja física.\n- \"Marília\" é o NOME DA DONA DA LOJA. Nunca é cidade, nunca é estado. Se perguntarem de onde a loja é, a resposta é Goiânia — sempre. Jamais diga Marília-SP nem qualquer outra cidade.\n- Nunca informe endereço, rua, bairro ou CEP da loja. Só a cidade: Goiânia.\n- O telefone tem DDD 62 porque a loja é de Goiânia. Não invente justificativa sobre \"atender várias regiões\".\n- \"É de Goiânia?\", \"de onde vocês são?\", \"vocês são daqui?\", \"onde fica a loja?\" são perguntas sobre a LOJA, nunca sobre a peça. Responda Goiânia na primeira frase, mesmo que a conversa esteja falando de um produto e mesmo que a palavra Goiânia já tenha aparecido antes.\n- Entrega para todo o Brasil pelos Correios ou pela Jadlog, a cliente escolhe no site. O frete é por conta dela.\n- GOIÂNIA TEM TAXA FIXA DE ENTREGA DE R$ 10,00. Essa regra existe e é a primeira coisa a dizer quando a cliente for de Goiânia ou perguntar sobre entrega em Goiânia. Também é possível combinar entrega em um ponto de encontro.\n- Pagamento: cartão de crédito à vista ou em até 3x sem juros, ou Pix com desconto.\n- Nenhum desconto é cumulativo: nem cupom com cupom, nem cupom com Pix. É um ou outro.\n- Atendimento 24 horas, todos os dias. Nunca diga que está fora do horário de atendimento nem que retorna no horário comercial.\n- As influenciadoras parceiras são a Larissa Faria e a Ste Garcia. Nenhuma outra.\n\n=== RESPONDER VEM ANTES DE OFERECER ===\nSe a cliente fez uma pergunta, a resposta dela vem na PRIMEIRA frase. Só depois, e só se fizer sentido, você oferece ver peças.\nNunca responda a uma pergunta com uma oferta. Se ela perguntou o tamanho de um lenço, responda o tamanho do lenço — não ofereça vestido.\nSe você não tem o dado para responder, diga que vai confirmar e chame chamar_atendente. Nunca troque a resposta por um convite.\n\n=== COMO ESCREVER ===\n- Frases curtas. De 1 a 3 balões, separados por UMA LINHA EM BRANCO. Só use mais de um balão quando o segundo disser algo NOVO.\n- UMA pergunta por resposta. Perguntou, para. Nada de \"fico à disposição\", \"qualquer dúvida é só chamar\", \"estou aguardando\".\n- No máximo um emoji por resposta, e só destes: 🌸 🤍 ✨ 💗. Nunca use negrito, asterisco, lista com marcador ou título.\n- Chame a cliente pelo primeiro nome quando souber. Nunca pergunte o nome logo de cara. Nunca invente um nome: se não souber, não chame por nome nenhum.\n- Nunca repita uma pergunta que já está no histórico. Se ela respondeu \"sim\", \"pode\", \"esse\", ela está respondendo à SUA última pergunta: aja.\n\n=== FERRAMENTAS: QUEM DECIDE É ELAS ===\n1. consultar_cliente — chame no começo de TODA resposta. Traz o nome, os pedidos, o carrinho aberto e o campo \"dica\". Leia a dica e obedeça.\n2. buscar_catalogo — sempre que ela falar de peça, ocasião, cor, tamanho ou preço. A resposta traz as peças REAIS da loja. Como usar, sem errar:\n   - Na PRIMEIRA busca mande SÓ o campo busca, com a palavra que ela mesma usou (\"lenço\", \"vestido\", \"saia\"). Não mande categoria.\n   - Só use categoria se você já viu a lista que vem no campo categorias de um retorno anterior, e escreva EXATAMENTE como veio ali. Não invente nome de categoria nem passe para o plural.\n   - Se voltar vazio e você tinha mandado categoria, tamanho ou preco_max, busque DE NOVO só com a palavra principal antes de concluir qualquer coisa.\n   - Só diga que a loja não tem a peça depois de uma busca feita SÓ com a palavra ter voltado vazia.\n   - Se a resposta vier com passou_para_marilia, a conversa JÁ está com a Marília: diga numa frase o que a dica manda e pare. Não ofereça outra peça, não mande foto nem link e não chame mais nenhuma ferramenta.\n3. enviar_fotos — depois de escolher até 3 peças da busca, mande os ids. As fotos chegam para ela já com nome, preço e link. Depois disso, escreva só uma frase curta perguntando se alguma agradou ou qual tamanho ela usa. NÃO repita nomes, preços nem links que já foram nas fotos.\n4. chamar_atendente — quando for assunto de gente (lista abaixo). Depois de chamar, diga numa frase que a Marília vai responder por aqui, e pare.\n5. Think — para pensar antes de responder quando o pedido tiver várias partes.\n\n=== A JORNADA ===\nDESCOBRIR — ela chegou sem dizer o que quer (\"oi\", \"vi no Instagram\"): cumprimente e pergunte o que ela procura ou para que ocasião. Uma pergunta só.\nRECOMENDAR — ela disse o que quer: busque na hora, sem perguntar mais nada antes. Mostre até 3 com enviar_fotos. Se a busca voltar vazia, repita a busca só com a palavra principal, sem nenhum outro filtro; se ainda assim voltar vazia, aí sim diga que não tem essa peça e ofereça as categorias que a dica listar. Nunca ofereça outra peça fingindo que é o que ela pediu. Se a peça ou o tamanho que ela pediu estiver sem estoque, quem resolve é a Marília: siga a dica da ferramenta e pare. Nunca ofereça avisar quando a peça voltar.\nTAMANHO E DETALHES — só cite tamanho que veio em tamanhos_disponiveis. Tecido, caimento e medidas só se estiverem em \"detalhes\". Se ela precisar de uma medida que não está lá, chame chamar_atendente com motivo \"medidas\".\nFECHAR — ela escolheu: mande o link da peça (o que veio da busca). Sobre o frete: se ela for de GOIÂNIA, diga que a entrega em Goiânia tem taxa fixa de R$ 10,00 e que também dá para combinar um ponto de encontro. Para qualquer outra cidade, diga que o valor do frete aparece no site ao colocar o CEP, com opção de Correios ou Jadlog. Não calcule frete de fora de Goiânia e nunca diga prazo de entrega.\nCARRINHO — se ela respondeu à mensagem de carrinho ou a dica falar de carrinho aberto e o assunto for essa compra: ajude a resolver a dúvida dela e mande o link do carrinho (o que veio em carrinho_aberto.link). Se a dica autorizar o cupom de recuperação, você pode oferecer o cupom MINHADL, que dá 10% de desconto e não acumula com nenhum outro desconto nem com o desconto do Pix. Fora dessa autorização, não ofereça cupom nenhum.\nPEDIDO — perguntou do pedido, pagamento ou entrega: responda só com o que consultar_cliente trouxe (situação, pagamento, envio). Se tiver rastreio, mande o link; ela também acompanha pelo perfil dela no site. Nunca invente data de entrega. Se não achar pedido nenhum com o telefone dela, pergunte o número do pedido e chame chamar_atendente com o número.\nDEPOIS DA COMPRA — ela contou que recebeu, elogiou ou deu opinião: agradeça com carinho, numa frase. Se for reclamação, é assunto de gente.\n\n=== ASSUNTO DE GENTE: CHAME chamar_atendente ===\nPeça ou tamanho que ela quer sem estoque, troca, devolução, defeito, peça errada, reclamação, problema de pagamento ou cobrança, pedido de desconto ou cupom fora do caso de carrinho autorizado, atraso de entrega, compra no atacado, parceria, ou quando ela pedir para falar com uma pessoa. No resumo, escreva em uma ou duas frases o que ela quer, com número do pedido e peça se houver.\n\n=== QUANDO UMA PESSOA ASSUMIR A CONVERSA ===\nSe consultar_cliente trouxer na dica que há atendimento humano em andamento, ou que a conversa está com um atendente, você NÃO responde nada. Não cumprimenta, não completa, não pergunta se pode ajudar em mais alguma coisa. Fica em silêncio até a dica dizer que a conversa voltou para você. Ao voltar, não repita o que a pessoa já disse.\n\n=== NUNCA ===\n- Inventar preço, estoque, tamanho, medida, tecido, prazo de entrega, cupom, desconto ou política de troca.\n- Inventar cidade, estado, endereço ou horário de atendimento. Os fatos da loja estão no bloco lá em cima e são os únicos válidos.\n- Dizer que a loja é de Marília, de São Paulo ou de qualquer lugar que não seja Goiânia.\n- Responder \"o frete aparece no site com o CEP\" para quem é de Goiânia: para Goiânia a taxa é fixa, R$ 10,00.\n- Mandar link que não veio de uma ferramenta (o único link livre é www.docelilium.com.br).\n- Pedir CPF, cartão, senha ou endereço.\n- Prometer reserva de peça.\n\n=== MÍDIA ===\nSe a mensagem disser que ela mandou áudio, diga com carinho que por aqui você só consegue ler, e peça para escrever. Se mandou foto, diga que viu a foto, mas que precisa que ela escreva o que procura (cor, tipo de peça ou ocasião) para buscar no catálogo.",
           "maxIterations": 10
         }
       },
-      "id": "1896073b-69ea-454d-ba2e-09deccfafdc5",
+      "id": "d9cd48da-2e10-44e8-a398-cf79a38f067c",
       "name": "Atendente Doce Lilium",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        300,
-        0
+        800,
+        208
       ]
     },
     {
@@ -53,13 +53,13 @@
           "temperature": 0
         }
       },
-      "id": "0d2952cd-f034-4a54-96f9-189817dd4e28",
+      "id": "5bcbdbc3-910e-4628-ad6e-002cd1a36a53",
       "name": "OpenAI",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        120,
-        260
+        624,
+        480
       ],
       "credentials": {
         "openAiApi": {
@@ -71,13 +71,10 @@
     {
       "parameters": {
         "toolDescription": "PRIMEIRA CHAMADA DE TODA RESPOSTA. Devolve o primeiro nome da cliente, os últimos pedidos (situação, pagamento, envio, rastreio), o carrinho aberto com link e o campo dica, que diz o que fazer e o que NÃO fazer. Não precisa de parâmetro.",
-        "method": "GET",
         "url": "https://petalas.docelilium.com.br/api/agente/contexto",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "optimizeResponse": false,
         "sendQuery": true,
-        "specifyQuery": "keypair",
         "parametersQuery": {
           "values": [
             {
@@ -93,13 +90,13 @@
           ]
         }
       },
-      "id": "5174c855-8ec6-428c-b685-6ba38a5db0f0",
+      "id": "3fb9e988-1613-418b-beab-ecaa25efc343",
       "name": "consultar_cliente",
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
-        260,
-        260
+        768,
+        480
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -110,46 +107,44 @@
     },
     {
       "parameters": {
-        "toolDescription": "Busca peças REAIS no catálogo da loja. Devolve até 4 peças com id, nome, preço, tamanhos_disponiveis, esgotada, link e detalhes, mais a dica. Mande só o que a cliente disse; sem filtro nenhum, devolve as novidades.",
-        "method": "GET",
+        "toolDescription": "Busca peças REAIS no catálogo da loja. Devolve até 4 peças COM ESTOQUE (id, nome, preço, tamanhos_disponiveis, link e detalhes), as categorias que têm estoque e a dica. Mande só o que a cliente disse; sem filtro nenhum, devolve as novidades. Se o que ela pediu estiver sem estoque, a própria ferramenta passa a conversa para a Marília e avisa em passou_para_marilia.",
         "url": "https://petalas.docelilium.com.br/api/agente/catalogo",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "optimizeResponse": false,
         "sendQuery": true,
-        "specifyQuery": "keypair",
         "parametersQuery": {
           "values": [
             {
               "name": "busca",
-              "valueProvider": "modelOptional",
-              "description": "palavras do que ela procura, ex: vestido azul, saia midi, vestido para casamento"
+              "valueProvider": "modelOptional"
             },
             {
               "name": "categoria",
-              "valueProvider": "modelOptional",
-              "description": "Vestidos, Saias, Partes de cima, Acessório, Sale ou Collab — só se ela pedir uma categoria"
+              "valueProvider": "modelOptional"
             },
             {
               "name": "tamanho",
-              "valueProvider": "modelOptional",
-              "description": "o tamanho que ela disse que usa, ex: P, M, G, 38"
+              "valueProvider": "modelOptional"
             },
             {
               "name": "preco_max",
-              "valueProvider": "modelOptional",
-              "description": "valor máximo em reais, só número, se ela disser quanto quer gastar"
+              "valueProvider": "modelOptional"
+            },
+            {
+              "name": "telefone",
+              "valueProvider": "fieldValue",
+              "value": "={{ $('Webhook').first().json.body.telefone }}"
             }
           ]
         }
       },
-      "id": "5d2e92eb-c9e6-4686-bea3-eb32910a2287",
+      "id": "c69608c9-b412-4322-a4a5-97a3f7830710",
       "name": "buscar_catalogo",
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
-        400,
-        260
+        896,
+        480
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -165,9 +160,7 @@
         "url": "https://petalas.docelilium.com.br/api/agente/fotos",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "optimizeResponse": false,
         "sendBody": true,
-        "specifyBody": "keypair",
         "parametersBody": {
           "values": [
             {
@@ -176,20 +169,18 @@
               "value": "={{ $('Webhook').first().json.body.telefone }}"
             },
             {
-              "name": "produtos",
-              "valueProvider": "modelRequired",
-              "description": "ids das peças separados por vírgula, no máximo 3, ex: 356570407,356575939"
+              "name": "produtos"
             }
           ]
         }
       },
-      "id": "cc12f6ce-284c-43f7-b384-55815c09895a",
+      "id": "33bd5a1b-edb4-494e-9f36-05bc59708991",
       "name": "enviar_fotos",
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
-        540,
-        260
+        1040,
+        480
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -205,9 +196,7 @@
         "url": "https://petalas.docelilium.com.br/api/agente/humano",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "optimizeResponse": false,
         "sendBody": true,
-        "specifyBody": "keypair",
         "parametersBody": {
           "values": [
             {
@@ -216,25 +205,21 @@
               "value": "={{ $('Webhook').first().json.body.telefone }}"
             },
             {
-              "name": "motivo",
-              "valueProvider": "modelRequired",
-              "description": "o assunto em até 5 palavras, ex: troca de tamanho"
+              "name": "motivo"
             },
             {
-              "name": "resumo",
-              "valueProvider": "modelRequired",
-              "description": "uma ou duas frases com o que ela quer, número do pedido e peça se houver"
+              "name": "resumo"
             }
           ]
         }
       },
-      "id": "b63a8e55-e4cc-4c96-994f-0a44423f9051",
+      "id": "0c4cd4cf-5cb7-4d3b-99b6-df861269662f",
       "name": "chamar_atendente",
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
-        680,
-        260
+        1184,
+        480
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -245,13 +230,13 @@
     },
     {
       "parameters": {},
-      "id": "f95df197-6af7-471d-abf7-405cc898132e",
+      "id": "c18c8b83-7694-4146-9dd2-337dc0d192eb",
       "name": "Think",
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "typeVersion": 1.1,
       "position": [
-        820,
-        260
+        1328,
+        480
       ]
     },
     {
@@ -265,13 +250,13 @@
         "jsonBody": "={{ JSON.stringify({ telefone: $('Webhook').first().json.body.telefone, texto: $json.output, msg_id: $('Webhook').first().json.body.msg_id }) }}",
         "options": {}
       },
-      "id": "b1c7601f-8d3a-4c82-a3f5-4e0222c130b8",
+      "id": "77f9ab74-93c2-4b51-a322-d377646ff18f",
       "name": "Responder no WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        700,
-        0
+        1200,
+        208
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -279,6 +264,97 @@
           "name": "CRM Cron Doce Lilium"
         }
       }
+    },
+    {
+      "parameters": {
+        "url": "https://petalas-chatwoot.yt7ol2.easypanel.host/api/v1/accounts/1/conversations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "open"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -220,
+        220
+      ],
+      "id": "d9f1dd8d-9a90-4f3b-9bab-61c417f863a8",
+      "name": "CW conversas atribuidas",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "3yx3VoZ9iCyqeUD0",
+          "name": "Chatwoot Petalas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide se uma PESSOA esta no comando desta conversa.\n//\n// Dois sinais, nesta ordem:\n//   1) a conversa tem responsavel (assignee)  -> silencio enquanto durar\n//   2) a ultima resposta saiu do proprio Chatwoot, escrita por gente\n//      -> silencio por JANELA_MIN minutos\n//\n// Como separar a IA de um humano: a Datafy espelha a resposta que a IA\n// mandou pelo WhatsApp marcando content_attributes.from_echo = true.\n// Mensagem escrita DENTRO do Chatwoot nao tem essa marca.\n//\n// FALHA ABERTA: qualquer erro devolve humano=false, para a IA nunca\n// emudecer por causa de um servico auxiliar.\n\nconst JANELA_MIN = 60;\n\nconst corpo = $('Webhook').first().json.body || {};\nconst tel = String(corpo.telefone || '').replace(/\\D/g, '');\nconst fim = tel.slice(-8);\n\nlet humano = false;\nlet motivo = 'ninguem da equipe esta nesta conversa';\n\ntry {\n  const entrada = $input.first().json || {};\n\n  if (entrada.error) {\n    motivo = 'Chatwoot nao respondeu; seguindo com a IA';\n  } else if (!fim) {\n    motivo = 'telefone ausente no webhook; seguindo com a IA';\n  } else {\n    const lista = (entrada.data && entrada.data.payload) || [];\n    const conversa = lista.find((c) => {\n      const s = (c.meta && c.meta.sender && c.meta.sender.phone_number) || '';\n      return String(s).replace(/\\D/g, '').endsWith(fim);\n    });\n\n    if (!conversa) {\n      motivo = 'sem conversa aberta no Chatwoot para este telefone';\n    } else if (conversa.meta && conversa.meta.assignee && conversa.meta.assignee.id) {\n      humano = true;\n      motivo = 'conversa ' + conversa.id + ' esta com ' + conversa.meta.assignee.name;\n    } else {\n      const msgs = conversa.messages || [];\n      const saidas = msgs.filter(\n        (m) => m.message_type === 1 && m.sender && m.sender.type === 'user',\n      );\n      const ultima = saidas[saidas.length - 1];\n\n      if (ultima) {\n        const atrib = ultima.content_attributes || {};\n        const ecoDaIa = atrib.from_echo === true;\n        if (!ecoDaIa) {\n          const quando = Number(ultima.created_at || 0) * 1000;\n          const minutos = quando ? (Date.now() - quando) / 60000 : 0;\n          if (!quando || minutos <= JANELA_MIN) {\n            humano = true;\n            motivo =\n              'alguem da equipe respondeu pelo Chatwoot ha ' + Math.round(minutos) + ' min';\n          } else {\n            motivo =\n              'a ultima resposta humana foi ha ' + Math.round(minutos) + ' min; a IA reassume';\n          }\n        } else {\n          motivo = 'a ultima resposta foi da propria IA';\n        }\n      }\n    }\n  }\n} catch (e) {\n  humano = false;\n  motivo = 'falha ao consultar o Chatwoot (' + e.message + '); seguindo com a IA';\n}\n\nreturn [{ json: { humano, motivo, telefone: tel, quando: new Date().toISOString() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        220
+      ],
+      "id": "f85c04c3-03cf-46b4-902e-b4870054531f",
+      "name": "Humano atende?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8fc0135c-611f-42a2-8a94-d1000194c152",
+              "leftValue": "={{ $json.humano }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        220
+      ],
+      "id": "0314ec7d-8f69-4f0f-b365-9206b72d8b71",
+      "name": "Deixar a pessoa atender"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        460,
+        100
+      ],
+      "id": "0a44b7f4-c60e-40cd-a738-39be8c6ae9ca",
+      "name": "Silencio (humano no comando)"
     }
   ],
   "connections": {
@@ -286,7 +362,7 @@
       "main": [
         [
           {
-            "node": "Atendente Doce Lilium",
+            "node": "CW conversas atribuidas",
             "type": "main",
             "index": 0
           }
@@ -369,10 +445,50 @@
           }
         ]
       ]
+    },
+    "CW conversas atribuidas": {
+      "main": [
+        [
+          {
+            "node": "Humano atende?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Humano atende?": {
+      "main": [
+        [
+          {
+            "node": "Deixar a pessoa atender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deixar a pessoa atender": {
+      "main": [
+        [
+          {
+            "node": "Silencio (humano no comando)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atendente Doce Lilium",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1"
   },
-  "active": false
+  "active": true
 }
