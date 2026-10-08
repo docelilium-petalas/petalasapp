@@ -4,6 +4,7 @@ import { enviarMensagemLivre } from '@/lib/maquina-vendas/canal'
 import { registrarTurno, ultimaMensagem } from '@/lib/atendimento/conversa'
 import prisma from '@/lib/prisma'
 import { funilSemFalhar, temLinkDaLoja } from '@/lib/atendimento/funil'
+import { baloesPermitidos, estadoDaConversa } from '@/lib/atendimento/trava-pos-passagem'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,8 +32,29 @@ export async function POST(request: Request) {
   const telefone = telefoneDaRequisicao(corpo.telefone)
   if (!telefone) return NextResponse.json({ erro: 'telefone inválido' }, { status: 400 })
 
-  const baloes = emBaloes(String(corpo.texto ?? ''))
-  if (!baloes.length) return NextResponse.json({ enviadas: 0 })
+  const doModelo = emBaloes(String(corpo.texto ?? ''))
+  if (!doModelo.length) return NextResponse.json({ enviadas: 0 })
+
+  // Conversa com a Marília: quem decide o que sai é o back-end, não o modelo
+  // (`trava-pos-passagem.ts`, E2E de 08/10/2026). Erro de leitura = livre:
+  // a trava nunca pode calar uma conversa que não foi passada.
+  const estado = await estadoDaConversa(telefone).catch(() => ({ humano: false, desde: null, motivo: null }))
+  const { baloes, trava } = baloesPermitidos(doModelo, estado)
+  if (trava !== 'livre') {
+    await prisma.logEvento
+      .create({
+        data: {
+          origem: 'atendimento',
+          nivel: 'INFO',
+          tipo: 'resposta_travada',
+          titulo: trava === 'humano' ? 'IA segurada: a conversa está com a Marília' : `Resposta da IA trocada depois da passagem (${trava})`,
+          detalhe: doModelo.join('\n\n').slice(0, 1500),
+          dados: JSON.stringify({ telefone, trava, saiu: baloes }).slice(0, 2000),
+        },
+      })
+      .catch(() => undefined)
+  }
+  if (!baloes.length) return NextResponse.json({ enviadas: 0, trava })
 
   let enviadas = 0
   for (const [i, balao] of baloes.entries()) {
@@ -64,9 +86,11 @@ export async function POST(request: Request) {
 
   if (enviadas) {
     const dito = baloes.slice(0, enviadas).join('\n\n')
-    await funilSemFalhar({ e164: telefone, etapa: temLinkDaLoja(dito) ? 'link' : 'novo', atividade: `IA: ${dito}` })
+    // Depois da passagem o negócio fica em "Atendimento humano": a fala da IA
+    // entra só como atividade, sem tentar mover etapa.
+    await funilSemFalhar({ e164: telefone, etapa: trava === 'livre' && temLinkDaLoja(dito) ? 'link' : 'novo', atividade: `IA: ${dito}` })
   }
 
   const nova = corpo.msg_id && (await ultimaMensagem(telefone)) !== corpo.msg_id
-  return NextResponse.json({ enviadas, chegou_mensagem_nova: !!nova })
+  return NextResponse.json({ enviadas, trava, chegou_mensagem_nova: !!nova })
 }

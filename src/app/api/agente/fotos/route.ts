@@ -6,6 +6,7 @@ import { registrarTurno, turnosDe, pendentesEHistorico } from '@/lib/atendimento
 import { funilSemFalhar } from '@/lib/atendimento/funil'
 import { linkDeFotoParaWhatsApp } from '@/lib/atendimento/foto-whatsapp'
 import { DICA_PASSOU_POR_ESTOQUE, passarParaMarilia } from '@/lib/atendimento/passar-para-marilia'
+import { estadoDaConversa } from '@/lib/atendimento/trava-pos-passagem'
 
 /** Foto já mandada nesta janela não sai de novo — medido em 14/09: "Amei o Luna!" fez a IA reenviar a foto do Luna. */
 const JANELA_REPETIDA_MS = 24 * 3_600_000
@@ -43,6 +44,18 @@ export async function POST(request: Request) {
     .filter((n) => Number.isFinite(n) && n > 0)
     .slice(0, 3)
   if (!ids.length) return NextResponse.json({ enviadas: 0, dica: 'Mande os ids que vieram de buscar_catalogo.' })
+
+  // Conversa já com a Marília (inclusive passada nesta mesma rodada): foto
+  // nenhuma sai. Vitrine por cima da atendente é o defeito do E2E de 08/10.
+  if ((await estadoDaConversa(telefone).catch(() => null))?.humano) {
+    return NextResponse.json({
+      enviadas: 0,
+      pecas: [],
+      passou_para_marilia: true,
+      ja_estava_com_a_equipe: true,
+      dica: 'A conversa já está com a Marília. Não mande foto nem link: diga numa frase que ela vai atender por aqui e pare.',
+    })
+  }
 
   const catalogo = await catalogoDaLoja()
   const agora = Date.now()
