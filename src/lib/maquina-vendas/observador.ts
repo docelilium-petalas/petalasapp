@@ -252,6 +252,33 @@ export async function inscrever(args: {
     quando: datas[i],
   }))
 
+  // 🔴 11/10/2026 — a fila parou por 25h por causa desta linha. A conferência
+  // acima é por (cadência, origem, refExterna), mas o banco tem também o
+  // índice PARCIAL `maquina_vendas_inscricoes_ativa_unica` (cadência,
+  // telefone) WHERE status='ATIVA'. A cliente que abandona um SEGUNDO
+  // carrinho com o primeiro ainda na régua passa na conferência e bate no
+  // índice; o P2002 subia cru, derrubava o tique na fase NÚCLEO e o despacho
+  // nunca rodava — e como o observador relê 72h a cada tique, o mesmo
+  // carrinho derrubava todos os tiques seguintes. Uma régua ativa por pessoa
+  // é a regra: o segundo carrinho é "já inscrito", não falha.
+  try {
+    await semearInscricao(args, textos)
+  } catch (e) {
+    if (ehDuplicataAtiva(e)) throw new JaInscrito()
+    throw e
+  }
+}
+
+function ehDuplicataAtiva(e: unknown): boolean {
+  if ((e as { code?: string })?.code === 'P2002') return true
+  const t = String(e)
+  return t.includes('maquina_vendas_inscricoes_ativa_unica') || t.includes('Unique constraint failed')
+}
+
+async function semearInscricao(
+  args: Parameters<typeof inscrever>[0],
+  textos: { ordem: number; texto: string; templateNome: string | null; variaveis: string[]; quando: Date }[],
+): Promise<void> {
   await prisma.$transaction(async (tx) => {
     const insc = await tx.mvInscricao.create({
       data: {
