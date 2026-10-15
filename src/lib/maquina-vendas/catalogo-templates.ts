@@ -112,6 +112,9 @@ export const VARIAVEIS: Record<string, (keyof Contexto)[]> = {
   dl_drop_1010_save_the_date_v1: ['primeiro_nome'],
   dl_drop_1010_vespera_v1: ['primeiro_nome'],
   dl_drop_1010_chegou_v1: ['primeiro_nome'],
+  // Vitrine por peça — textos da Marília no grupo MKT, 15/10/2026. Sem variável.
+  dl_vestido_carolina_v1: [],
+  dl_vestido_cecilia_v1: [],
   // Operação interna — nunca vai para cliente.
   dl_relatorio_pronto_v1: [],
 }
@@ -424,6 +427,54 @@ export const CATALOGO: TemplateMeta[] = [
       SAIR,
     ],
     exemplos: ['Marina'],
+  },
+
+  // ── TRILHA 5 · VITRINE POR PEÇA (MARKETING) ────────────────────────────
+  // Um template por vestido, textos da Marília no grupo MKT Doce Lilium em
+  // 15/10/2026 (14h36 Carolina, 14h42 Cecília), mandados subir pelo Owner.
+  // Mesmo e único ajuste do drop 10.10: a URL saiu do corpo e virou botão
+  // estático (link cru em MARKETING reprova e derruba quality_rating). Sem
+  // primeiro nome: o texto é dela e não abre com saudação. Ela sugeriu
+  // disparar em dias diferentes (o Owner respondeu "D+2").
+  {
+    nome: 'dl_vestido_carolina_v1',
+    categoria: 'MARKETING',
+    idioma: 'pt_BR',
+    trilha: 'campanha',
+    quando: 'Disparo a mão — vitrine do Vestido Carolina. Em dia diferente do Cecília.',
+    corpo:
+      'Um vestido rosa bebê para se apaixonar! ✨\n\n' +
+      'O Vestido Carolina é a combinação perfeita de delicadeza e feminilidade. 💗 Com cintura marcada, saia franzida e um caimento leve e fluido, ele é daqueles vestidos que fazem a gente se sentir ainda mais linda!\n\n' +
+      'Confeccionado em 100% algodão, é perfeito para os dias mais quentes e para quem ama se vestir com beleza em todos os momentos. 🌷\n\n' +
+      'E o melhor: você pode garantir o seu em 3x de R$ 123,30 sem juros! ✨\n\n' +
+      '💕 Apaixone-se pelo Carolina:\n\n' +
+      'Vem ser uma pétala! 🌸',
+    rodape: 'Doce Lilium',
+    botoes: [
+      { tipo: 'URL', texto: 'Ver o Vestido Carolina', url: 'https://www.docelilium.com.br/produtos/vestido-carolina/', estatica: true },
+      SAIR,
+    ],
+    exemplos: [],
+  },
+  {
+    nome: 'dl_vestido_cecilia_v1',
+    categoria: 'MARKETING',
+    idioma: 'pt_BR',
+    trilha: 'campanha',
+    quando: 'Disparo a mão — vitrine do Vestido Cecília. Em dia diferente do Carolina.',
+    corpo:
+      'Um amarelo delicado para iluminar seus dias! 💛\n\n' +
+      'O Vestido Cecília é aquele tipo de peça que conquista nos detalhes: cintura marcada, saia longa e fluida e um tom de amarelo suave que transmite leveza e feminilidade. 🌼\n\n' +
+      'Confeccionado em liocel, ele tem um caimento lindo, bolsos laterais e uma silhueta que valoriza o corpo com delicadeza. Um vestido para se sentir linda sem abrir mão do conforto!\n\n' +
+      '✨ Seu Cecília em 3x de R$ 146,63 sem juros.\n\n' +
+      'Apaixone-se pelo seu novo vestido favorito! 💛\n\n' +
+      'Vem ser uma pétala! 🌷',
+    rodape: 'Doce Lilium',
+    botoes: [
+      { tipo: 'URL', texto: 'Ver o Vestido Cecília', url: 'https://www.docelilium.com.br/produtos/vestido-cecilia/', estatica: true },
+      SAIR,
+    ],
+    exemplos: [],
   },
 
   // ── OPERAÇÃO · A PORTA DO BRIEFING (UTILITY) ─────────────────────────────

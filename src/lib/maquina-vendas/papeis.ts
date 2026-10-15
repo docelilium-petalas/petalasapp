@@ -143,6 +143,19 @@ export const PAPEL_POR_TEMPLATE: Record<string, PapelDoTemplate> = {
     papel: 'Drop 10.10 · chegou',
     porque: 'Onda 3: o drop está no ar. Só para quem recebeu a onda 2.',
   },
+  // ── Vitrine por peça ────────────────────────────────────────────────────
+  dl_vestido_carolina_v1: {
+    motor: 'marketing',
+    marco: 'VCA',
+    papel: 'Vitrine · Vestido Carolina',
+    porque: 'Disparo a mão de uma peça. Em dia diferente do Cecília.',
+  },
+  dl_vestido_cecilia_v1: {
+    motor: 'marketing',
+    marco: 'VCE',
+    papel: 'Vitrine · Vestido Cecília',
+    porque: 'Disparo a mão de uma peça. Em dia diferente do Carolina.',
+  },
   // ── Operação interna (nunca vai para cliente) ───────────────────────────
   dl_relatorio_pronto_v1: {
     motor: 'transacional',

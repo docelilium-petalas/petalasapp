@@ -212,9 +212,11 @@ export function resolverVariantes(texto: string, semente: string): string {
  * laço e coração (🎀 💖 🤍) e quebra linha para respirar — medido contra os 16
  * aprovados: o maior tem 7 linhas, e o `dl_drop_1010_chegou_v1` leva 5 emojis
  * (🎀🎀🎀 é a assinatura do drop). O teto descreve o que a Meta já aprovou.
+ * 15/10/2026: 5 → 6, porque o `dl_vestido_carolina_v1` é texto da Marília com
+ * 6 emojis (✨💗🌷✨💕🌸) e o Owner mandou subir como ela escreveu.
  */
 const MAX_LINHAS = 7
-const MAX_EMOJIS = 5
+const MAX_EMOJIS = 6
 
 function ehSoSaudacao(linha: string): boolean {
   const norm = normalizarTexto(linha)

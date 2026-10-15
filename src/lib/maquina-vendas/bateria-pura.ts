@@ -134,8 +134,8 @@ export function rodarBateriaPura(): ResultadoDaBateria {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    grupo('1 · Catálogo dos 17 templates')
-    igual(CATALOGO.length, 17, 'são 17 templates no catálogo (16 de cliente + a porta do briefing)')
+    grupo('1 · Catálogo dos 19 templates')
+    igual(CATALOGO.length, 19, 'são 19 templates no catálogo (18 de cliente + a porta do briefing)')
     igual(CATALOGO.filter((t) => t.trilha === 'operacao').map((t) => t.nome), ['dl_relatorio_pronto_v1'], 'só a porta do briefing é operação interna')
     igual(validarCatalogo(), [], 'o catálogo passa no próprio validador')
     for (const t of CATALOGO) {

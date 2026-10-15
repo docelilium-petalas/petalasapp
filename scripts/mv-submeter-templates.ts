@@ -61,6 +61,14 @@ const RESOLVIDOS: Record<string, string> = {
   dl_drop_1010_chegou_v1:
     'Texto da Marília para 10/10, aprovado pelo Owner em 27/09/2026. A URL https://docelilium.com.br/ ' +
     'saiu do corpo e virou botão, a pedido da regra da Meta, não da autora.',
+  // Vitrine por peça — textos da Marília no grupo MKT Doce Lilium em
+  // 15/10/2026, com ordem do Owner (@Luan) de subir para aprovação da Meta.
+  dl_vestido_carolina_v1:
+    'Texto da Marília (grupo MKT, 15/10/2026 14h36), mandado subir pelo Owner no mesmo dia. ' +
+    'Único ajuste: a URL do produto saiu do corpo e virou botão estático.',
+  dl_vestido_cecilia_v1:
+    'Texto da Marília (grupo MKT, 15/10/2026 14h42), mandado subir pelo Owner no mesmo dia. ' +
+    'Único ajuste: a URL do produto saiu do corpo e virou botão estático.',
   // Porta do briefing — OPERACIONAL, nunca vai para cliente: só para
   // `MV_BRIEFING_NUMERO` (da equipe). Texto sem voz de marca e sem variável;
   // submetido no porte da CarBoss (04/10/2026) por ordem do Owner de executar
