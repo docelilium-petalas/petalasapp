@@ -16,7 +16,7 @@
  * observador mede e devolve, sem inscrever ninguém.
  */
 
-import { observarCampanhas } from '../src/lib/maquina-vendas/campanha-datada'
+import { ONDAS, observarCampanhas } from '../src/lib/maquina-vendas/campanha-datada'
 import { obterAjustes } from '../src/lib/maquina-vendas/config'
 import { statusDosTemplates } from '../src/lib/maquina-vendas/canal'
 
@@ -34,7 +34,7 @@ async function main() {
   console.log('\n── TEMPLATES NA META ──────────────────────────────────')
   if (!status) console.log('  não foi possível consultar a WABA')
   else {
-    for (const nome of ['dl_drop_1010_save_the_date_v1', 'dl_drop_1010_vespera_v1', 'dl_drop_1010_chegou_v1']) {
+    for (const nome of ONDAS.map((o) => o.template)) {
       console.log(`  ${(status.get(nome) ?? 'AUSENTE').padEnd(10)} ${nome}`)
     }
   }

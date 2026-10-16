@@ -65,7 +65,8 @@ const ROTULO_DA_ORIGEM: Record<string, string> = {
   reativacao: 'Reativação',
   colecao_nova: 'Coleção nova',
   lista_desejos: 'Voltou ao estoque',
-  campanha_1010: 'Drop 10.10',
+  // Mesma origem para o drop 10.10 e os vestidos (17 e 19/10) — `retrato.campanha` separa.
+  campanha_1010: 'Campanhas datadas',
   funil: 'Funil',
   pipeline: 'Funil',
 }

@@ -149,7 +149,7 @@ const ROTULO_DA_ORIGEM: Record<string, string> = {
   reativacao: 'reativação',
   colecao_nova: 'coleção nova',
   lista_desejos: 'lista de desejos',
-  campanha_1010: 'drop 10.10',
+  campanha_1010: 'campanha datada',
   funil: 'coluna do funil',
 }
 const rotuloDaOrigem = (o: string) => ROTULO_DA_ORIGEM[o] ?? o.replace(/_/g, ' ')

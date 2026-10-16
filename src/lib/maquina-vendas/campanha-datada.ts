@@ -68,6 +68,8 @@ export type Onda = {
   abreEm: string
   /** A onda 1 convida a base; as demais falam só com quem já foi convidado. */
   seguirOnda: string | null
+  /** Vai no `retrato` da inscrição, para separar uma campanha da outra. */
+  campanha: string
 }
 
 /** Exportada para a projeção (`projecao-campanha.ts`) ler as mesmas datas e regras — nunca uma cópia. */
@@ -79,6 +81,7 @@ export const ONDAS: Onda[] = [
     template: 'dl_drop_1010_save_the_date_v1',
     abreEm: '2026-10-01T09:00:00-03:00',
     seguirOnda: null,
+    campanha: 'drop_1010',
   },
   {
     id: 'd2',
@@ -87,6 +90,7 @@ export const ONDAS: Onda[] = [
     template: 'dl_drop_1010_vespera_v1',
     abreEm: '2026-10-09T09:00:00-03:00',
     seguirOnda: 'd1',
+    campanha: 'drop_1010',
   },
   {
     id: 'd3',
@@ -95,6 +99,30 @@ export const ONDAS: Onda[] = [
     template: 'dl_drop_1010_chegou_v1',
     abreEm: '2026-10-10T09:00:00-03:00',
     seguirOnda: 'd2',
+    campanha: 'drop_1010',
+  },
+  // ── Vitrine por peça — 48 h entre um vestido e o outro ──────────────────
+  // Ordem do Owner em 16/10/2026: "de 48 horas em 48 horas". Carolina no
+  // sábado 17/10 às 9h, Cecília na segunda 19/10 às 9h. As duas convidam a
+  // base da loja (seguirOnda null): cada uma é uma peça, não um lembrete da
+  // outra. As 48 h ficam folgadas sobre o anti-eco de 20 h do despachante.
+  {
+    id: 'vca',
+    gatilho: 'campanha_vestido_carolina',
+    nome: 'Vestido Carolina (17/10)',
+    template: 'dl_vestido_carolina_v1',
+    abreEm: '2026-10-17T09:00:00-03:00',
+    seguirOnda: null,
+    campanha: 'vestidos',
+  },
+  {
+    id: 'vce',
+    gatilho: 'campanha_vestido_cecilia',
+    nome: 'Vestido Cecília (19/10)',
+    template: 'dl_vestido_cecilia_v1',
+    abreEm: '2026-10-19T09:00:00-03:00',
+    seguirOnda: null,
+    campanha: 'vestidos',
   },
 ]
 
@@ -289,7 +317,7 @@ async function semearOnda(args: {
         chave: c.chave,
         ancora: agora,
         contexto: { primeiro_nome: c.nome },
-        retrato: { campanha: 'drop_1010', onda: onda.id },
+        retrato: { campanha: onda.campanha, onda: onda.id },
         prioridade: PRIORIDADE_EM_MASSA,
       })
       inscritos++
